@@ -1,6 +1,7 @@
 import { View } from "./View";
 import { Container, Scene, Rectangle, Graphics } from "../phaser";
 import { EDirtyType } from "./Defines";
+import { Settings } from "./Setting";
 
 export class ViewGroup extends View {
     protected _container: Container;
@@ -12,10 +13,57 @@ export class ViewGroup extends View {
 
     bind(scene: Scene) {
         if(super.bind(scene)) {            
-            this._container = new Container(scene);
+            this._container = scene.make.container({});
             return true;
         }
         return false;
+    }
+
+    /**
+     * minimum bounds of all children's frame 
+     */
+    public get bounds(): Rectangle {
+        this.checkDirty();
+        return this._bounds;
+    }
+
+    /**@internal */
+    private showBounds() {
+        if(!Settings.showDebugBounds) {
+            if(this._gBounds) {
+                this._gBounds.destroy();
+                this._gBounds = null;
+            }
+            return;
+        }
+        
+        if(!this.withDirty(EDirtyType.DebugBoundsChanged)){
+            return;
+        }   
+
+        if(!this._gBounds) {
+            this._gBounds = this._scene.make.graphics({});
+            this._rootContainer.add(this._gBounds);
+        }
+
+        this._gBounds.clear();
+        let rect = this.bounds;
+        this._gBounds.lineStyle(2/Math.min(this.scaleX, this.scaleY), 0x00ff00, 1);
+        this._gBounds.strokeRect(rect.x + this._container.x, rect.y + this._container.y, rect.width, rect.height); 
+     
+        this.removeDirty(EDirtyType.DebugBoundsChanged);   
+    }
+
+    public onGizmos() {
+        super.onGizmos();
+
+        if(this.finalVisible) {
+            this.showBounds();
+        }
+
+        this._children.forEach(child=>{
+            child.onGizmos();
+        });
     }
 
     public get children(): View[] {
@@ -31,7 +79,7 @@ export class ViewGroup extends View {
         }
 
         this._children.splice(oldIndex, 1);
-        this._children.splice(index, 1, child);
+        this._children.splice(index, 0, child);
 
         if(child.inContainer) {
             let cnt = this._children.length;
@@ -45,7 +93,9 @@ export class ViewGroup extends View {
             if(cnt > 0 && displayIndex == cnt) {
                 displayIndex--;
             }
-            this._container.setChildIndex(child.rootContainer, displayIndex);
+            
+            this._container.remove(child.rootContainer);
+            this._container.addAt(child.rootContainer, displayIndex);
         }
     }
 
@@ -65,6 +115,27 @@ export class ViewGroup extends View {
         }
 
         return this._setChildIndex(child, oldIndex, index - (oldIndex < index ? 1 : 0));
+    }
+
+    public childStateChanged(child: View) {
+        if(child.finalVisible) {
+            if(!child.inContainer) {
+                let index = 0;
+                for(let i=0;this._children.length;i++) {
+                    let c = this._children[i];
+                    if(c == child) {
+                        break;
+                    }
+
+                    if(c.inContainer) {
+                        index++;
+                    }
+                } 
+                this._container.addAt(child.rootContainer, index);
+            }
+        }else{
+            this._container.remove(child.rootContainer);
+        }
     }
 
     public addChildAt(child: View, index: number = 0) {
@@ -115,6 +186,15 @@ export class ViewGroup extends View {
         return child;
     }
 
+    _clear() {
+        super._clear();
+
+        if(this._gBounds) {
+            this._gBounds.destroy();
+            this._gBounds = null;
+        }
+    }
+
     public removeChildAt(index: number, dispose?: boolean, toPool?: boolean): View {
         if(index >= 0 && index < this._children.length) {
             let child = this._children[index];
@@ -129,20 +209,7 @@ export class ViewGroup extends View {
                 child.dispose(toPool);
             }
 
-            // if(child._gFrame) {
-            //     child._gFrame.destroy();
-            //     child._gFrame = null;
-            // }
-
-            // if(child._gBorder) {
-            //     child._gBorder.destroy();
-            //     child._gBorder = null;
-            // }
-
-            // if(child._gBounds) {
-            //     child._gBounds.destroy();
-            //     child._gBounds = null;
-            // }
+            this._clear();
 
             this.addDirty(EDirtyType.BoundsChanged);
             

@@ -1,3 +1,4 @@
+export import Game = Phaser.Game;
 export import Container = Phaser.GameObjects.Container;
 export import GameObject = Phaser.GameObjects.GameObject;
 export import Rectangle = Phaser.Geom.Rectangle;

@@ -2,10 +2,13 @@ import "reflect-metadata";
 
 import { EDirtyType, EOverflowType } from "./Defines";
 import { clonable } from "../annotations/Clonable";
-import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite } from "../phaser";
+import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture } from "../phaser";
 import { ViewGroup } from "./ViewGroup";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
+import * as Events from '../events';
+import { ViewEvent } from "../events/ViewEvent";
+
 export class View {
     static sInstanceCounter: number = 0;
 
@@ -45,8 +48,8 @@ export class View {
     private _dirtyType: EDirtyType = EDirtyType.None; 
     private _isDisposed: boolean = false;
 
-    private _scene: Scene;
-    private _rootContainer: Container;
+    protected _scene: Scene;
+    protected _rootContainer: Container;
     private _displayObject: GameObject;
 
     @clonable()
@@ -66,10 +69,11 @@ export class View {
     protected _enableBackground: boolean = false;
     @clonable()
     protected _backgroundColor: number = 0xffffff;
-    protected _gBackground: Sprite = null;
+    protected _gBackground: Graphics = null;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
+    private _hitArea: Rectangle = null;
     /**debug */
     private _gBorder: Graphics;
     private _gFrame: Graphics;
@@ -96,7 +100,7 @@ export class View {
         if(!this._scene) {
             this._scene = scene;
 
-            this._rootContainer = new Container(scene, 0, 0);
+            this._rootContainer = scene.make.container({});
             (this._rootContainer as any).owner = this;
             
             scene.add.container(0,0).add(this._rootContainer);
@@ -117,6 +121,10 @@ export class View {
         }
         this._displayObject = display;
         this._rootContainer.add(display);
+    }
+
+    public get scene(): Scene {
+        return this._scene;
     }
 
     protected get dirty(): boolean {
@@ -169,14 +177,14 @@ export class View {
             this._rootContainer.visible = val;
 
             if(this._parent) {
-                // this._parent.childStateChanged(this);
+                this._parent.childStateChanged(this);
                 
                 if(this.hiddenCollapsed) {
                     this._parent.addDirty(EDirtyType.BoundsChanged);
                 }
             }
 
-            // this.emit(Events.DisplayObjectEvent.VISIBLE_CHANGED, null, this._visible);
+            this.emit(Events.DisplayObjectEvent.VISIBLE_CHANGED, this._visible);
         }
     }
 
@@ -191,7 +199,7 @@ export class View {
             this._internalVisible = val;
 
             if(this._parent) {
-                // this._parent.childStateChanged(this);
+                this._parent.childStateChanged(this);
             }
         }
     }
@@ -204,9 +212,9 @@ export class View {
         if(this._parent) {
             this._parent.removeChild(this);
 
-            // if(this._gFrame && this._gFrame.parent) {
-            //     this._gFrame.parent.removeChild(this._gFrame);
-            // }
+            if(this._gFrame && this._gFrame.parentContainer) {
+                this._gFrame.parentContainer.remove(this._gFrame);
+            }
         }
     }
     
@@ -227,7 +235,7 @@ export class View {
             this.removeFromParent();       
             let oldParent = this._parent;
             this._parent = parent;
-            // this.emit(SObjectEvent.PARENT_CHANGED, null, {old:oldParent, new:parent});
+            this.emit(ViewEvent.PARENT_CHANGED, oldParent, parent);
         }
     }
 
@@ -342,7 +350,7 @@ export class View {
             this._pivotAsAnchor = pivtoAsAnchor;
 
             this._applyPivot();
-            // this.handleBorderChange();
+            this.handleBorderChange();
 
             this.addDirty(EDirtyType.FrameChanged);
             if(this._parent) {
@@ -432,8 +440,7 @@ export class View {
         this.clearDirty();
     }
 
-    /**@internal */
-    showFrame() {     
+    private showFrame() {     
         if(!Settings.showDebugFrame) {
             if(this._gFrame) {
                 this._gFrame.destroy();
@@ -470,8 +477,7 @@ export class View {
 
     }
 
-    /**@internal */
-    showBorder() {
+    private showBorder() {
         if(!Settings.showDebugBorder) {
             if(this._gBorder) {
                 this._gBorder.destroy();
@@ -504,6 +510,15 @@ export class View {
     public onGizmos() {
         if(this.finalVisible) {
             this.showBorder();
+            this.showFrame();
+        }
+    }
+
+    /**@internal */
+    _clear() {
+        if(this._gFrame) {
+            this._gFrame.destroy();
+            this._gFrame = null;
         }
     }
 
@@ -511,10 +526,7 @@ export class View {
         this.parent = null;
         this._isDisposed = true;
 
-        if(this._gFrame) {
-            this._gFrame.destroy();
-            this._gFrame = null;
-        }
+        this._clear();
 
         // if(toPool) {
         //     PoolManager.inst.put(this);
@@ -546,5 +558,118 @@ export class View {
 
     public ensureSizeCorrect() {
         
+    }
+
+    public on(type: string, listener: Function, thisObject?: any): this {
+        if (type == null) return this;
+        this._rootContainer.on(type, listener, thisObject);
+        return this;
+    }
+
+    public off(type: string, listener: Function, thisObject?: any): this {
+        if (type == null) {
+            return this;
+        }
+        this._rootContainer.off(type, listener, thisObject);
+        return this;
+    }
+
+    public once(type: string, listener: Function, thisObject?: any): this {
+        if (type == null) return this;
+        this._rootContainer.once(type, listener, thisObject);
+        return this;
+    }
+
+    public hasListener(event: string, handler?:Function): boolean {   //do we need to also check the context?
+        if(!handler)
+            return this._rootContainer.listeners(event).length > 0;
+        else
+            return this._rootContainer.listeners(event).indexOf(handler) >= 0;
+    }
+
+    public emit(event: string, ...args: any[]): boolean {
+        if (!args || args.length <= 0) {
+            args = [event];
+        }
+        else {
+            args.unshift(event);
+        }
+        return this._rootContainer.emit.call(this._rootContainer, event, args);
+    }
+
+    public removeAllListeners(type?:string):void {
+        this._rootContainer.removeAllListeners(type);
+    }
+
+    public get enableBackground(): boolean {
+        return this._enableBackground;
+    }
+
+    public set enableBackground(val: boolean) {
+        if(this._enableBackground != val) {
+            this._enableBackground = val;
+            this.applyBackgroundChange();
+        }
+    }
+
+    public get backgroundColor(): number {
+        return this._backgroundColor;
+    }
+
+    public set backgroundColor(val: number) {
+        this.setBackgroundColor(val, this._enableBackground);
+    }
+
+    public setBackgroundColor(color: number, enable: boolean = true) {
+        if(this._backgroundColor != color || this._enableBackground != enable) {
+            this._enableBackground = enable;
+            this._backgroundColor = color;
+            this.applyBackgroundChange();
+        }
+    }
+
+    protected updateOpaque() {
+        if(!this._opaque) {
+            if(this._hitArea) {
+                PoolManager.inst.put(this._hitArea);
+                this._hitArea = null;
+            }
+
+            if(this._rootContainer.input) {
+                this._rootContainer.setInteractive(null);
+            }
+            return;
+        }
+
+        if (!this._hitArea) {
+            this._hitArea = PoolManager.inst.get(Rectangle) as Rectangle;
+            this._rootContainer.setInteractive(this._hitArea, Rectangle.Contains);
+        }
+
+        let h: Rectangle = this._hitArea;
+        h.x = h.y = 0;
+        h.width = this.width;
+        h.height = this.height;
+    } 
+
+    protected handleBorderChange() {
+        this.onGizmos();
+        this.applyBackgroundChange();
+        this.updateOpaque();
+    }
+
+    protected applyBackgroundChange() {
+        if(this._enableBackground) {
+            if(!this._gBackground) {
+                this._gBackground = this._scene.make.graphics({});
+                this._rootContainer.addAt(this._gBackground, 0);
+            }
+            this._gBackground.clear();
+            this._gBackground.fillStyle(this._backgroundColor, 1);
+            this._gBackground.fillRect(0, 0, this._width, this._height);
+        }else if(this._gBackground){
+            this._gBackground.destroy();
+            this._gBackground = null;
+        }
     }
 }
