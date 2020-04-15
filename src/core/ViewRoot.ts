@@ -1,28 +1,32 @@
 import { ViewGroup } from "./ViewGroup";
-import { Scene, Game } from "../phaser";
+import { Scene, Game, Size } from "../phaser";
 import { Scale } from "phaser";
 
 export class ViewRoot extends ViewGroup {
-    private static _inst: ViewRoot;
-    public static get inst() {
-        if(!ViewRoot._inst) {
-            ViewRoot._inst = new ViewRoot();
+    private _game: Game;
+
+    public attachTo(scene: Scene) {
+        if(!this._game) {
+            this._game = scene.game;
+            this.bind(scene);
+
+            scene.children.add(this._rootContainer);
+            this._init();
         }
-        return ViewRoot._inst;
     }
 
-    bind(scene: Scene): boolean {
-        if(super.bind(scene)){
-            return true;
-        }
-        return false;
+    private _init() {  
+        this.setSize(this._game.scale.displaySize.width, this._game.scale.displaySize.height);
+        this._game.scale.on(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }
 
-    private _init() {        
-        this._scene.game.scale.on(Scale.Events.ORIENTATION_CHANGE, this._sizeChanged);
+    public dispose(toPool?: boolean) {
+        super.dispose(toPool);
+
+        this._game.scale.off(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }
 
-    private _sizeChanged() {
-
+    private _sizeChanged(gameSize:Size, baseSize: Size, displaySize: Size, resolution: number, previousWidth: number, previousHeight: number) {
+        this.setSize(displaySize.width, displaySize.height);
     }
 }

@@ -2,10 +2,11 @@ import { View } from "./View";
 import { Container, Scene, Rectangle, Graphics } from "../phaser";
 import { EDirtyType } from "./Defines";
 import { Settings } from "./Setting";
+import { ViewRoot } from "./ViewRoot";
 
 export class ViewGroup extends View {
     protected _container: Container;
-    protected _children: View[];  
+    protected _children: View[] = [];  
     protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
 
     /**debug */    
@@ -13,7 +14,8 @@ export class ViewGroup extends View {
 
     bind(scene: Scene) {
         if(super.bind(scene)) {            
-            this._container = scene.make.container({});
+            this._container = scene.make.container({}, false);
+            this._rootContainer.addAt(this._container, 0);
             return true;
         }
         return false;
@@ -63,6 +65,16 @@ export class ViewGroup extends View {
 
         this._children.forEach(child=>{
             child.onGizmos();
+        });
+    }
+
+    onUpdate(time: number, delta: number) {
+        super.onUpdate(time, delta);      
+
+        this._children.forEach(child=>{
+            if(this.finalVisible) {
+                child.onUpdate(time, delta);
+            }
         });
     }
 
@@ -136,6 +148,18 @@ export class ViewGroup extends View {
         }else{
             this._container.remove(child.rootContainer);
         }
+    }
+
+    setRoot(root: ViewRoot) {
+        super.setRoot(root);
+
+        for(let c of this._children) {
+            c.setRoot(root);
+        }
+    }
+
+    public addChild(child: View) {
+        this.addChildAt(child, this.children.length);
     }
 
     public addChildAt(child: View, index: number = 0) {
@@ -254,6 +278,15 @@ export class ViewGroup extends View {
         //     this._scrollPane.setContentSize(maxx, maxy);
         // }
     }   
+
+    public dispose(toPool?: boolean) {
+        super.dispose(toPool);
+
+        if(this._gBounds) {
+            this._gBounds.destroy();
+            this._gBounds = null;
+        }
+    }
 
     protected checkDirty() {
         if(this.withDirty(EDirtyType.BoundsChanged)) {

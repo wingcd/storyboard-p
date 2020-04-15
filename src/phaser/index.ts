@@ -1,4 +1,5 @@
 export import Game = Phaser.Game;
+export import Scene = Phaser.Scene;
 export import Container = Phaser.GameObjects.Container;
 export import GameObject = Phaser.GameObjects.GameObject;
 export import Rectangle = Phaser.Geom.Rectangle;
@@ -8,4 +9,4 @@ export import Sprite = Phaser.GameObjects.Sprite;
 export import Texture = Phaser.Textures.Texture;
 export import EventEmitter = Phaser.Events.EventEmitter;
 export import TileSprite = Phaser.GameObjects.TileSprite;
-export import Scene = Phaser.Scene;
+export import Size = Phaser.Structs.Size;

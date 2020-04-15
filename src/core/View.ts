@@ -8,6 +8,7 @@ import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
 import { ViewEvent } from "../events/ViewEvent";
+import { ViewRoot } from "./ViewRoot";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -17,6 +18,7 @@ export class View {
 
     private _id: string;
     private _name: string = "";
+    protected _root: ViewRoot = null;
 
     @clonable()
     private _visible: boolean = true;
@@ -96,14 +98,13 @@ export class View {
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
     }
 
+    /**@internal */
     bind(scene: Scene): boolean {
         if(!this._scene) {
             this._scene = scene;
 
-            this._rootContainer = scene.make.container({});
+            this._rootContainer = scene.make.container({}, false);
             (this._rootContainer as any).owner = this;
-            
-            scene.add.container(0,0).add(this._rootContainer);
 
             this.createDisplayObject();
             return true;
@@ -121,6 +122,11 @@ export class View {
         }
         this._displayObject = display;
         this._rootContainer.add(display);
+    }
+
+    /**@internal */
+    setRoot(root: ViewRoot) {
+        this._root = root;
     }
 
     public get scene(): Scene {
@@ -235,6 +241,9 @@ export class View {
             this.removeFromParent();       
             let oldParent = this._parent;
             this._parent = parent;
+            if(parent) {
+                this.setRoot(parent._root);
+            }
             this.emit(ViewEvent.PARENT_CHANGED, oldParent, parent);
         }
     }
@@ -244,7 +253,7 @@ export class View {
     }
 
     public set x(val: number) {
-        // this.setXY(val, this._y);
+        this.setXY(val, this._y);
     }
 
     public get y(): number {
@@ -252,7 +261,38 @@ export class View {
     }
 
     public set y(val: number) {
-        // this.setXY(this._x, val);
+        this.setXY(this._x, val);
+    }
+
+    protected handleXYChanged() {
+        let xv: number = this._x;
+        let yv: number = this._y;
+        if (this._pivotAsAnchor) {
+            xv -= this._pivot.x * this._width;
+            yv -= this._pivot.y * this._height;
+        }
+
+        this._rootContainer.setPosition(xv + this._pivotOffset.x, yv + this._pivotOffset.y);
+    }
+
+    public setXY(xv: number, yv:number) {
+        if(this.x != xv || this.y != yv) {
+            let oldX = this._x;
+            let oldY = this._y;
+
+            this._x = xv;
+            this._y = yv;
+        
+            this.handleXYChanged();     
+            this.handleBorderChange();    
+
+            this.addDirty(EDirtyType.FrameChanged | EDirtyType.BorderChanged);
+            if(this.parent) {
+                this.parent.addDirty(EDirtyType.BoundsChanged);
+            }
+
+            this.emit(Events.DisplayObjectEvent.XY_CHANGED, oldX, oldY, xv, yv);
+        }
     }
 
     public get scaleX(): number {
@@ -260,7 +300,7 @@ export class View {
     }
 
     public set scaleX(val: number) {
-        // this.setScale(val, this._scaleY);
+        this.setScale(val, this._scaleY);
     }
 
     public get scaleY(): number {
@@ -268,25 +308,101 @@ export class View {
     }
 
     public set scaleY(val: number) {
-        // this.setScale(this._scaleX, val);
+        this.setScale(this._scaleX, val);
+    }
+
+    public setScale(sx: number, sy: number) {
+        if(this.scaleX != sx || this.scaleY != sy) {
+            this._scaleX = sx;
+            this._scaleY = sy;
+
+            this._rootContainer.setScale(sx, sy);
+            this._applyPivot();
+
+            this.addDirty(EDirtyType.FrameChanged);
+            if(this._parent) {
+                this._parent.addDirty(EDirtyType.BoundsChanged);
+            }
+        }
+    }
+
+    public setSize(wv: number, hv: number, ignorePivot?: boolean) {
+        if(this._rawWidth != wv || this._rawHeight != hv) {
+            this._rawWidth = wv;
+            this._rawHeight = hv;
+
+            wv = Math.max(0, wv);
+            hv = Math.max(0, hv);
+
+            let diffw: number = wv - this._width;
+            let diffh: number = hv - this._height;
+            
+            let oldWidth = this._width;
+            let oldHeight = this._height;
+            this._width = wv;
+            this._height = hv;
+
+            if (this._pivot.x != 0 || this._pivot.y != 0) {
+                if (!this._pivotAsAnchor) {
+                    if(!ignorePivot) {
+                        this.setXY(this.x - this._pivot.x * diffw, this.y - this._pivot.y * diffh);    
+                    }                    
+                    this.updatePivotOffset();
+                }
+                else {
+                    this._applyPivot();
+                }
+            }  
+            this.handleBorderChange();
+
+            this.addDirty(EDirtyType.FrameChanged | EDirtyType.BorderChanged);
+            if(this._parent) {
+                this._parent.addDirty(EDirtyType.BoundsChanged);
+            }
+
+            this.emit(Events.DisplayObjectEvent.SIZE_CHANGED, null, new Point(oldWidth, oldHeight));
+        }
+    }
+
+    protected updatePivotOffset() {
+        // translate object after rotate by pivot point(align pivot to rotate pivot)
+        if((this.pivotX == 0 && this.pivotY == 0) || !this.rootContainer.localTransform) {
+            this._pivotOffset.setTo(0, 0);
+        }else{        
+            //old pivot    
+            let dx = this._width * this.pivotX;
+            let dy = this._height * this.pivotY;
+
+            // this.rootContainer.transform.updateLocalTransform();
+            let pos = PoolManager.inst.get(Point) as Point;
+            pos.setTo(dx, dy);
+            let trans = this.rootContainer.localTransform;
+            //offset = (new poivt - old poivt)
+            trans.transformPoint(pos.x, pos.y, pos);
+            //new pivot
+            pos.x -= trans.tx;
+            pos.y -= trans.ty;
+            this._pivotOffset.setTo(dx - pos.x, dy - pos.y);
+            PoolManager.inst.put(pos);
+        }
     }
 
     public get width(): number {
-        // this.ensureSizeCorrect();
+        this.ensureSizeCorrect();
         return this._width;
     }
 
     public set width(val: number) {
-        // this.setSize(val, this._height);
+        this.setSize(val, this._height);
     }
 
     public get height(): number {        
-        // this.ensureSizeCorrect();
+        this.ensureSizeCorrect();
         return this._height;
     }
 
     public set height(val: number) {
-        // this.setSize(this._width, val);
+        this.setSize(this._width, val);
     }
 
     public get sourceHeight(): number {
@@ -339,8 +455,8 @@ export class View {
 
     private _applyPivot(): void {
         if (this._pivot.x != 0 || this._pivot.y != 0) {
-            // this.updatePivotOffset();
-            // this.handleXYChanged();
+            this.updatePivotOffset();
+            this.handleXYChanged();
         }
     }
 
@@ -459,7 +575,7 @@ export class View {
 
         if(this._rootContainer.parentContainer) {
             if(!this._gFrame) {
-                this._gFrame = new Graphics(this._scene);
+                this._gFrame = this._scene.make.graphics({}, false);
                 this._rootContainer.parentContainer.add(this._gFrame);
             }
 
@@ -474,7 +590,6 @@ export class View {
             
             this.removeDirty(EDirtyType.DebugFrameChanged);
         }
-
     }
 
     private showBorder() {
@@ -487,7 +602,7 @@ export class View {
         }
 
         if(!this._gBorder) {
-            this._gBorder = new Graphics(this._scene);
+            this._gBorder = this._scene.make.graphics({}, false);
             this._rootContainer.add(this._gBorder);
         } 
         
@@ -515,11 +630,32 @@ export class View {
     }
 
     /**@internal */
+    onUpdate(time: number, delta: number) {
+        let self = this as any;
+        if(this.finalVisible && self.update && self.update instanceof Function) {
+            self.update(time, delta);
+        }
+
+        // if(this._components) {
+        //     this._components.forEach(comp=>{
+        //         let thisComp = comp as any;
+        //         if(comp.enable && thisComp.update) {
+        //             thisComp.update(time, delta);
+        //         }
+        //     });
+        // }
+    }
+
+    /**@internal */
     _clear() {
         if(this._gFrame) {
             this._gFrame.destroy();
             this._gFrame = null;
         }
+    }
+
+    public reset() {              
+        this._isDisposed = false;
     }
 
     public dispose(toPool?: boolean) {
@@ -580,7 +716,7 @@ export class View {
         return this;
     }
 
-    public hasListener(event: string, handler?:Function): boolean {   //do we need to also check the context?
+    public hasListener(event: string, handler?:Function): boolean {
         if(!handler)
             return this._rootContainer.listeners(event).length > 0;
         else
@@ -588,12 +724,6 @@ export class View {
     }
 
     public emit(event: string, ...args: any[]): boolean {
-        if (!args || args.length <= 0) {
-            args = [event];
-        }
-        else {
-            args.unshift(event);
-        }
         return this._rootContainer.emit.call(this._rootContainer, event, args);
     }
 
@@ -628,15 +758,24 @@ export class View {
         }
     }
 
-    protected updateOpaque() {
+    /**
+     * @description if enable touch in empty area, default is false
+     */
+    public get opaque(): boolean {
+        return this._opaque;
+    }
+
+    public set opaque(value: boolean) {
+        if (this._opaque != value) {
+            this._opaque = value;
+            this.applyOpaque();
+        }
+    }
+
+    protected applyOpaque() {
         if(!this._opaque) {
             if(this._hitArea) {
-                PoolManager.inst.put(this._hitArea);
-                this._hitArea = null;
-            }
-
-            if(this._rootContainer.input) {
-                this._rootContainer.setInteractive(null);
+                this._hitArea.setSize(0, 0);
             }
             return;
         }
@@ -653,15 +792,14 @@ export class View {
     } 
 
     protected handleBorderChange() {
-        this.onGizmos();
         this.applyBackgroundChange();
-        this.updateOpaque();
+        this.applyOpaque();
     }
 
     protected applyBackgroundChange() {
         if(this._enableBackground) {
             if(!this._gBackground) {
-                this._gBackground = this._scene.make.graphics({});
+                this._gBackground = this._scene.make.graphics({}, false);
                 this._rootContainer.addAt(this._gBackground, 0);
             }
             this._gBackground.clear();
@@ -672,4 +810,41 @@ export class View {
             this._gBackground = null;
         }
     }
+
+    public localToGlobal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (this._pivotAsAnchor) {
+            ax += this._pivot.x * this._width;
+            ay += this._pivot.y * this._height;
+        }
+        if (!resultPoint) {
+            resultPoint = PoolManager.inst.get(Point) as Point;
+        }
+        this._rootContainer.localTransform.invert().transformPoint(ax, ay, resultPoint) as Point;
+        return resultPoint;
+    }
+
+    public globalToLocal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (!resultPoint) {
+            resultPoint = PoolManager.inst.get(Point) as Point;
+        }
+        this._rootContainer.localTransform.transformPoint(ax, ay, resultPoint);
+        if (this._pivotAsAnchor) {
+            resultPoint.x -= this._pivot.x * this._width;
+            resultPoint.y -= this._pivot.y * this._height;
+        }
+        return resultPoint;
+    }
+
+    // public localToGlobalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
+    //     if (resultRect == null) {
+    //         resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+    //     }
+
+    //     let pt: Point = this.localToGlobal(ax, ay);
+    //     resultRect.x = pt.x;
+    //     resultRect.y = pt.y;
+    //     resultRect.width = aWidth;
+    //     resultRect.height = aHeight;
+    //     return resultRect;
+    // }
 }
