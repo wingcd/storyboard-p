@@ -1,7 +1,7 @@
 import { View } from "./core/View";
 import { Settings } from "./core/Setting";
-import { Point, Rectangle } from "./phaser";
-import { ViewRoot } from "./core/ViewRoot";
+import { Point, Rectangle, OrientationPlugin } from "./phaser";
+import { ViewRoot, EOrientation } from "./core/ViewRoot";
 import { UIManager } from "./core/UIManager";
 import { ViewScene } from "./core/ViewScene";
 
@@ -26,10 +26,7 @@ class Scene1 extends ViewScene {
 
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
-        view.setXY(300, 200);
-        view.opaque = true;
-        view.opaque = false;
-        view.opaque = true;
+        view.setXY(0, 0);
         
         view.on(Phaser.Input.Events.POINTER_DOWN, ()=>{
             console.log("1231");
@@ -74,24 +71,29 @@ export class StarfallGame extends Phaser.Game {
 const config: Phaser.Types.Core.GameConfig = {
     title: "Starfall",
     parent: "game",
-    width: 800,
-    height: 600,
-    backgroundColor: "#f0f0f0",
+    width: 960,
+    height: 540,
+    backgroundColor: "#f0f0f0",    
     scene: [Scene1],    
     scale: {
         mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
+        // autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'}
+            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'orientation', plugin: OrientationPlugin, start: true, mapping: 'orientation', data: {
+                orientation: EOrientation.LANDSCAPE,
+            }},
         ]
     }
 };
 
 
 window.onload = () => {
-    var game = new StarfallGame(config);    
+    var game = new StarfallGame(config); 
+    // game.scale.orientation = Phaser.Scale.LANDSCAPE;
+    // game.scale.lockOrientation(Phaser.Scale.PORTRAIT);
     // game.scale.scaleMode = Phaser.Scale.FIT;
     // game.scale.autoCenter = Phaser.Scale.CENTER_BOTH;
         // game.scale.orientation = Phaser.Scale.Orientation.PORTRAIT;
