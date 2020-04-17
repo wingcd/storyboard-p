@@ -1,7 +1,7 @@
 import { View } from "./core/View";
 import { Settings } from "./core/Setting";
-import { Point, Rectangle, OrientationPlugin } from "./phaser";
-import { ViewRoot, EOrientation } from "./core/ViewRoot";
+import { Point, Rectangle, OrientationPlugin, Pointer, EventData } from "./phaser";
+import { ViewRoot } from "./core/ViewRoot";
 import { UIManager } from "./core/UIManager";
 import { ViewScene } from "./core/ViewScene";
 
@@ -27,9 +27,10 @@ class Scene1 extends ViewScene {
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
         view.setXY(0, 0);
+        view.opaque = true;
         
-        view.on(Phaser.Input.Events.POINTER_DOWN, ()=>{
-            console.log("1231");
+        view.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
+            console.log(`${localX},${localY}`);
         });
     }
 
@@ -76,14 +77,14 @@ const config: Phaser.Types.Core.GameConfig = {
     backgroundColor: "#f0f0f0",    
     scene: [Scene1],    
     scale: {
-        mode: Phaser.Scale.RESIZE,
-        // autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     plugins: {
         global: [
             {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: OrientationPlugin, start: true, mapping: 'orientation', data: {
-                orientation: EOrientation.LANDSCAPE,
+                orientation: Phaser.Scale.Orientation.PORTRAIT,
             }},
         ]
     }

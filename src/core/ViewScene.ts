@@ -19,6 +19,7 @@ export class ViewScene extends Scene {
         this._root = this._uimgr.create(this);
         this._addFactory = new ViewFactory(this, true);
         this._maskFactory = new ViewFactory(this, false);
+        this.scale.refresh();
     }
 
     public get ui(): UIManager {

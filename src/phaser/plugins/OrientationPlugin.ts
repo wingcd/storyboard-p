@@ -3,159 +3,101 @@ import Matrix3 = Phaser.Math.Matrix3;
 import Vector2 = Phaser.Math.Vector2;
 import Scale = Phaser.Scale;
 
-export const enum EOrientation {
-    AUTO,
-    PORTRAIT,
-    LANDSCAPE,
-}
-
 export interface IStageOptions {
-    orientation?: EOrientation;
+    orientation?: Scale.Orientation;
     [key: string]: string | number;
 }
 
 export class DefaultStageOptions {
-    orientation?: EOrientation = EOrientation.AUTO;
+    orientation?: Scale.Orientation = null;
     [key: string]: string | number;
 }
 
-type BoundingRect = {
-    x: number,
-    y: number,
-    width: number,
-    height: number
+let boot = (Phaser.Scale.ScaleManager.prototype as any).boot;
+(Phaser.Scale.ScaleManager.prototype as any).boot = function() {
+    boot.call(this);
+
+    this.refresh();
 };
 
-interface IBoundingRectCalculator {
-    getRect(view:HTMLCanvasElement, fallbackWidth:number, fallbackHeight:number):BoundingRect;
-}
-
-class DefaultBoudingRectCalculator implements IBoundingRectCalculator {
-    public getRect(view:HTMLCanvasElement, fallbackWidth:number, fallbackHeight:number): BoundingRect {
-        let p = view.parentElement;
-        if(!p)
-            //this should be impossible situation unless the user forget to append the view into the DOM.
-            throw new Error("Your view of PIXI are still in memory but not appended to DOM yet? it's necessary that there is a parent element to wrap your view up.");
-        let rect = p.getBoundingClientRect();
-        let ret:BoundingRect = {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0
-        }
-        if(!rect || rect.width <= 0 || rect.height <= 0) {
-            console.warn("It seems that you did not set a explicit size for the parent element of your view, now fall back to window size instead.");
-            ret.width = window.innerWidth;
-            ret.height = window.innerHeight;
-            ret.x = 0;
-            ret.y = 0;
-        }
-        else {
-            ret.x = rect.left;
-            ret.y = rect.top;
-            ret.width = rect.width;
-            ret.height = rect.height;
-        }
-
-        //consider the worst situation: window does not have size!!
-        if(ret.width <= 0 || ret.height <= 0) {
-            console.warn("fetch container size to initialize PIXI in all ways have failed, now use default size (fallbackWidth / fallbackHeight) specified in the options instead.");
-            ret.width = fallbackWidth;
-            ret.height = fallbackHeight;
-        }
-
-        return ret;
-    }
-}
-
-Scale.ScaleManager.prototype.updateScale = function ()
+Phaser.Scale.ScaleManager.prototype.updateBounds = function ()
 {
-    var style = this.canvas.style;
+    var bounds = this.canvasBounds;
+    var clientRect = this.canvas.getBoundingClientRect();
 
-    var width = this.gameSize.width;
-    var height = this.gameSize.height;
+    bounds.x = clientRect.left + (window.pageXOffset || 0) - (document.documentElement.clientLeft || 0);
+    bounds.y = clientRect.top + (window.pageYOffset || 0) - (document.documentElement.clientTop || 0);
+    bounds.width = clientRect.width;
+    bounds.height = clientRect.height;
 
-    var styleWidth;
-    var styleHeight;
+    if ((this as any).__rotation !== 0) {
+        [bounds.x, bounds.y] = [bounds.y, bounds.x];
+        [bounds.width, bounds.height] = [bounds.height, bounds.width];
+    } 
+};
 
-    var zoom = this.zoom;
-    var autoRound = this.autoRound;
-    var resolution = 1;
+(Phaser.Scale.ScaleManager.prototype as any).transformXY = function(pageX: number, pageY: number): Vector2 {
+    let that = this as Scale.ScaleManager;
+    let newx = pageX, newy = pageY;
+    newx = (newx - this.canvasBounds.left);
+    newy = (newy - this.canvasBounds.top);
 
-    if (this.scaleMode === Scale.ScaleModes.NONE)
-    {
-        //  No scale
-        this.displaySize.setSize((width * zoom) * resolution, (height * zoom) * resolution);
-
-        styleWidth = this.displaySize.width / resolution;
-        styleHeight = this.displaySize.height / resolution;
-
-        if (autoRound)
-        {
-            styleWidth = Math.floor(styleWidth);
-            styleHeight = Math.floor(styleHeight);
-        }
-
-        if (this._resetZoom)
-        {
-            style.width = styleWidth + 'px';
-            style.height = styleHeight + 'px';
-
-            (this as any)._resetZoom = false;
-        }
+    if (this.__rotation == 90) {
+        newx = pageY;
+        newy = this.canvasBounds.height - pageX;
     }
-    else if (this.scaleMode === Scale.ScaleModes.RESIZE)
+    else if (this.__rotation == -90) {
+        newx = this.canvasBounds.width - pageY;
+        newy = pageX;
+    }
+    
+    newx = newx * this.displayScale.x;
+    newy = newy * this.displayScale.y;
+
+    return new Vector2(newx, newy);
+};
+
+Phaser.Input.InputManager.prototype.transformPointer = function (pointer, pageX, pageY, wasMove)
+{
+    var p0 = pointer.position;
+    var p1 = pointer.prevPosition;
+
+    //  Store previous position
+    p1.x = p0.x;
+    p1.y = p0.y;
+
+    //  Translate coordinates
+    var x = 0;
+    var y = 0;
+    if(!(this.scaleManager as any).transformXY) {
+        x = this.scaleManager.transformX(pageX);
+        y = this.scaleManager.transformY(pageY);
+    }else{
+        let pos = (this.scaleManager as any).transformXY(pageX, pageY);
+        x = pos.x;
+        y = pos.y;
+    }
+
+    var a = pointer.smoothFactor;
+
+    if (!wasMove || a === 0)
     {
-        //  Resize to match parent
-
-        //  This will constrain using min/max
-        this.displaySize.setSize(this.parentSize.width, this.parentSize.height);
-
-        this.gameSize.setSize(this.displaySize.width, this.displaySize.height);
-
-        this.baseSize.setSize(this.displaySize.width * resolution, this.displaySize.height * resolution);
-
-        styleWidth = this.displaySize.width / resolution;
-        styleHeight = this.displaySize.height / resolution;
-
-        if (autoRound)
-        {
-            styleWidth = Math.floor(styleWidth);
-            styleHeight = Math.floor(styleHeight);
-        }
-
-        this.canvas.width = styleWidth;
-        this.canvas.height = styleHeight;
+        //  Set immediately
+        p0.x = x;
+        p0.y = y;
     }
     else
     {
-        //  All other scale modes
-        this.displaySize.setSize(this.parentSize.width, this.parentSize.height);
-
-        styleWidth = this.displaySize.width / resolution;
-        styleHeight = this.displaySize.height / resolution;
-
-        if (autoRound)
-        {
-            styleWidth = Math.floor(styleWidth);
-            styleHeight = Math.floor(styleHeight);
-        }
-
-        style.width = styleWidth + 'px';
-        style.height = styleHeight + 'px';
+        //  Apply smoothing
+        p0.x = x * a + p1.x * (1 - a);
+        p0.y = y * a + p1.y * (1 - a);
     }
+};
 
-    //  Update the parentSize in case the canvas / style change modified it
-    this.getParentBounds();
-
-    //  Finally, update the centering
-    this.updateCenter();
-}
 
 export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
     private _options: IStageOptions;
     protected _canvasMatrix: Matrix3 = new Matrix3();
-    private _baseSize: Size;
     
     constructor (pluginManager: Phaser.Plugins.PluginManager) {
         super(pluginManager);
@@ -188,7 +130,70 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         }
 
         this._options = opt;
-        this._baseSize = this.game.scale.baseSize;
+        this.game.scale.parent.style.overflow = 'hidden';
+    }
+
+    private _getOffsetXY(gameWidth: number, gameHeight: number, parentWidth: number, parentHeight: number): Vector2 {
+        let scale = this.game.scale;
+        var width = gameWidth;
+        var height = gameHeight;
+        var styleWidth;
+        var styleHeight;
+        var zoom = scale.zoom;
+        var autoRound = scale.autoRound;
+        var resolution = 1;
+        scale.parentSize.setSize(parentWidth, parentHeight);
+
+        if (scale.scaleMode === Scale.ScaleModes.NONE)
+        {
+            //  No scale
+            scale.displaySize.setSize((width * zoom) * resolution, (height * zoom) * resolution);
+
+            styleWidth = scale.displaySize.width / resolution;
+            styleHeight = scale.displaySize.height / resolution;
+
+            if (autoRound)
+            {
+                styleWidth = Math.floor(styleWidth);
+                styleHeight = Math.floor(styleHeight);
+            }
+        }
+        else if (scale.scaleMode === Scale.ScaleModes.RESIZE)
+        {
+            //  Resize to match parent
+
+            //  This will constrain using min/max
+            scale.displaySize.setSize(scale.parentSize.width, scale.parentSize.height);
+
+            scale.gameSize.setSize(scale.displaySize.width, scale.displaySize.height);
+
+            scale.baseSize.setSize(scale.displaySize.width * resolution, scale.displaySize.height * resolution);
+
+            styleWidth = scale.displaySize.width / resolution;
+            styleHeight = scale.displaySize.height / resolution;
+
+            if (autoRound)
+            {
+                styleWidth = Math.floor(styleWidth);
+                styleHeight = Math.floor(styleHeight);
+            }
+        }
+        else
+        {
+            //  All other scale modes
+            scale.displaySize.setSize(scale.parentSize.width, scale.parentSize.height);
+
+            styleWidth = scale.displaySize.width / resolution;
+            styleHeight = scale.displaySize.height / resolution;
+
+            if (autoRound)
+            {
+                styleWidth = Math.floor(styleWidth);
+                styleHeight = Math.floor(styleHeight);
+            }
+        }
+        
+        return new Vector2(styleWidth, styleHeight);
     }
 
     private _sizeChanged(gameSize:Size, baseSize: Size, displaySize: Size, resolution: number, previousWidth: number, previousHeight: number) {
@@ -196,81 +201,78 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
             (this.game.scale as any).___locked = false;
             return;
         }
-
+        
+        let canvas = this.game.canvas;
+        let scale = this.game.scale;
         let width = gameSize.width;
         let height = gameSize.height;
 
         let shouldRotate = false;
-        if(this._options.orientation !== EOrientation.AUTO) {
-            let rotType = width / height < 1 ? EOrientation.PORTRAIT : EOrientation.LANDSCAPE;
-            shouldRotate = rotType != this._options.orientation;
-            if(shouldRotate) {
-                [width, height] = [height, width];
-            }
-
-            let rotate = 0;
-            if(shouldRotate) {
-                if(this._options.orientation == EOrientation.LANDSCAPE) {
-                    rotate = 90;    
-                }else{
-                    rotate = -90;
-                }
-
-            }
+        var DOMRect = scale.parent.getBoundingClientRect();
+        if (scale.parentIsWindow && scale.game.device.os.iOS)
+        {
+            DOMRect.height = (scale as any).GetInnerHeight(true);
         }
+        let pwidth = DOMRect.width;
+        let pheight = DOMRect.height;
 
-        let mat = this._canvasMatrix.identity();
-        let canvas = this.game.canvas;
-        let scale = this.game.scale;
-        // mat.scale(scale.displayScale);
-
-        let rotDeg = 0;
-        let rotate = 0;
-        if(shouldRotate) {
-            if(this._options.orientation == EOrientation.LANDSCAPE) {
-                rotate = 90;
-                rotDeg = Math.PI / 2;
-                mat.rotate(rotDeg);
-                mat.translate(new Vector2(0, -height));                
-            }else{
-                rotate = -90;
-                rotDeg = -Math.PI / 2;
-                mat.rotate(rotDeg);
-                mat.translate(new Vector2(-width, 0));
-            }
-        }
-
-        // https://www.cnblogs.com/wen-k-s/p/11375356.html
-        mat.val[0] = this._formatData(mat.val[0]); //a
-        mat.val[4] = this._formatData(mat.val[4]); //d
-        mat.val[6] = this._formatData(mat.val[6]); //tx
-        mat.val[7] = this._formatData(mat.val[7]); //ty
-
+        let mat = this._canvasMatrix.identity();        
         let canvasStyle:any = canvas.style;
         canvasStyle.transformOrigin = 
             canvasStyle.webkitTransformOrigin = 
             canvasStyle.msTransformOrigin = 
             canvasStyle.mozTransformOrigin = 
             canvasStyle.oTransformOrigin = "0px 0px 0px";
+
+        let rotDeg = 0;
+        let rotate = 0;
+        if(this._options.orientation !== null) { 
+            let rotType = pwidth / pheight < 1 ? Scale.Orientation.PORTRAIT : Scale.Orientation.LANDSCAPE;
+            shouldRotate = rotType != this._options.orientation;
+            if(shouldRotate) {
+                [pwidth, pheight] = [pheight, pwidth];
+            }
+
+            if(shouldRotate) {
+                let offset = this._getOffsetXY(height, width, pwidth, pheight);
+
+                if(this._options.orientation == Scale.Orientation.LANDSCAPE) {
+                    rotate = 90;
+                    rotDeg = Math.PI / 2;
+                    mat.rotate(rotDeg);
+                    mat.translate(new Vector2(0, -offset.y));   
+                    let temp = width;
+                    width = Math.max(width, height);
+                    height = Math.min(temp, height);             
+                }else{
+                    rotate = -90;
+                    rotDeg = -Math.PI / 2;
+                    mat.rotate(rotDeg);
+                    mat.translate(new Vector2(-offset.x, 0));   
+                    let temp = width;                  
+                    width = Math.min(width, height);
+                    height = Math.max(temp, height);
+                }            
+            }
+        }  
+        // mat.scale(new Vector2(1/resolution, 1/resolution));
+            
+        // https://www.cnblogs.com/wen-k-s/p/11375356.html
+        mat.val[0] = this._formatData(mat.val[0]); //a
+        mat.val[4] = this._formatData(mat.val[4]); //d
+        mat.val[6] = this._formatData(mat.val[6]); //tx
+        mat.val[7] = this._formatData(mat.val[7]); //ty
+
         canvasStyle.transform = 
-            canvasStyle.webkitTransform = 
-            canvasStyle.msTransform = 
-            canvasStyle.mozTransform = 
-            canvasStyle.oTransform = `matrix(${mat.val[0]},${mat.val[1]},${mat.val[3]},${mat.val[4]},${mat.val[6]},${mat.val[7]})`;  
-
-        if(shouldRotate) {
-            // canvasStyle.width = `${width}px`;
-            // canvasStyle.height = `${height}px`;
-            // canvas.width = width;
-            // canvas.height = height;
-
-            (this.game.scale as any).___locked = true;
-            this.game.scale.baseSize.setSize(this._baseSize.height, this._baseSize.width);
-            this.game.scale.setGameSize(width, height);
-            this.game.scale.emit('user_resize', width, height);
-        }else{
-            this.game.scale.baseSize.setSize(this._baseSize.width, this._baseSize.height);
-        }
+        canvasStyle.webkitTransform = 
+        canvasStyle.msTransform = 
+        canvasStyle.mozTransform = 
+        canvasStyle.oTransform = `matrix(${mat.val[0]},${mat.val[1]},${mat.val[3]},${mat.val[4]},${mat.val[6]},${mat.val[7]})`;          
+        
+        (this.game.scale as any).__rotation = rotate;
+        (scale as any).___locked = true;
+        scale.setParentSize(pwidth, pheight);
+        scale.emit('user_resize', width, height, rotDeg);
     }
 
     private _formatData(value: number): number {

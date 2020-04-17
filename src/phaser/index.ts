@@ -11,4 +11,6 @@ export import EventEmitter = Phaser.Events.EventEmitter;
 export import TileSprite = Phaser.GameObjects.TileSprite;
 export import Size = Phaser.Structs.Size;
 export import Scale = Phaser.Scale;
+export import Pointer = Phaser.Input.Pointer;
+export import EventData	= Phaser.Types.Input.EventData;
 export * from './plugins/OrientationPlugin';
