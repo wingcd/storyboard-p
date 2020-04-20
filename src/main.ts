@@ -1,6 +1,6 @@
 import { View } from "./core/View";
 import { Settings } from "./core/Setting";
-import { Point, Rectangle, OrientationPlugin, Pointer, EventData } from "./phaser";
+import { Point, Rectangle, OrientationPlugin, Pointer, EventData, GameObject } from "./phaser";
 import { ViewRoot } from "./core/ViewRoot";
 import { UIManager } from "./core/UIManager";
 import { ViewScene } from "./core/ViewScene";
@@ -26,12 +26,43 @@ class Scene1 extends ViewScene {
 
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
-        view.setXY(0, 0);
-        view.opaque = true;
+        // view.setXY(100, 50);
+        // view.opaque = true;
         
         view.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
             console.log(`${localX},${localY}`);
         });
+
+        this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Pointer, currentlyOver: GameObject[]) => {
+            let pos = view.globalToLocal(pointer.downX, pointer.downY);
+            console.log(`global ${pointer.downX},${pointer.downY} local ${pos.x}, ${pos.y}`);
+            pos = view.localToGlobal(pos.x, pos.y);
+            console.log(`global ${pos.x}, ${pos.y}`);
+        });
+
+        let div = document.createElement("div");
+        div.style.position = "absolute";
+        div.style.height = "10px";
+        div.style.width = "10px";
+        div.style.backgroundColor = "#ffff00";
+        document.body.appendChild(div);
+        // this.time.addEvent({
+        //     delay: 1000,
+        //     loop: true,
+        //     callback: ()=>{
+        //         let rect = view.localToDOMRect(0,0,view.width, view.height);
+        //         div.style.left = `${rect.x}px`;
+        //         div.style.top = `${rect.y}px`;
+        //         div.style.width = `${rect.width}px`;    
+        //         div.style.height = `${rect.height}px`;
+        //     }
+        // });
+
+        // let rect = view.localToDOMRect(0,0,view.width, view.height);
+        //         div.style.left = `${rect.x}px`;
+        //         div.style.top = `${rect.y}px`;
+        //         div.style.width = `${rect.width}px`;    
+        //         div.style.height = `${rect.height}px`;
     }
 
     create(): void {
@@ -46,6 +77,8 @@ class Scene1 extends ViewScene {
             console.log('draging');
         })
 
+        let pos = (this.scale as any).transformXY(100, 100);
+        let pos1 = (this.scale as any).invertTransformXY(pos.x, pos.y);
         
         // this.input.setDraggable(view.rootContainer, true);
         // view.rootContainer.on('click', ()=>{
@@ -72,19 +105,22 @@ export class StarfallGame extends Phaser.Game {
 const config: Phaser.Types.Core.GameConfig = {
     title: "Starfall",
     parent: "game",
-    width: 960,
-    height: 540,
+    width: 1920,
+    height: 1080,
     backgroundColor: "#f0f0f0",    
     scene: [Scene1],    
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
+        autoRound: true,    
+        width: 1920,
+        height: 1080,    
     },
     plugins: {
         global: [
             {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: OrientationPlugin, start: true, mapping: 'orientation', data: {
-                orientation: Phaser.Scale.Orientation.PORTRAIT,
+                orientation: Phaser.Scale.Orientation.LANDSCAPE,
             }},
         ]
     }

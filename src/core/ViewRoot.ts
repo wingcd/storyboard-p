@@ -3,53 +3,35 @@ import { Scene, Game, Size, Scale, Container } from "../phaser";
 
 export class ViewRoot extends ViewGroup {
     private _game: Game;
+    private _uiRoot: Container;
 
     public attachTo(scene: Scene) {
         if(!this._game) {
             this._game = scene.game;
             this.bind(scene);
 
-            this._scene.children.add(this._rootContainer);
+            this._uiRoot = scene.add.container(0, 0);
+            this._uiRoot.add(this._rootContainer);
             this._init();
         }
     }
 
     private _init() {  
-        // this.setSize(this._game.scale.gameSize.width, this._game.scale.gameSize.height);
-        this._game.scale.on("user_resize", this._sizeChanged.bind(this));
+        this._game.scale.on("orientation_resize", this._sizeChanged.bind(this));
     }
 
     public dispose(toPool?: boolean) {
         super.dispose(toPool);
 
-        this._game.scale.off("user_resize", this._sizeChanged.bind(this));
+        this._game.scale.off("orientation_resize", this._sizeChanged.bind(this));
     }
 
     private _sizeChanged(width: number, height: number, rotation: number) {
+        // let scale = this._scene.scale.displayScale;
+        // width *= scale.x;
+        // height *= scale.y;
+        // this._uiRoot.setScale(1/scale.x, 1/scale.y);
         this.setSize(width, height);
         this._scene.cameras.resize(width, height);
-        // this._scene.cameras.main.setRotation(rotation);
-
-        // let shouldRotate = false;
-        // if(this._orientation !== EOrientation.AUTO) {
-        //     let rotType = width / height < 1 ? EOrientation.PORTRAIT : EOrientation.LANDSCAPE;
-        //     shouldRotate = rotType != this._orientation;
-        //     if(shouldRotate) {
-        //         [width, height] = [height, width];
-        //     }
-
-        //     let rotate = 0;
-        //     if(shouldRotate) {
-        //         if(this._orientation == EOrientation.LANDSCAPE) {
-        //             rotate = 90;    
-        //             this._uiRoot.x = height;
-        //         }else{
-        //             rotate = -90;
-        //             this._uiRoot.y = width;
-        //         }
-
-        //         this._uiRoot.angle = rotate;
-        //     }
-        // }
     }
 }

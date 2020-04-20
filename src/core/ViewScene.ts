@@ -30,6 +30,10 @@ export class ViewScene extends Scene {
         return this._root;
     }
 
+    /**
+     * update ui system
+     * when override this method, you need invoke super update method
+     */
     public update(time: number, delta: number) {
         super.update(time, delta);
         

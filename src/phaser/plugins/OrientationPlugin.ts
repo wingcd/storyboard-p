@@ -2,6 +2,7 @@ import Size = Phaser.Structs.Size;
 import Matrix3 = Phaser.Math.Matrix3;
 import Vector2 = Phaser.Math.Vector2;
 import Scale = Phaser.Scale;
+import Point = Phaser.Geom.Point;
 
 export interface IStageOptions {
     orientation?: Scale.Orientation;
@@ -31,30 +32,71 @@ Phaser.Scale.ScaleManager.prototype.updateBounds = function ()
     bounds.height = clientRect.height;
 
     if ((this as any).__rotation !== 0) {
-        [bounds.x, bounds.y] = [bounds.y, bounds.x];
         [bounds.width, bounds.height] = [bounds.height, bounds.width];
     } 
 };
 
-(Phaser.Scale.ScaleManager.prototype as any).transformXY = function(pageX: number, pageY: number): Vector2 {
+(Phaser.Scale.ScaleManager.prototype as any).transformXY = function(pageX: number, pageY: number, tempPos: Vector2 | Point): Vector2 | Point {
     let that = this as Scale.ScaleManager;
     let newx = pageX, newy = pageY;
-    newx = (newx - this.canvasBounds.left);
-    newy = (newy - this.canvasBounds.top);
+    let x = (newx - this.canvasBounds.left);
+    let y = (newy - this.canvasBounds.top);
 
     if (this.__rotation == 90) {
-        newx = pageY;
-        newy = this.canvasBounds.height - pageX;
+        newx = y;
+        newy = this.canvasBounds.height - x;
     }
     else if (this.__rotation == -90) {
-        newx = this.canvasBounds.width - pageY;
-        newy = pageX;
+        newx = this.canvasBounds.width - y;
+        newy = x;
+    }else{
+        newx = x;
+        newy = y;
     }
     
     newx = newx * this.displayScale.x;
     newy = newy * this.displayScale.y;
 
-    return new Vector2(newx, newy);
+    tempPos = tempPos || new Vector2();
+    if(this.autoRound) {
+        newx = Math.round(newx);
+        newy = Math.round(newy);
+    }
+    tempPos.setTo(newx, newy);
+
+    return tempPos;
+};
+
+(Phaser.Scale.ScaleManager.prototype as any).invertTransformXY = function(posX: number, posY: number, tempPos: Vector2 | Point): Vector2 | Point{
+    let that = this as Scale.ScaleManager;
+    let newx = posX, newy = posY;
+
+    let x = newx / this.displayScale.x;
+    let y = newy / this.displayScale.y;
+
+    if (this.__rotation == 90) {
+        newx = this.canvasBounds.height - y;
+        newy = x;
+    }
+    else if (this.__rotation == -90) {
+        newx = y;
+        newy = this.canvasBounds.width - x;
+    }else{
+        newx = x;
+        newy = y;
+    }    
+    
+    newx = (newx + this.canvasBounds.left);
+    newy = (newy + this.canvasBounds.top);
+
+    tempPos = tempPos || new Vector2();
+    if(this.autoRound) {
+        newx = Math.round(newx);
+        newy = Math.round(newy);
+    }
+    tempPos.setTo(newx, newy);
+
+    return tempPos;
 };
 
 Phaser.Input.InputManager.prototype.transformPointer = function (pointer, pageX, pageY, wasMove)
@@ -114,6 +156,17 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
 
     stop() {
         this.game.scale.off(Scale.Events.RESIZE, this._sizeChanged.bind(this));
+    }
+
+    public get orientation(): Scale.Orientation {
+        return this._options.orientation;
+    }
+
+    public set orientation(val: Scale.Orientation) {
+        if(this._options.orientation != val) {
+            this._options.orientation = val;
+            this.game.scale.refresh();
+        }
     }
 
     private _config(options: IStageOptions) {
@@ -204,8 +257,6 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         
         let canvas = this.game.canvas;
         let scale = this.game.scale;
-        let width = gameSize.width;
-        let height = gameSize.height;
 
         let shouldRotate = false;
         var DOMRect = scale.parent.getBoundingClientRect();
@@ -215,6 +266,8 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         }
         let pwidth = DOMRect.width;
         let pheight = DOMRect.height;
+        let width = gameSize.width;
+        let height = gameSize.height;
 
         let mat = this._canvasMatrix.identity();        
         let canvasStyle:any = canvas.style;
@@ -231,28 +284,23 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
             shouldRotate = rotType != this._options.orientation;
             if(shouldRotate) {
                 [pwidth, pheight] = [pheight, pwidth];
+                [width, height] = [height, width];
             }
 
             if(shouldRotate) {
-                let offset = this._getOffsetXY(height, width, pwidth, pheight);
+                let offset = this._getOffsetXY(gameSize.height, gameSize.width, pwidth, pheight);
 
                 if(this._options.orientation == Scale.Orientation.LANDSCAPE) {
                     rotate = 90;
                     rotDeg = Math.PI / 2;
                     mat.rotate(rotDeg);
-                    mat.translate(new Vector2(0, -offset.y));   
-                    let temp = width;
-                    width = Math.max(width, height);
-                    height = Math.min(temp, height);             
+                    mat.translate(new Vector2(0, -offset.y));      
                 }else{
                     rotate = -90;
                     rotDeg = -Math.PI / 2;
                     mat.rotate(rotDeg);
-                    mat.translate(new Vector2(-offset.x, 0));   
-                    let temp = width;                  
-                    width = Math.min(width, height);
-                    height = Math.max(temp, height);
-                }            
+                    mat.translate(new Vector2(-offset.x, 0)); 
+                }
             }
         }  
         // mat.scale(new Vector2(1/resolution, 1/resolution));
@@ -271,8 +319,8 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         
         (this.game.scale as any).__rotation = rotate;
         (scale as any).___locked = true;
-        scale.setParentSize(pwidth, pheight);
-        scale.emit('user_resize', width, height, rotDeg);
+        scale.resize(width, height);
+        scale.emit('orientation_resize', gameSize.width, gameSize.height, rotDeg);
     }
 
     private _formatData(value: number): number {

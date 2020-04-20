@@ -13,4 +13,5 @@ export import Size = Phaser.Structs.Size;
 export import Scale = Phaser.Scale;
 export import Pointer = Phaser.Input.Pointer;
 export import EventData	= Phaser.Types.Input.EventData;
+export import Vector2 = Phaser.Math.Vector2;
 export * from './plugins/OrientationPlugin';

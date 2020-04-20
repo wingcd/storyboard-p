@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import { EDirtyType, EOverflowType } from "./Defines";
 import { clonable } from "../annotations/Clonable";
-import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture } from "../phaser";
+import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2 } from "../phaser";
 import { ViewGroup } from "./ViewGroup";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
@@ -739,6 +739,7 @@ export class View {
         if(this._enableBackground != val) {
             this._enableBackground = val;
             this.applyBackgroundChange();
+            this.applyOpaque();
         }
     }
 
@@ -755,6 +756,7 @@ export class View {
             this._enableBackground = enable;
             this._backgroundColor = color;
             this.applyBackgroundChange();
+            this.applyOpaque();
         }
     }
 
@@ -773,7 +775,7 @@ export class View {
     }
 
     protected applyOpaque() {
-        if(!this._opaque) {
+        if(!this._opaque && !this._enableBackground) {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
@@ -819,7 +821,7 @@ export class View {
         if (!resultPoint) {
             resultPoint = PoolManager.inst.get(Point) as Point;
         }
-        this._rootContainer.localTransform.invert().transformPoint(ax, ay, resultPoint) as Point;
+        this._rootContainer.getWorldTransformMatrix().transformPoint(ax, ay, resultPoint);
         return resultPoint;
     }
 
@@ -827,7 +829,7 @@ export class View {
         if (!resultPoint) {
             resultPoint = PoolManager.inst.get(Point) as Point;
         }
-        this._rootContainer.localTransform.transformPoint(ax, ay, resultPoint);
+        this._rootContainer.getWorldTransformMatrix().invert().transformPoint(ax, ay, resultPoint);
         if (this._pivotAsAnchor) {
             resultPoint.x -= this._pivot.x * this._width;
             resultPoint.y -= this._pivot.y * this._height;
@@ -835,16 +837,100 @@ export class View {
         return resultPoint;
     }
 
-    // public localToGlobalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
-    //     if (resultRect == null) {
-    //         resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
-    //     }
+    public localToGlobalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
+        if (resultRect == null) {
+            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+        }
 
-    //     let pt: Point = this.localToGlobal(ax, ay);
-    //     resultRect.x = pt.x;
-    //     resultRect.y = pt.y;
-    //     resultRect.width = aWidth;
-    //     resultRect.height = aHeight;
-    //     return resultRect;
-    // }
+        let pt: Point = this.localToGlobal(ax, ay);
+        resultRect.x = pt.x;
+        resultRect.y = pt.y;
+        resultRect.width = aWidth;
+        resultRect.height = aHeight;
+        return resultRect;
+    }
+
+    public globalToLocalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
+        if (resultRect == null) {
+            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+        }
+
+        let pt: Point = this.globalToLocal(ax, ay);
+        resultRect.x = pt.x;
+        resultRect.y = pt.y;
+        resultRect.width = aWidth;
+        resultRect.height = aHeight;
+        return resultRect;
+    }  
+
+    /**
+     * local point to browers dom position
+     * @param ax 
+     * @param ay 
+     * @param resultPoint 
+     */
+    public localToDOM(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (!resultPoint) {
+            resultPoint = PoolManager.inst.get(Point) as Point;
+        }
+
+        resultPoint = this.localToGlobal(ax, ay, resultPoint);
+        let scaleMgr = this._scene.scale as any;
+        scaleMgr.invertTransformXY(resultPoint.x, resultPoint.y, resultPoint);
+
+        return resultPoint;
+    }
+
+    /**
+     * dom position to local point
+     * @param ax 
+     * @param ay 
+     * @param resultPoint 
+     */
+    public domToLocal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (!resultPoint) {
+            resultPoint = PoolManager.inst.get(Point) as Point;
+        }
+
+        resultPoint = this.globalToLocal(ax, ay, resultPoint);
+        let scaleMgr = this._scene.scale as any;
+        scaleMgr.transformXY(resultPoint.x, resultPoint.y, resultPoint);
+
+        return resultPoint;
+    }
+
+    public localToDOMRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
+        if (resultRect == null) {
+            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+        }
+
+        let pt: Point = new Point();
+        this.localToDOM(ax, ay, pt);
+        resultRect.x = pt.x;
+        resultRect.y = pt.y;
+
+        let pt1: Point = new Point();
+        this.localToDOM(ax + aWidth, ay + aHeight, pt1);  
+        resultRect.width = Math.abs(pt1.x - pt.x);
+        resultRect.height = Math.abs(pt1.y - pt.y);
+        return resultRect;
+    }
+
+    public domToLocalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
+        if (resultRect == null) {
+            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+        }
+
+        let pt: Point = new Point();
+        this.domToLocal(ax, ay, pt);
+        resultRect.x = pt.x;
+        resultRect.y = pt.y;
+
+        let pt1: Point = new Point();
+        this.domToLocal(ax + aWidth, ay + aHeight, pt1);  
+        resultRect.width = Math.abs(pt1.x - pt.x);
+        resultRect.height = Math.abs(pt1.y - pt.y);
+
+        return resultRect;
+    }
 }
