@@ -21,6 +21,138 @@ let boot = (Phaser.Scale.ScaleManager.prototype as any).boot;
     this.refresh();
 };
 
+let parseConfig = (Phaser.Scale.ScaleManager.prototype as any).parseConfig;
+(Phaser.Scale.ScaleManager.prototype as any).parseConfig = function(config: any) {
+    parseConfig.call(this, config);
+
+    (this as any).__designSize = new Size(this.gameSize.width, this.gameSize.height);
+}
+
+let oldResize = Phaser.Scale.ScaleManager.prototype.resize;
+Phaser.Scale.ScaleManager.prototype.resize = function (width, height) {
+    let ret = oldResize.call(this, width, height);
+    (this as any).__designSize.setSize(this.gameSize.width, this.gameSize.height);
+    return ret;
+}
+
+Phaser.Scale.ScaleManager.prototype.updateScale = function ()
+{
+    let designSize = (this as any).__designSize;
+    this.gameSize.setSize(designSize.width, designSize.height);
+
+    var style = this.canvas.style;
+
+    var zoom = this.zoom;
+    var autoRound = this.autoRound;
+    var resolution = 1;
+
+    var width = designSize.width;
+    var height = designSize.height;
+
+    let scaleX = this.parentSize.width / width;
+    let scaleY = this.parentSize.height / height;
+
+    var styleWidth;
+    var styleHeight;    
+        
+    this.gameSize.setSize(width, height);  
+    this.baseSize.setSize(width * resolution, height * resolution);
+
+    if (this.scaleMode === Scale.ScaleModes.NONE)
+    {
+        //  No scale
+        this.displaySize.setSize((width * zoom) * resolution, (height * zoom) * resolution);
+
+        styleWidth = this.displaySize.width / resolution;
+        styleHeight = this.displaySize.height / resolution;
+
+        if (autoRound)
+        {
+            styleWidth = Math.floor(styleWidth);
+            styleHeight = Math.floor(styleHeight);
+        }
+
+        if (this._resetZoom)
+        {
+            style.width = styleWidth + 'px';
+            style.height = styleHeight + 'px';
+
+            (this as any)._resetZoom = false;
+        }
+    }
+    else if (this.scaleMode === Scale.ScaleModes.RESIZE)
+    {
+        //  Resize to match parent
+        if ((this.parentSize.width / this.parentSize.height) < (width / height)) {                    
+            scaleY = scaleX;
+            height = Math.round(this.parentSize.height / scaleX);     
+        } else {
+            scaleX = scaleY;
+            width = Math.round(this.parentSize.width / scaleY);
+        }
+
+        //  This will constrain using min/max
+        this.displaySize.setSize(width, height);
+
+        this.gameSize.setSize(width, height);
+
+        this.baseSize.setSize(width * resolution, height * resolution);
+
+        // styleWidth = this.displaySize.width / resolution;
+        // styleHeight = this.displaySize.height / resolution;
+        styleWidth = this.gameSize.width;
+        styleHeight = this.gameSize.height;
+
+        if (autoRound)
+        {
+            styleWidth = Math.floor(styleWidth);
+            styleHeight = Math.floor(styleHeight);
+        }
+
+        this.canvas.width = styleWidth;
+        this.canvas.height = styleHeight;
+    }
+    else
+    {
+        if(this.scaleMode == Scale.ScaleModes.FIT) {
+            if(this.parentSize.width < this.parentSize.height) {
+                height = this.parentSize.width / this.gameSize.aspectRatio;
+            }else{
+                width = this.parentSize.height * this.gameSize.aspectRatio;
+            }   
+        }else if(this.scaleMode == Scale.ScaleModes.HEIGHT_CONTROLS_WIDTH) {
+            width = this.parentSize.height * this.gameSize.aspectRatio;
+        }else if(this.scaleMode == Scale.ScaleModes.WIDTH_CONTROLS_HEIGHT) {
+            height = this.parentSize.width / this.gameSize.aspectRatio;
+        }else if(this.scaleMode == Scale.ScaleModes.ENVELOP) {
+            if(this.parentSize.width > this.parentSize.height) {
+                height = this.parentSize.width / this.gameSize.aspectRatio;
+            }else{
+                width = this.parentSize.height * this.gameSize.aspectRatio;
+            }  
+        }
+        this.displaySize.setSize(width, height);
+
+        styleWidth = this.displaySize.width / resolution;
+        styleHeight = this.displaySize.height / resolution;
+
+        if (autoRound)
+        {
+            styleWidth = Math.floor(styleWidth);
+            styleHeight = Math.floor(styleHeight);
+        }
+
+        style.width = styleWidth + 'px';
+        style.height = styleHeight + 'px';
+    }
+
+    //  Update the parentSize in case the canvas / style change modified it
+    this.getParentBounds();
+
+    //  Finally, update the centering
+    this.updateCenter();
+}
+
 Phaser.Scale.ScaleManager.prototype.updateBounds = function ()
 {
     var bounds = this.canvasBounds;
@@ -31,7 +163,7 @@ Phaser.Scale.ScaleManager.prototype.updateBounds = function ()
     bounds.width = clientRect.width;
     bounds.height = clientRect.height;
 
-    if ((this as any).__rotation !== 0) {
+    if ((this as any).__rotation) {
         [bounds.width, bounds.height] = [bounds.height, bounds.width];
     } 
 };
@@ -98,6 +230,43 @@ Phaser.Scale.ScaleManager.prototype.updateBounds = function ()
 
     return tempPos;
 };
+
+Phaser.Scale.ScaleManager.prototype.refresh = function (previousWidth, previousHeight)
+{
+    if (previousWidth === undefined) { previousWidth = this.width; }
+    if (previousHeight === undefined) { previousHeight = this.height; }
+
+    this.updateScale();
+    this.updateBounds();
+    this.updateOrientation();
+
+    // this.displayScale.set(this.baseSize.width / this.canvasBounds.width, this.baseSize.height / this.canvasBounds.height);
+    this.displayScale.set(this.displaySize.width / this.canvasBounds.width, this.displaySize.height / this.canvasBounds.height);
+    // if((this as any).__rotation) {
+    //     this.displayScale.set(this.parentSize.width / this.gameSize.height, this.parentSize.height / this.gameSize.width);
+    // }else{
+    //     this.displayScale.set(this.parentSize.width / this.gameSize.width, this.parentSize.height / this.gameSize.height);
+    // }
+
+    var domContainer = this.game.domContainer;
+
+    if (domContainer)
+    {
+        this.baseSize.setCSS(domContainer);
+
+        var canvasStyle = this.canvas.style;
+        var domStyle = domContainer.style;
+
+        domStyle.transform = 'scale(' + this.displaySize.width / this.baseSize.width + ',' + this.displaySize.height / this.baseSize.height + ')';
+
+        domStyle.marginLeft = canvasStyle.marginLeft;
+        domStyle.marginTop = canvasStyle.marginTop;
+    }
+
+    this.emit(Phaser.Scale.Events.RESIZE, this.gameSize, this.baseSize, this.displaySize, this.resolution, previousWidth, previousHeight);
+
+    return this;
+}
 
 Phaser.Input.InputManager.prototype.transformPointer = function (pointer, pageX, pageY, wasMove)
 {
@@ -195,6 +364,7 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         var zoom = scale.zoom;
         var autoRound = scale.autoRound;
         var resolution = 1;
+        
         scale.parentSize.setSize(parentWidth, parentHeight);
 
         if (scale.scaleMode === Scale.ScaleModes.NONE)
@@ -213,7 +383,7 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         }
         else if (scale.scaleMode === Scale.ScaleModes.RESIZE)
         {
-            //  Resize to match parent
+            // //  Resize to match parent
 
             //  This will constrain using min/max
             scale.displaySize.setSize(scale.parentSize.width, scale.parentSize.height);
@@ -279,6 +449,8 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
 
         let rotDeg = 0;
         let rotate = 0;
+        mat.scale(scale.displayScale);
+        
         if(this._options.orientation !== null) { 
             let rotType = pwidth / pheight < 1 ? Scale.Orientation.PORTRAIT : Scale.Orientation.LANDSCAPE;
             shouldRotate = rotType != this._options.orientation;
@@ -294,16 +466,17 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
                     rotate = 90;
                     rotDeg = Math.PI / 2;
                     mat.rotate(rotDeg);
-                    mat.translate(new Vector2(0, -offset.y));      
+                    // mat.translate(new Vector2(0, -offset.y));   
+                    mat.translate(new Vector2(0, -height));   
                 }else{
                     rotate = -90;
                     rotDeg = -Math.PI / 2;
                     mat.rotate(rotDeg);
-                    mat.translate(new Vector2(-offset.x, 0)); 
+                    // mat.translate(new Vector2(-offset.x, 0)); 
+                    mat.translate(new Vector2(-width, 0));
                 }
             }
         }  
-        // mat.scale(new Vector2(1/resolution, 1/resolution));
             
         // https://www.cnblogs.com/wen-k-s/p/11375356.html
         mat.val[0] = this._formatData(mat.val[0]); //a
@@ -319,7 +492,8 @@ export class OrientationPlugin extends Phaser.Plugins.BasePlugin {
         
         (this.game.scale as any).__rotation = rotate;
         (scale as any).___locked = true;
-        scale.resize(width, height);
+        // scale.gameSize.setSize(width, height);
+        scale.setParentSize(pwidth, pheight);
         scale.emit('orientation_resize', gameSize.width, gameSize.height, rotDeg);
     }
 

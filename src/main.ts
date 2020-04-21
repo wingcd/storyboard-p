@@ -105,16 +105,14 @@ export class StarfallGame extends Phaser.Game {
 const config: Phaser.Types.Core.GameConfig = {
     title: "Starfall",
     parent: "game",
-    width: 1920,
-    height: 1080,
+    width: 960,
+    height: 540,
     backgroundColor: "#f0f0f0",    
     scene: [Scene1],    
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        autoRound: true,    
-        width: 1920,
-        height: 1080,    
+        autoRound: true,     
     },
     plugins: {
         global: [
