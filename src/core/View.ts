@@ -9,6 +9,9 @@ import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
 import { ViewEvent } from "../events/ViewEvent";
 import { ViewRoot } from "./ViewRoot";
+import { IComponent } from "../components/IComponent";
+import { ComponentOptions, BaseComponent } from "../components/BaseComponent";
+import { Clone } from "../utils/Object";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -92,6 +95,8 @@ export class View {
     _sourceWidth: number = 0;
     /**@internal */
     _sourceHeight: number = 0;
+
+    private _components: IComponent[]; 
 
     constructor() {
         this._id = `${View.sInstanceCounter++}`;
@@ -475,6 +480,10 @@ export class View {
         }
     }
 
+    public get displayObject(): GameObject {
+        return this._displayObject;
+    }
+
     public get inContainer(): boolean {
         return this._rootContainer.parentContainer != null;
     }
@@ -731,6 +740,20 @@ export class View {
         this._rootContainer.removeAllListeners(type);
     }
 
+    public onClick(listener: Function, thisObj?: any): this {
+        this.on(Events.GestureEvent.Click, listener, thisObj);
+        return this;
+    }
+
+    public removeClick(listener: Function, thisObj?: any): this {
+        this.off(Events.GestureEvent.Click, listener, thisObj);
+        return this;
+    }
+
+    public hasClick(fn?:Function): boolean {
+        return this.hasListener(Events.GestureEvent.Click, fn);
+    }
+
     public get enableBackground(): boolean {
         return this._enableBackground;
     }
@@ -932,5 +955,183 @@ export class View {
         resultRect.height = Math.abs(pt1.y - pt.y);
 
         return resultRect;
+    }
+
+    private _checkComponent() {
+        if(!this._components) {
+            this._components = [];
+        }
+    }
+
+    private _checkComponentMetadata(compType: Function) {
+        let keys = Reflect.getMetadataKeys(compType);
+        for(let key of keys) {
+            let metadata = Reflect.getMetadata(key, compType);
+            if(metadata.onBeforeAddComponent) {
+                metadata.onBeforeAddComponent(this, compType);
+            }
+        }
+    }
+
+    public addComponentByType(compType: new()=>{}): IComponent {
+        if(compType) {
+            return this.addComponent(new compType() as IComponent);
+        }
+        return null;
+    }
+
+    public addComponent(comp: IComponent): IComponent {
+        if(!comp) {
+            throw new Error(`Invalid component`);
+        }
+        
+        this._checkComponent();
+        this._checkComponentMetadata(comp.constructor);
+
+        let comps = this.getComponents(comp.constructor, {
+            containsParentType: true,
+            containsSameParentType: true,
+            containsChildType: true,
+        });
+        for(let cp of comps) {            
+            let keys = Reflect.getMetadataKeys(cp.constructor);
+            for(let key of keys) {
+                let metadata = Reflect.getMetadata(key, cp.constructor);
+                if(metadata.onCheckComponent) {
+                    metadata.onCheckComponent(this, cp.constructor);
+                }
+            }
+        }        
+
+        comp.regist(this);
+
+        this._components.push(comp);
+
+        return comp;
+    }
+
+    public removeComponent(comp: IComponent) {
+        if(!this._components || !comp) {
+            return;
+        }
+
+        let index = this._components.indexOf(comp);
+        if(index < 0) {
+            return;
+        }
+
+        comp.unRegist();
+
+        this._components.splice(index, 1);
+    }
+
+    public removeComponentByType(type: Function, all: boolean = true, options?: ComponentOptions) {
+        if(!this._components || !type) {
+            return;
+        }
+
+        this._components.forEach(comp=>{
+            if(this._compareComponent(comp, type, options)) {
+                this.removeComponent(comp);
+
+                if(!all) {
+                    return;
+                }
+            }
+        });
+    }
+
+    private _compareComponent(item: IComponent, type: Function, options?: ComponentOptions) {
+        let p = type;
+        let last = p;
+        let find =  item.constructor.name == type.name;
+
+        options = options || {};
+
+        if(options.containsChildType) {
+            find = item instanceof type;
+        }
+
+        if(options.containsParentType) {
+            if(options.containsSameParentType) {
+                while((item as any).__proto__.__proto__.constructor.name != BaseComponent.name) {
+                    item = (item as any).__proto__;
+                }
+            }
+
+            while(!find) {
+                find = p == item.constructor || (type as any).__proto__ == item.constructor;
+                p = (type as any).__proto__;
+                if(p == last || p == item.constructor) {
+                    break;
+                }
+                last = p;
+            }
+        }
+
+        return find;
+    }
+
+    public hasComponent(type: Function, options?: ComponentOptions): boolean {
+        if(!this._components || !type) {
+            return false;
+        }
+
+        return this.getComponent(type, options) != null;
+    }
+
+    public getComponent(type: Function, options?: ComponentOptions): IComponent {
+        if(!this._components) {
+            return null;
+        }
+
+        return this._components.find((item) => {
+            return this._compareComponent(item, type, options);
+        });
+    }
+
+    public getComponents(type: Function, options?: ComponentOptions): IComponent[] {
+        if(!this._components) {
+            return [];
+        }
+
+        let comps:IComponent[] = [];
+        this._components.forEach(comp=>{
+            if(this._compareComponent(comp, type, options)) {
+                comps.push(comp);
+            }
+        });
+
+        return comps;
+    }
+
+    /**
+     * 
+     * @param comp 
+     * @returns if continue to clone this component
+     */
+    protected onBeforeCloneComponent(comp: IComponent): boolean {
+        // if(comp instanceof DragComponent ||
+        //    comp instanceof ScrollPaneComponent) {
+        //        return false;
+        // } 
+
+        return true;
+    }
+
+    public clone(): View {
+        let obj = Clone(this) as View;
+
+        if(this._components) {
+            this._components.forEach(comp=>{
+                if(obj.onBeforeCloneComponent(comp)) {
+                    let p = comp.clone();
+                    obj.addComponent(p);
+                }
+            });
+        }
+    
+        // obj._relayout();
+        return obj;
     }
 }

@@ -11,6 +11,7 @@ export class ViewGroup extends View {
 
     /**debug */    
     private _gBounds: Graphics;
+    private _buildingDisplayList: boolean = false;
 
     bind(scene: Scene) {
         if(super.bind(scene)) {            
@@ -130,6 +131,10 @@ export class ViewGroup extends View {
     }
 
     public childStateChanged(child: View) {
+        if(this._buildingDisplayList) {
+            return;
+        }
+
         if(child.finalVisible) {
             if(!child.inContainer) {
                 let index = 0;
@@ -294,5 +299,34 @@ export class ViewGroup extends View {
         }
 
         super.checkDirty();
+    }
+
+    public clone(): View {        
+        let obj = super.clone() as ViewGroup;    
+        obj._buildingDisplayList = true;
+
+        if(this._children) {
+            this._children.forEach(child=>{
+                let c = child.clone();
+                obj.addChild(c);
+            });
+        }
+
+        obj._buildingDisplayList = false;
+
+        this.appendChildrenList();
+        
+        return obj;
+    }
+
+    protected appendChildrenList():void {
+        this._container.removeAll();
+        this._children.forEach(child => {
+            if ((child.displayObject || 
+                child.enableBackground || 
+                child instanceof ViewGroup && child.children.length > 0) && 
+                child.finalVisible)
+                this._container.add(child.rootContainer);
+        }, this);
     }
 }

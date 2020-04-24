@@ -9,7 +9,7 @@ export class ViewScene extends Scene {
     _uimgr: UIManager;
     _root: ViewRoot;
     _addFactory: ViewFactory;
-    _maskFactory: ViewFactory;
+    _makeFactory: ViewFactory;
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
         super(config);
     }
@@ -18,7 +18,7 @@ export class ViewScene extends Scene {
         this._uimgr = (this as any).uimgr as UIManager;  
         this._root = this._uimgr.create(this);
         this._addFactory = new ViewFactory(this, true);
-        this._maskFactory = new ViewFactory(this, false);
+        this._makeFactory = new ViewFactory(this, false);
         this.scale.refresh();
     }
 
@@ -46,6 +46,6 @@ export class ViewScene extends Scene {
     }
 
     public get makeUI(): ViewFactory {
-        return this._maskFactory;
+        return this._makeFactory;
     }
 }
