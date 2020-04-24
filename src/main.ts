@@ -26,7 +26,8 @@ class Scene1 extends ViewScene {
 
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
-        // view.setXY(100, 50);
+        view.setXY(100, 50);
+        view.setSize(200, 40);
         // view.opaque = true;
         
         view.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
@@ -40,29 +41,39 @@ class Scene1 extends ViewScene {
             console.log(`global ${pos.x}, ${pos.y}`);
         });
 
-        let div = document.createElement("div");
-        div.style.position = "absolute";
-        div.style.height = "10px";
-        div.style.width = "10px";
-        div.style.backgroundColor = "#ffff00";
-        document.body.appendChild(div);
-        // this.time.addEvent({
-        //     delay: 1000,
-        //     loop: true,
-        //     callback: ()=>{
-        //         let rect = view.localToDOMRect(0,0,view.width, view.height);
+        this.time.addEvent({            
+            delay: 3000,
+            callback: ()=>{
+                this.scale.resize(540, 950);
+                (this as any).scaleEx.orientation = EStageOrientation.PORTRAIT;
+            }
+        });
+
+        // let div = document.createElement("div");
+        // div.style.position = "absolute";
+        // div.style.height = "10px";
+        // div.style.width = "10px";
+        // div.style.backgroundColor = "#ffff00";
+        // document.body.appendChild(div);
+        // // this.time.addEvent({
+        // //     delay: 1000,
+        // //     loop: true,
+        // //     callback: ()=>{
+        // //         let rect = view.localToDOMRect(0,0,view.width, view.height);
+        // //         div.style.left = `${rect.x}px`;
+        // //         div.style.top = `${rect.y}px`;
+        // //         div.style.width = `${rect.width}px`;    
+        // //         div.style.height = `${rect.height}px`;
+        // //     }
+        // // });
+
+        // let rect = view.localToDOMRect(0,0,view.width, view.height);
         //         div.style.left = `${rect.x}px`;
         //         div.style.top = `${rect.y}px`;
         //         div.style.width = `${rect.width}px`;    
         //         div.style.height = `${rect.height}px`;
-        //     }
-        // });
 
-        let rect = view.localToDOMRect(0,0,view.width, view.height);
-                div.style.left = `${rect.x}px`;
-                div.style.top = `${rect.y}px`;
-                div.style.width = `${rect.width}px`;    
-                div.style.height = `${rect.height}px`;
+        // (this.scale as any).applyTransform(div);
     }
 
     create(): void {
@@ -108,7 +119,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 960,
     height: 540,
     backgroundColor: "#f0f0f0",    
-    scene: [Scene1],    
+    scene: [Scene1],  
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -120,8 +131,8 @@ const config: Phaser.Types.Core.GameConfig = {
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,
-                alignV: EStageAlign.CENTER,
-                alignH: EStageAlign.MIDDLE,
+                // alignV: EStageAlign.CENTER,
+                // alignH: EStageAlign.MIDDLE,
             }},
         ]
     }
@@ -138,5 +149,5 @@ window.onload = () => {
     // game.scale.on(Phaser.Scale.Events.ORIENTATION_CHANGE, ()=>{
     //     console.log('size');
     //     game.scale.refresh();
-    // });    
+    // });  
 }

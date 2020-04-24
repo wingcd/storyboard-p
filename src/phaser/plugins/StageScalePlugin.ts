@@ -75,7 +75,7 @@ function __replaceScale() {
     Phaser.Scale.ScaleManager.prototype.resize = function (width, height) {
         var previousWidth = this.width;
         var previousHeight = this.height;
-        (this as any).__designSize.setSize(this.gameSize.width, this.gameSize.height);
+        (this as any).__designSize.setSize(width, height);
         return this.refresh(previousWidth, previousHeight);
     }
 
@@ -167,7 +167,7 @@ function __replaceScale() {
     {
         if (previousWidth === undefined) { previousWidth = this.width; }
         if (previousHeight === undefined) { previousHeight = this.height; }
-
+        
         let designSize = (this as any).__designSize as Size;
         var DOMRect = this.parent.getBoundingClientRect();
         if (this.parentIsWindow && this.game.device.os.iOS)
@@ -203,22 +203,25 @@ function __replaceScale() {
         let designHeight = designSize.height;       
 
         let width = designWidth;
-        let height = designHeight; 
+        let height = designHeight;    
+           
+        var zoom = 1;
         switch(options.scaleMode) {
             case EStageScaleMode.NO_SCALE:
+                zoom = this.zoom;
                 scaleX = scaleY = 1;
                 realWidth = designWidth;
                 realHeight = designHeight;
                 break;
             case EStageScaleMode.SHOW_ALL:
                 scaleX = scaleY = Math.min(scaleX, scaleY);
-                realWidth = Math.round(designSize.width * scaleX);
-                realHeight = Math.round(designSize.height * scaleY);
+                realWidth = designSize.width * scaleX;
+                realHeight = designSize.height * scaleY;
                 break;
             case EStageScaleMode.NO_BORDER:
                 scaleX = scaleY = Math.max(scaleX, scaleY);
-                realWidth = Math.round(designSize.width * scaleX);
-                realHeight = Math.round(designSize.height * scaleY);
+                realWidth = designSize.width * scaleX;
+                realHeight = designSize.height * scaleY;
                 break;
             case EStageScaleMode.EXACT_FIT: 
                 canvasWidth = designWidth;
@@ -231,22 +234,32 @@ function __replaceScale() {
                 break;
             case EStageScaleMode.FIXED_WIDTH:                  
                 scaleY = scaleX;
-                height = canvasHeight = Math.round(screenHeight / scaleX);
+                height = canvasHeight = screenHeight / scaleX;
                 break;
             case EStageScaleMode.FIXED_HEIGHT:
                 scaleX = scaleY;
-                width = canvasWidth = Math.round(screenWidth / scaleY);
+                width = canvasWidth = screenWidth / scaleY;
                 break;
             case EStageScaleMode.FIXED_AUTO:
                 if ((screenWidth / screenHeight) < (designSize.width / designSize.height)) {                    
                     scaleY = scaleX;
-                    height = canvasHeight = Math.round(screenHeight / scaleX);     
+                    height = canvasHeight = screenHeight / scaleX;     
                 } else {
                     scaleX = scaleY;
-                    width = canvasWidth = Math.round(screenWidth / scaleY);
+                    width = canvasWidth = screenWidth / scaleY;
                 }
                 break;
         }    
+
+        if (this.autoRound)
+        {
+            width = Math.round(width);
+            height = Math.round(height);
+            canvasWidth = Math.round(canvasWidth);
+            canvasHeight = Math.round(canvasHeight);
+            realWidth = Math.round(realWidth);
+            realHeight = Math.round(realHeight);
+        }
 
         this.canvas.width = canvasWidth;
         this.canvas.height = canvasHeight;
@@ -289,7 +302,6 @@ function __replaceScale() {
         mat.translate(offsetx, offsety);
         mat.scale(realWidth / canvasWidth / pixelRatio, realHeight / canvasHeight / pixelRatio);
             
-        // https://www.cnblogs.com/wen-k-s/p/11375356.html
         let that = this as any;
         mat.a = that._formatData(mat.a);
         mat.d = that._formatData(mat.d);
@@ -308,18 +320,20 @@ function __replaceScale() {
             canvasStyle.mozTransform = 
             canvasStyle.oTransform = `matrix(${mat.a},${mat.b},${mat.c},${mat.d},${mat.tx},${mat.ty})`;   
             
-        that.__rotation = rotate;
+        that.__rotation = rotate;  
         this.displaySize.setAspectMode(0);
         this.displayScale.set(scaleX, scaleY);
-        this.displaySize.setSize(canvasWidth, canvasHeight);
-        this.gameSize.setSize(width, height);
+        this.displaySize.setSize(canvasWidth * zoom, canvasHeight * zoom);
+        this.gameSize.setSize(width * zoom, height * zoom);
         this.baseSize.setSize(width * pixelRatio, height * pixelRatio);
+
         this.updateBounds();
+        this.updateOrientation();
         
         this.emit(Phaser.Scale.Events.RESIZE, this.gameSize, this.baseSize, this.displaySize, this.resolution, previousWidth, previousHeight);
 
         return this;
-    };
+    };    
 };
 
 function __resotreScale() {   
@@ -363,6 +377,25 @@ Phaser.Input.InputManager.prototype.transformPointer = function (pointer, pageX,
         //  Apply smoothing
         p0.x = x * a + p1.x * (1 - a);
         p0.y = y * a + p1.y * (1 - a);
+    }
+};
+
+(Phaser.Scale.ScaleManager.prototype as any).applyTransform = function(dom: HTMLElement) {
+    let style = dom.style as any;
+    let deg = (this as any).__rotation;
+    if(deg) {
+        style.transformOrigin = 
+            style.webkitTransformOrigin = 
+            style.msTransformOrigin = 
+            style.mozTransformOrigin = 
+            style.oTransformOrigin = "0px 0px 0px";
+        style.transform = 
+            style.webkitTransform = 
+            style.msTransform = 
+            style.mozTransform = 
+            style.oTransform = `rotate(${deg}deg)`;
+
+        [style.width,style.height] = [style.height, style.width];
     }
 };
 
