@@ -14,4 +14,5 @@ export import Scale = Phaser.Scale;
 export import Pointer = Phaser.Input.Pointer;
 export import EventData	= Phaser.Types.Input.EventData;
 export import Vector2 = Phaser.Math.Vector2;
-export * from './plugins/OrientationPlugin';
+export import TransformMatrix = Phaser.GameObjects.Components.TransformMatrix;
+export * from './plugins/StageScalePlugin';

@@ -17,21 +17,18 @@ export class ViewRoot extends ViewGroup {
     }
 
     private _init() {  
-        this._game.scale.on("orientation_resize", this._sizeChanged.bind(this));
+        this._game.scale.on(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }
 
     public dispose(toPool?: boolean) {
         super.dispose(toPool);
 
-        this._game.scale.off("orientation_resize", this._sizeChanged.bind(this));
+        this._game.scale.off(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }
 
-    private _sizeChanged(width: number, height: number, rotation: number) {
-        // let scale = this._scene.scale.displayScale;
-        // width *= scale.x;
-        // height *= scale.y;
-        // this._uiRoot.setScale(1/scale.x, 1/scale.y);
+    private _sizeChanged(gameSize:Size, baseSize: Size, displaySize: Size, resolution: number, previousWidth: number, previousHeight: number) {
+        let width = gameSize.width;
+        let height = gameSize.height;
         this.setSize(width, height);
-        this._scene.cameras.resize(width, height);
     }
 }

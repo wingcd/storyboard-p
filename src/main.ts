@@ -1,6 +1,6 @@
 import { View } from "./core/View";
 import { Settings } from "./core/Setting";
-import { Point, Rectangle, OrientationPlugin, Pointer, EventData, GameObject } from "./phaser";
+import { Point, Rectangle, StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageAlign, EStageOrientation } from "./phaser";
 import { ViewRoot } from "./core/ViewRoot";
 import { UIManager } from "./core/UIManager";
 import { ViewScene } from "./core/ViewScene";
@@ -58,24 +58,24 @@ class Scene1 extends ViewScene {
         //     }
         // });
 
-        // let rect = view.localToDOMRect(0,0,view.width, view.height);
-        //         div.style.left = `${rect.x}px`;
-        //         div.style.top = `${rect.y}px`;
-        //         div.style.width = `${rect.width}px`;    
-        //         div.style.height = `${rect.height}px`;
+        let rect = view.localToDOMRect(0,0,view.width, view.height);
+                div.style.left = `${rect.x}px`;
+                div.style.top = `${rect.y}px`;
+                div.style.width = `${rect.width}px`;    
+                div.style.height = `${rect.height}px`;
     }
 
     create(): void {
-        this.scale.orientation = Phaser.Scale.Orientation.PORTRAIT;
+        // this.scale.orientation = Phaser.Scale.Orientation.PORTRAIT;
         // let img = this.add.image(300, 400, 'a').setInteractive();
         // // img.input.enabled = false
         // this.input.setDraggable(img, true);
-        this.input.on('drag', (point: Point, go: any, dragX: number, dragY: number)=>{
-            go.x = dragX;
-            go.y = dragY;
+        // this.input.on('drag', (point: Point, go: any, dragX: number, dragY: number)=>{
+        //     go.x = dragX;
+        //     go.y = dragY;
 
-            console.log('draging');
-        })
+        //     console.log('draging');
+        // })
 
         let pos = (this.scale as any).transformXY(100, 100);
         let pos1 = (this.scale as any).invertTransformXY(pos.x, pos.y);
@@ -112,13 +112,16 @@ const config: Phaser.Types.Core.GameConfig = {
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        autoRound: true,     
+        autoRound: true,   
     },
     plugins: {
         global: [
             {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
-            {key: 'orientation', plugin: OrientationPlugin, start: true, mapping: 'orientation', data: {
-                orientation: Phaser.Scale.Orientation.LANDSCAPE,
+            {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
+                orientation: EStageOrientation.LANDSCAPE,
+                scaleMode: EStageScaleMode.FIXED_AUTO,
+                alignV: EStageAlign.CENTER,
+                alignH: EStageAlign.MIDDLE,
             }},
         ]
     }
