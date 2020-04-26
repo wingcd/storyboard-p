@@ -5,13 +5,13 @@ import Scale = Phaser.Scale;
 import Point = Phaser.Geom.Point;
 import TransformMatrix = Phaser.GameObjects.Components.TransformMatrix;
 
-export const enum EStageOrientation {
+export enum EStageOrientation {
     AUTO = "auto",
     PORTRAIT = "portrait",
     LANDSCAPE = "landscape"
 }
 
-export const enum EStageScaleMode {
+export enum EStageScaleMode {
     NO_SCALE = "noScale",
     SHOW_ALL = "showAll",
     NO_BORDER = "noBorder",
@@ -22,7 +22,7 @@ export const enum EStageScaleMode {
     FULL = "full",
 }
 
-export const enum EStageAlign {
+export enum EStageAlign {
     LEFT,
     CENTER,
     RIGHT,
@@ -396,6 +396,12 @@ Phaser.Input.InputManager.prototype.transformPointer = function (pointer, pageX,
             style.oTransform = `rotate(${deg}deg)`;
 
         [style.width,style.height] = [style.height, style.width];
+    }else{
+        style.transform = 
+            style.webkitTransform = 
+            style.msTransform = 
+            style.mozTransform = 
+            style.oTransform = '';
     }
 };
 
@@ -427,6 +433,61 @@ export class StageScalePlugin extends Phaser.Plugins.BasePlugin {
     public set orientation(val: EStageOrientation) {
         if(this._options.orientation != val) {
             this._options.orientation = val;
+            this.game.scale.refresh();
+        }
+    }
+
+    public get scaleMode(): EStageScaleMode {
+        return this._options.scaleMode;
+    }
+
+    public set scaleMode(val: EStageScaleMode) {
+        if(this._options.scaleMode != val) {
+            this._options.scaleMode = val;
+            this.game.scale.refresh();
+        }
+    }
+
+    public get alignH(): EStageAlign {
+        return this._options.alignH;
+    }
+
+    public set alignH(val: EStageAlign) {
+        if(this._options.alignH != val) {
+            this._options.alignH = val;
+            this.game.scale.refresh();
+        }
+    }
+
+    public get alignV(): EStageAlign {
+        return this._options.alignV;
+    }
+
+    public set alignV(val: EStageAlign) {
+        if(this._options.alignV != val) {
+            this._options.alignV = val;
+            this.game.scale.refresh();
+        }
+    }
+
+    public get offsetX(): EStageAlign {
+        return this._options.offsetX;
+    }
+
+    public set offsetX(val: EStageAlign) {
+        if(this._options.offsetX != val) {
+            this._options.offsetX = val;
+            this.game.scale.refresh();
+        }
+    }
+
+    public get offsetY(): EStageAlign {
+        return this._options.offsetY;
+    }
+
+    public set offsetY(val: EStageAlign) {
+        if(this._options.offsetY != val) {
+            this._options.offsetY = val;
             this.game.scale.refresh();
         }
     }

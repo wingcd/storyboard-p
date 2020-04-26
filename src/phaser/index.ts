@@ -15,4 +15,9 @@ export import Pointer = Phaser.Input.Pointer;
 export import EventData	= Phaser.Types.Input.EventData;
 export import Vector2 = Phaser.Math.Vector2;
 export import TransformMatrix = Phaser.GameObjects.Components.TransformMatrix;
+export import BitmapMask = Phaser.Display.Masks.BitmapMask;
+export import GeometryMask = Phaser.Display.Masks.GeometryMask;
+export import Input = Phaser.Input;
+
+export type MaskType = BitmapMask | GeometryMask;
 export * from './plugins/StageScalePlugin';

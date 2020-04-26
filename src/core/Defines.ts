@@ -1,4 +1,4 @@
-export const enum EDirectionType {
+export enum EDirectionType {
     None = 0,
     Left = 1,
     Top = 1 << 1,
@@ -6,7 +6,7 @@ export const enum EDirectionType {
     Bottom = 1 << 3,    
 }
 
-export const enum EDirtyType {
+export enum EDirtyType {
     None = 0,
     ChildChanged = 1,
     BoundsChanged = 1 << 1,
@@ -18,5 +18,5 @@ export const enum EDirtyType {
     DebugBorderChanged = 1 << 7,
 }
 
-export const enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
-export const enum EScrollType { Horizontal, Vertical, Both };
+export enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
+export enum EScrollType { Horizontal, Vertical, Both };

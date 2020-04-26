@@ -1,11 +1,24 @@
 import { ViewGroup } from "./ViewGroup";
 import { Scene, Game, Size, Scale, Container } from "../phaser";
+import { ViewScene } from "./ViewScene";
+
+export class MouseStatus {
+    public touchDown: boolean = false;
+    public mouseX: number = 0;
+    public mouseY: number = 0;
+}
 
 export class ViewRoot extends ViewGroup {
+    static globalMouseStatus: MouseStatus = new MouseStatus();
     private _game: Game;
     private _uiRoot: Container;
 
-    public attachTo(scene: Scene) {
+    constructor() {
+        super();
+        this._root = this;
+    }
+
+    public attachTo(scene: ViewScene) {
         if(!this._game) {
             this._game = scene.game;
             this.bind(scene);

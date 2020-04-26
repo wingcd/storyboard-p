@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import { EDirtyType, EOverflowType } from "./Defines";
 import { clonable } from "../annotations/Clonable";
-import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2 } from "../phaser";
+import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2, GeometryMask, MaskType, BitmapMask } from "../phaser";
 import { ViewGroup } from "./ViewGroup";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
@@ -12,6 +12,8 @@ import { ViewRoot } from "./ViewRoot";
 import { IComponent } from "../components/IComponent";
 import { ComponentOptions, BaseComponent } from "../components/BaseComponent";
 import { Clone } from "../utils/Object";
+import { ViewScene } from "./ViewScene";
+import { DragComponent } from "../components/DragComponent";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -53,7 +55,7 @@ export class View {
     private _dirtyType: EDirtyType = EDirtyType.None; 
     private _isDisposed: boolean = false;
 
-    protected _scene: Scene;
+    protected _scene: ViewScene;
     protected _rootContainer: Container;
     private _displayObject: GameObject;
 
@@ -68,6 +70,7 @@ export class View {
     public touchEnableMoved: boolean = true;
     @clonable()
     protected _draggable: boolean = false;
+    protected _dragComponent: DragComponent;
     @clonable()
     protected _opaque: boolean = false;
     @clonable()
@@ -104,7 +107,7 @@ export class View {
     }
 
     /**@internal */
-    bind(scene: Scene): boolean {
+    bind(scene: ViewScene): boolean {
         if(!this._scene) {
             this._scene = scene;
 
@@ -134,7 +137,15 @@ export class View {
         this._root = root;
     }
 
-    public get scene(): Scene {
+    public get root(): ViewRoot {
+        return this._root;
+    }
+
+    public get onStage(): boolean {
+        return this._root != null;
+    }
+
+    public get scene(): ViewScene {
         return this._scene;
     }
 
@@ -222,6 +233,7 @@ export class View {
     public removeFromParent() {
         if(this._parent) {
             this._parent.removeChild(this);
+            this._root = null;
 
             if(this._gFrame && this._gFrame.parentContainer) {
                 this._gFrame.parentContainer.remove(this._gFrame);
@@ -365,7 +377,7 @@ export class View {
                 this._parent.addDirty(EDirtyType.BoundsChanged);
             }
 
-            this.emit(Events.DisplayObjectEvent.SIZE_CHANGED, null, new Point(oldWidth, oldHeight));
+            this.emit(Events.DisplayObjectEvent.SIZE_CHANGED, oldWidth, oldHeight, this._width, this._height);
         }
     }
 
@@ -434,6 +446,28 @@ export class View {
         return this._height * Math.abs(this._scaleY);
     } 
 
+    /**
+     * rotate value in degree
+     */
+    public get angle() {
+        return this._angle;
+    }
+
+    public set angle(val: number) {
+        if(val != this._angle) {
+            this._angle = val;
+
+            this._rootContainer.angle = val;
+
+            this._applyPivot();
+
+            this.addDirty(EDirtyType.FrameChanged);
+            if(this._parent) {
+                this._parent.addDirty(EDirtyType.BoundsChanged);
+            }
+        }
+    }
+
     public get pivotX(): number {
         return this._pivot.x;
     }
@@ -486,12 +520,54 @@ export class View {
 
     public get inContainer(): boolean {
         return this._rootContainer.parentContainer != null;
+    } 
+
+    public get mask(): MaskType {
+        return this._rootContainer.mask;
     }
 
+    public set mask(mask: MaskType) {
+        if(this._rootContainer.mask != mask) {
+            // if(mask instanceof GeometryMask) {
+            //     mask.geometryMask.visible = false;
+            //     // mask.geometryMask.setPosition(this._x, this._y);
+            //     this._rootContainer.add(mask.geometryMask);
+            // }else if(mask instanceof BitmapMask) {
+            //     mask.bitmapMask.setActive(false);
+            //     this._rootContainer.add(mask.bitmapMask);
+            // }
+            this.setMask(this._rootContainer, mask);
+        }
+    }    
+
+    protected setMask(container: Container, mask: MaskType, dispose: boolean = false) {
+        if(mask != container.mask) {
+            if(container.mask && dispose) {
+                container.mask.destroy();
+                container.mask = null;
+            }
+
+            container.setMask(mask);
+        }
+    }    
+
     protected updateBorder() {
-        // if(this._overflowType == EOverflowType.Hidden) {
-        //     this._updateRootMask();
-        // }
+        
+    }
+
+    /**
+     * when caculate bounds, if this is true, just use frame as bounds,or false value, will real bounds
+     */
+    public get useBorderAsFrame(): boolean {
+        return this._useBorderAsFrame;
+    }
+
+    public set useBorderAsFrame(val: boolean) {
+        if(val != this._useBorderAsFrame) {
+            this._useBorderAsFrame = val;
+
+            this.addDirty(EDirtyType.FrameChanged);
+        }
     }
 
     protected updateFrame() {
@@ -516,7 +592,7 @@ export class View {
             let xx = [];
             let yy = [];
 
-            let trans = this._rootContainer.localTransform;            
+            let trans = this._rootContainer.getLocalTransformMatrix();            
             let pos = PoolManager.inst.get(Point) as Point;
             pos.setTo(0, 0);
             trans.transformPoint(pos.x, pos.y, pos);
@@ -733,6 +809,8 @@ export class View {
     }
 
     public emit(event: string, ...args: any[]): boolean {
+        args = args || [];
+        args.unshift(this);
         return this._rootContainer.emit.call(this._rootContainer, event, args);
     }
 
@@ -1133,5 +1211,57 @@ export class View {
     
         // obj._relayout();
         return obj;
+    }
+
+    public get dragComponent(): DragComponent {
+        return this._dragComponent;
+    }
+
+    public get draggable(): boolean {
+        return this._draggable;
+    }
+
+    private applyDraggable() {
+        if(this._draggable) {                
+            if(this._dragComponent) {
+                if(!this._dragComponent.owner) {
+                    this.addComponent(this._dragComponent);
+                }
+            }else{
+                this._dragComponent = this.getComponent(DragComponent) as DragComponent;
+                if(!this._dragComponent) {
+                    this._dragComponent = this.addComponentByType(DragComponent) as DragComponent;
+                }
+            }
+        }else{
+            this.removeComponent(this._dragComponent);
+        }
+    }
+
+    public set draggable(val: boolean) {
+        if (this._draggable != val) {
+            this._draggable = val;
+            
+            this.applyDraggable();
+        }
+    }    
+
+    public get dragging(): boolean {
+        return DragComponent.draggingObject == this;
+    }
+
+    public startDrag(): void {
+        if (!this.onStage || !this._dragComponent)
+            return;
+
+        this._dragComponent.startDrag();
+    }
+
+    public stopDrag(): void {
+        if(!this._dragComponent) {
+            return;
+        }
+
+        this._dragComponent.stopDrag();
     }
 }

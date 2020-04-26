@@ -1,22 +1,27 @@
 import { View } from "./View";
-import { Container, Scene, Rectangle, Graphics } from "../phaser";
-import { EDirtyType } from "./Defines";
+import { Container, Scene, Rectangle, Graphics, GeometryMask } from "../phaser";
+import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
+import { clonable } from "../annotations/Clonable";
+import { ViewScene } from "./ViewScene";
 
 export class ViewGroup extends View {
     protected _container: Container;
     protected _children: View[] = [];  
     protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
 
+    @clonable()
+    protected _overflowType: EOverflowType = EOverflowType.Visible;
+
     /**debug */    
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
 
-    bind(scene: Scene) {
+    bind(scene: ViewScene) {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
-            this._rootContainer.addAt(this._container, 0);
+            this.setDisplayObject(this._container);
             return true;
         }
         return false;
@@ -328,5 +333,72 @@ export class ViewGroup extends View {
                 child.finalVisible)
                 this._container.add(child.rootContainer);
         }, this);
+    }  
+
+    public get overflowType() {
+        return this._overflowType;
+    }
+
+    // public get scrollPane(): ScrollPaneComponent {
+    //     return this._scrollPane;
+    // }
+    
+
+    protected applyOverflow() {
+        switch(this._overflowType) {
+            case EOverflowType.Hidden:
+                this._updateMask();
+            break;
+            case EOverflowType.Scroll:
+                // if(!this._scrollPane) {
+                //     this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
+                //     if(!this._scrollPane) {
+                //         this._scrollPane = this.addComponentByType(ScrollPaneComponent) as ScrollPaneComponent;
+                //     }
+                // }
+            break;
+            default:
+                // this._updateRootMask(true);
+            break;
+        }
+
+        if(this._overflowType != EOverflowType.Scroll) {
+            // this.removeComponent(this._scrollPane);
+        }
+    }
+
+    public set overflowType(val: EOverflowType) {
+        if(val != this._overflowType) {
+            this._overflowType = val;
+
+            this.applyOverflow();
+        }
+    }
+
+    private _updateMask(clear: boolean = false) {
+        if(clear) {
+            this.setMask(this._container, null, true);
+        }
+        let mask = this._container.mask;
+        let target: Graphics;
+        if(!mask) {
+            target = this._scene.make.graphics({}, false);
+        }else{
+            target = (mask as GeometryMask).geometryMask;
+        }
+        // target.visible = false;
+        // this._container.add(target);
+        target.clear();
+        target.fillStyle(0x1, 1);
+        target.fillRect(0, 0, this._width, this._height);
+        this.setMask(this._container, target.createGeometryMask(), true);
+    }
+
+    protected updateBorder() {
+        super.updateBorder();
+
+        if(this._overflowType == EOverflowType.Hidden) {
+            this._updateMask();
+        }
     }
 }

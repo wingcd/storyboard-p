@@ -1,11 +1,9 @@
 import { Scene } from "../phaser"
 import { UIManager } from "./UIManager";
 import { ViewRoot } from "./ViewRoot";
-import { View } from "./View";
-import { ViewGroup } from "./ViewGroup";
 import { ViewFactory } from "./ViewFactory";
 
-export class ViewScene extends Scene {
+export class ViewScene extends Scene {    
     _uimgr: UIManager;
     _root: ViewRoot;
     _addFactory: ViewFactory;
