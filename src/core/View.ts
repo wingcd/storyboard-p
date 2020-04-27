@@ -527,23 +527,75 @@ export class View {
     }
 
     public set mask(mask: MaskType) {
-        if(this._rootContainer.mask != mask) {
-            // if(mask instanceof GeometryMask) {
-            //     mask.geometryMask.visible = false;
-            //     // mask.geometryMask.setPosition(this._x, this._y);
-            //     this._rootContainer.add(mask.geometryMask);
-            // }else if(mask instanceof BitmapMask) {
-            //     mask.bitmapMask.setActive(false);
-            //     this._rootContainer.add(mask.bitmapMask);
-            // }
+        if(this._rootContainer.mask != mask) {            
             this.setMask(this._rootContainer, mask);
+            this._updateRootMask();
         }
     }    
+
+    public static setMaskPosition(mask: MaskType, x: number, y: number) {
+        let obj: any;
+        if(mask instanceof GeometryMask) {
+            obj = mask.geometryMask;
+        }else if(mask instanceof BitmapMask) {
+            obj = mask.bitmapMask;
+        }
+        let mk = mask as any;
+        mk.__mask_raw_x = obj.x = x;
+        mk.__mask_raw_y = obj.y = y;
+    }
+
+    protected _setToMask(container: Container, mask: MaskType) {
+        let obj: any;
+        if(mask instanceof GeometryMask) {
+            obj = mask.geometryMask;
+        }else if(mask instanceof BitmapMask) {
+            obj = mask.bitmapMask;
+        }
+        if(!obj) {
+            console.error('invalid mask with no mask data!');
+            return;
+        }
+        if(obj.parentContainer && obj.parentContainer.mask) {
+            obj.parentContainer.clearMask(false);
+        }
+
+        let mk = mask as any;
+        let x = mk.__mask_raw_x, y = mk.__mask_raw_y;
+        if(x === undefined || y === undefined) {
+            x = obj.x;
+            y = obj.y;
+            mk.__mask_raw_x = x;
+            mk.__mask_raw_y = y;
+        }
+        container.add(obj);
+        container.setMask(mask);
+        
+        let pos = this.localToGlobal(x, y);
+        if(obj.setOrigin) {
+            obj.setOrigin(0, 0);
+        }
+        obj.setPosition(pos.x, pos.y);
+        obj.visible = false;
+
+        PoolManager.inst.put(pos);
+    }
+
+    private _updateRootMask() {
+        let mask = this._rootContainer.mask;
+        if(!mask) {
+            return;
+        }
+        this._setToMask(this._rootContainer, mask);
+    }
 
     protected setMask(container: Container, mask: MaskType, dispose: boolean = false) {
         if(mask != container.mask) {
             if(container.mask && dispose) {
-                container.mask.destroy();
+                let mk = mask as any;
+                delete mk.__mask_raw_x;
+                delete mk.__mask_raw_y;
+                container.clearMask(true);
                 container.mask = null;
             }
 
@@ -551,8 +603,9 @@ export class View {
         }
     }    
 
-    protected updateBorder() {
-        
+    protected updateBorder() {        
+
+        this._updateRootMask();
     }
 
     /**

@@ -2,14 +2,7 @@ import { ViewGroup } from "./ViewGroup";
 import { Scene, Game, Size, Scale, Container } from "../phaser";
 import { ViewScene } from "./ViewScene";
 
-export class MouseStatus {
-    public touchDown: boolean = false;
-    public mouseX: number = 0;
-    public mouseY: number = 0;
-}
-
 export class ViewRoot extends ViewGroup {
-    static globalMouseStatus: MouseStatus = new MouseStatus();
     private _game: Game;
     private _uiRoot: Container;
 

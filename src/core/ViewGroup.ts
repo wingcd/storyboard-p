@@ -5,6 +5,7 @@ import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
 import { clonable } from "../annotations/Clonable";
 import { ViewScene } from "./ViewScene";
+import { PoolManager } from "../utils/PoolManager";
 
 export class ViewGroup extends View {
     protected _container: Container;
@@ -22,6 +23,8 @@ export class ViewGroup extends View {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
             this.setDisplayObject(this._container);
+            this._container.width = this._width;
+            this._container.height = this.height;
             return true;
         }
         return false;
@@ -347,7 +350,7 @@ export class ViewGroup extends View {
     protected applyOverflow() {
         switch(this._overflowType) {
             case EOverflowType.Hidden:
-                this._updateMask();
+                this._updateHideMask();
             break;
             case EOverflowType.Scroll:
                 // if(!this._scrollPane) {
@@ -375,7 +378,7 @@ export class ViewGroup extends View {
         }
     }
 
-    private _updateMask(clear: boolean = false) {
+    private _updateHideMask(clear: boolean = false) {
         if(clear) {
             this.setMask(this._container, null, true);
         }
@@ -386,19 +389,23 @@ export class ViewGroup extends View {
         }else{
             target = (mask as GeometryMask).geometryMask;
         }
-        // target.visible = false;
-        // this._container.add(target);
+        let pos = this.localToGlobal(0, 0);
+        target.visible = false;
+        this._container.add(target);
         target.clear();
-        target.fillStyle(0x1, 1);
+        target.setPosition(pos.x, pos.y);
         target.fillRect(0, 0, this._width, this._height);
         this.setMask(this._container, target.createGeometryMask(), true);
+        PoolManager.inst.put(pos);
     }
 
     protected updateBorder() {
         super.updateBorder();
 
+        this._container.width = this._width;
+        this._container.height = this.height;
         if(this._overflowType == EOverflowType.Hidden) {
-            this._updateMask();
+            this._updateHideMask();
         }
     }
 }

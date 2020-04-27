@@ -13,12 +13,22 @@ class UIScene extends ViewScene {
         super({key: 'game', active: true})
     }
 
-    preload() {    
+    preload() {
+
+        this.load.image('aaa', './res/1.jpg');
+    }
+
+    create() {
         let view = this.addUI.group();
         view.setBackgroundColor(0xa0a0a0, true);
         view.setXY(100, 50);
-        view.setSize(450, 400);
+        view.setSize(550, 400);
         view.overflowType = EOverflowType.Hidden;
+
+        this.tweens.add({
+            targets: view,
+            x: { value: 400, duration: 3000, yoyo: true, ease: 'Quad.easeInOut' },
+        })
         
         let child1 = this.makeUI.view();
         child1.setBackgroundColor(0x00ff00, true);
@@ -28,25 +38,25 @@ class UIScene extends ViewScene {
         view.addChild(child1);
         child1.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
             console.log(`${localX},${localY}`);
-        });
-       
+        });       
         
-        // let g = view.scene.make.graphics({}, false);
-        // g.visible = false;
-        // child1.rootContainer.add(g);
-        // g.clear();
-        // g.fillStyle(0x1, 1);
-        // // g.fillCircle(0, 0, 100);          
-        // g.fillRect(0 ,0, 10, 50);
-        // child1.mask = g.createGeometryMask(); //.setInvertAlpha(true);
+        let g = view.scene.make.graphics({}, false);
+        g.clear();
+        g.setPosition(50, 300);
+        g.fillCircle(0, 0, 200);
+        view.mask = g.createGeometryMask();
+
+        // let smk = this.add.sprite(50, 50, 'aaa');
+        // smk.setSize(100, 100);
+        // view.mask = smk.createBitmapMask();
+
+        // has bug if use geometry mask with invert alpha when overlay is hidden
+        // view.mask.invertAlpha = true;
 
         let child2 = this.makeUI.view();
         child2.setBackgroundColor(0xffff00, true);
-        child2.setXY(400, 100);
+        child2.setXY(500, 100);
         view.addChild(child2);
-    }
-
-    create(): void {
     }
 }
 
@@ -75,8 +85,6 @@ const config: Phaser.Types.Core.GameConfig = {
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,
-                // alignV: EStageAlign.CENTER,
-                // alignH: EStageAlign.MIDDLE,
             }},
         ]
     }
