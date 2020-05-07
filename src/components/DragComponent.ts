@@ -7,6 +7,8 @@ import { clonable } from "../annotations/Clonable";
 import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
+import { TOP_MOST_DEPTH, DEFAULT_DEPTH } from "../core/Defines";
+import { ViewGroup } from "../core/ViewGroup";
 
 const enum EDragStatus {
    NONE,
@@ -27,12 +29,16 @@ export class DragComponent extends BaseComponent {
 
    private _lockXY: boolean = false;
    
+   private _parent: ViewGroup;
+   private _index: number;
    /**
     * @description clamp range in parent axis system 
     * @default null
     * */ 
    @clonable()
    public dragBounds: Rectangle;
+   @clonable()
+   public topMostOnDragging: boolean = false;
 
    public static draggingObject: View;
 
@@ -85,6 +91,17 @@ export class DragComponent extends BaseComponent {
          DragComponent.draggingObject.stopDrag();
       } 
 
+      if(this.topMostOnDragging && this.owner.parent) {
+         this._parent = this.owner.parent;
+         this._index = this._parent.getChildIndex(this.owner);   
+
+         let pt = this.owner.parent.localToGlobal(this.owner.x, this.owner.y);
+         this.owner.setXY(pt.x, pt.y);
+         PoolManager.inst.put(pt);
+
+         this.owner.root.addChildAt(this.owner, this._parent.children.length);   
+      }
+
       this.owner.scene.input.on(Input.Events.POINTER_MOVE, this._moving, this);
       this.owner.scene.input.on(Input.Events.POINTER_UP, this._end, this);
       this.owner.scene.input.on(Input.Events.POINTER_UP_OUTSIDE, this._end, this);
@@ -94,7 +111,7 @@ export class DragComponent extends BaseComponent {
 
       DragComponent._sStatus = EDragStatus.DRAG_BEGIN;      
       DragComponent.draggingObject = this.owner;
-
+      
       let pos = PoolManager.inst.get(Point).setTo(this.owner.scene.input.x, this.owner.scene.input.y);
       if(this.owner.parent) {
          this.owner.parent.globalToLocal(pos.x, pos.y, pos);
@@ -103,10 +120,21 @@ export class DragComponent extends BaseComponent {
       DragComponent.sGlobalDragStart.y = pos.y;
 
       DragComponent.sStartXY.x = this.owner.x;
-      DragComponent.sStartXY.y = this.owner.y;
+      DragComponent.sStartXY.y = this.owner.y;      
    }   
 
-   private _reset() {
+   private _reset() {      
+      if(this.topMostOnDragging && this._parent) {
+         let pos = this._parent.globalToLocal(this.owner.x, this.owner.y);
+
+         this._parent.addChildAt(this.owner, this._index);
+         this._owner.setXY(pos.x, pos.y);
+         PoolManager.inst.put(pos);
+
+         this._parent = null;
+         this._index = -1;
+      }
+
       this.owner.scene.input.off(Input.Events.POINTER_MOVE, this._moving, this);
       this.owner.scene.input.off(Input.Events.POINTER_UP, this._end, this);
       this.owner.scene.input.off(Input.Events.POINTER_UP_OUTSIDE, this._end, this);
@@ -176,10 +204,14 @@ export class DragComponent extends BaseComponent {
          
          //clamp to drag bound
          if(this.dragBounds) {
-            nx = Math.max(nx, this.dragBounds.left);
-            ny = Math.max(ny, this.dragBounds.top);
-            nx = Math.min(nx, this.dragBounds.right - this.owner.width);
-            ny = Math.min(ny, this.dragBounds.bottom - this.owner.height);
+            let dragBounds = this.dragBounds;
+            if(this.topMostOnDragging && this._parent) {
+               dragBounds = this._parent.localToGlobalRect(dragBounds.x, dragBounds.y, dragBounds.width, dragBounds.height);
+            }
+            nx = Math.max(nx, dragBounds.left);
+            ny = Math.max(ny, dragBounds.top);
+            nx = Math.min(nx, dragBounds.right - this.owner.width);
+            ny = Math.min(ny, dragBounds.bottom - this.owner.height);
          }
 
          this._lockXY = true;

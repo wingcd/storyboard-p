@@ -1,3 +1,6 @@
+export const TOP_MOST_DEPTH = 99999;
+export const DEFAULT_DEPTH = 0;
+
 export enum EDirectionType {
     None = 0,
     Left = 1,

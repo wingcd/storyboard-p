@@ -108,7 +108,11 @@ export class ViewGroup extends View {
             for(let i in this._children) {
                 let c = this._children[i];
                 if(c.inContainer) {
-                    displayIndex++;
+                    if(c != child) {
+                        displayIndex++;
+                    }else{
+                        break;
+                    }
                 }
             }
             if(cnt > 0 && displayIndex == cnt) {
@@ -201,10 +205,6 @@ export class ViewGroup extends View {
         }
     }
 
-    public removeFromParent() {
-        
-    }
-
     public removeAllChildren(dispose?: boolean, toPool?: boolean) {
         let children = this._children.slice();
         for(let i=0;i<children.length;i++) {
@@ -254,6 +254,16 @@ export class ViewGroup extends View {
         }
 
         throw new Error("Invalid child index");
+    }    
+
+    public getChildIndex(child: View): number {
+        return this._children.indexOf(child);
+    }
+
+    public getChildById(id: string): View {
+        return this._children.find(c=>{
+            return c.id == id;
+        });
     }
 
     protected updateBounds() {
@@ -327,15 +337,20 @@ export class ViewGroup extends View {
         return obj;
     }
 
-    protected appendChildrenList():void {
+    /**
+     * @internal
+     */
+    appendChildrenList():void {
         this._container.removeAll();
         this._children.forEach(child => {
             if ((child.displayObject || 
                 child.enableBackground || 
                 child instanceof ViewGroup && child.children.length > 0) && 
-                child.finalVisible)
+                child.finalVisible) {
                 this._container.add(child.rootContainer);
+            }
         }, this);
+        this._container.sort('depth');
     }  
 
     public get overflowType() {

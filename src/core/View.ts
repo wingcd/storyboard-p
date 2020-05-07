@@ -14,6 +14,7 @@ import { ComponentOptions, BaseComponent } from "../components/BaseComponent";
 import { Clone } from "../utils/Object";
 import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
+import { ComponentFactory } from "../components/ComponentFactory";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -187,6 +188,18 @@ export class View {
 
     protected withDirty(dirty: EDirtyType): boolean {
         return (dirty&this._dirtyType) != EDirtyType.None;
+    }
+
+    public get id(): string {
+        return this._id;
+    }
+
+    public get name(): string {
+        return this._name;
+    }
+
+    public set name(value: string) {
+        this._name = value;
     }
 
     public get visible(): boolean {
@@ -711,14 +724,15 @@ export class View {
             return;
         }
 
-        if(this._rootContainer.parentContainer) {
+        let parent = this._parent ? this._parent._rootContainer : this._rootContainer.parentContainer;
+        if(parent) {
             if(!this._gFrame) {
                 this._gFrame = this._scene.make.graphics({}, false);
-                this._rootContainer.parentContainer.add(this._gFrame);
+                parent.add(this._gFrame);
             }
 
-            if(this._rootContainer.parentContainer != this._gFrame.parentContainer) {
-                this._rootContainer.parentContainer.add(this._gFrame);
+            if(parent != this._gFrame.parentContainer) {
+                parent.add(this._gFrame);
             }
 
             this._gFrame.clear();
@@ -835,7 +849,15 @@ export class View {
     }
 
     public on(type: string, listener: Function, thisObject?: any): this {
-        if (type == null) return this;
+        if (type == null) {
+            return this;
+        }
+        
+        let compType = ComponentFactory.inst.getType(type);
+        if(!this.hasComponent(compType)) {
+            this.addComponentByType(compType);
+        }
+
         this._rootContainer.on(type, listener, thisObject);
         return this;
     }
@@ -844,7 +866,16 @@ export class View {
         if (type == null) {
             return this;
         }
+
         this._rootContainer.off(type, listener, thisObject);
+
+        if(!this.hasListener(type, listener)) {
+            let compType = ComponentFactory.inst.getType(type);
+            if(this.hasComponent(compType)) {
+                this.removeComponentByType(compType);
+            }
+        }
+
         return this;
     }
 
@@ -864,7 +895,7 @@ export class View {
     public emit(event: string, ...args: any[]): boolean {
         args = args || [];
         args.unshift(this);
-        return this._rootContainer.emit.call(this._rootContainer, event, args);
+        return this._rootContainer.emit(event, ...args);
     }
 
     public removeAllListeners(type?:string):void {
@@ -1316,5 +1347,18 @@ export class View {
         }
 
         this._dragComponent.stopDrag();
+    }
+
+    public get depth(): number {
+        return this._rootContainer.depth;
+    }
+
+    public set depth(val: number) {
+        if(val != this._rootContainer.depth) {
+            this._rootContainer.depth = val;
+            if(this._parent) {
+                this.parent.appendChildrenList();
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, ESta
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from '../events';
+import { View } from "../core/View";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -17,13 +18,24 @@ class UIScene extends ViewScene {
         view.setBackgroundColor(0xff0000, true);
         view.setXY(100, 50);
         view.setSize(200, 40);
+        view.rootContainer.name = 'view';
         view.draggable = true;
         
-        view.on(Events.DragEvent.START, ()=>{
-            console.log('drag start');
+        // view.dragComponent.topMostOnDragging = true;
+        
+        view.on(Events.DragEvent.START, (sender: View)=>{
+            console.log('drag start:' + sender.depth);
         });
 
-        
+        let dropView = this.addUI.group();
+        dropView.setBackgroundColor(0xffff00, true);
+        dropView.setXY(200, 200);
+        dropView.setSize(200, 200);
+        dropView.on(Events.DragEvent.DROP, (sender: View, target: View)=>{
+            console.log(sender);
+        }, this);
+
+        // dropView.addChild(view);
     }
 
     create(): void {
@@ -42,6 +54,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 960,
     height: 540,
     backgroundColor: "#f0f0f0",    
+    type: Phaser.WEBGL,
     scene: [UIScene],  
     scale: {
         mode: Phaser.Scale.RESIZE,
