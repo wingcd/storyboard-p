@@ -18,10 +18,10 @@ class UIScene extends ViewScene {
         view.setBackgroundColor(0xff0000, true);
         view.setXY(100, 50);
         view.setSize(200, 40);
-        view.rootContainer.name = 'view';
+        view.name = 'view';
         view.draggable = true;
         
-        // view.dragComponent.topMostOnDragging = true;
+        view.dragComponent.topMostOnDragging = true;
         
         view.on(Events.DragEvent.START, (sender: View)=>{
             console.log('drag start:' + sender.depth);
@@ -31,8 +31,9 @@ class UIScene extends ViewScene {
         dropView.setBackgroundColor(0xffff00, true);
         dropView.setXY(200, 200);
         dropView.setSize(200, 200);
+        dropView.name = 'dropView';
         dropView.on(Events.DragEvent.DROP, (sender: View, target: View)=>{
-            console.log(sender);
+            console.log(`drag ${target.name} drop to ${sender.name}`);
         }, this);
 
         // dropView.addChild(view);

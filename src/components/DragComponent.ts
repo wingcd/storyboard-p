@@ -221,7 +221,7 @@ export class DragComponent extends BaseComponent {
       }  
    }
 
-   private _end(): void {
+   private _end(pointer: Pointer, localX: number, localY: number, event: EventData): void {
       if (DragComponent.draggingObject == this.owner) {
          DragComponent._sStatus = EDragStatus.DRAG_END;
          this._dragEnd();
