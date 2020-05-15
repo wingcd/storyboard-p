@@ -1,6 +1,6 @@
 // import { GestureDoubleClick } from "./GestureDoubleClick";
 import * as Events from "../events";
-// import { GestureClick } from "./GestureClick";
+import { GestureClick } from "./GestureClick";
 // import { GestureLongTouch } from "./GestureLongTouch";
 import { DropComponent } from "./DropComponent";
 
@@ -26,8 +26,7 @@ export class ComponentFactory {
 }
 
 ComponentFactory.inst.regist(Events.DragEvent.DROP, DropComponent);
-
-// ComponentFactory.inst.regist(Events.GestureEvent.Click, GestureClick);
+ComponentFactory.inst.regist(Events.GestureEvent.Click, GestureClick);
 // ComponentFactory.inst.regist(Events.GestureEvent.DoubleClick, GestureDoubleClick);
 // ComponentFactory.inst.regist(Events.GestureEvent.LongTouchStart, GestureLongTouch);
 // ComponentFactory.inst.regist(Events.GestureEvent.LongTouchEnd, GestureLongTouch);

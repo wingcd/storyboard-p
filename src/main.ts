@@ -1,1 +1,1 @@
-require('./test/drag_drop')
+require('./test/gesture_click')
