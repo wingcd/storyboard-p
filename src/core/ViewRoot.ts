@@ -18,6 +18,7 @@ export class ViewRoot extends ViewGroup {
 
             this._uiRoot = scene.add.container(0, 0);
             this._uiRoot.add(this._rootContainer);
+            this.opaque = true;
             this._init();
         }
     }

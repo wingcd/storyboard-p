@@ -1,1 +1,1 @@
-require('./test/gesture_click')
+require('./test/scrollpane')

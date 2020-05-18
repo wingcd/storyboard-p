@@ -3,5 +3,4 @@ export const enum DisplayObjectEvent {
     SIZE_CHANGED = "__size_changed",
     VISIBLE_CHANGED = "__visible_changed",
     SIZE_DELAY_CHANGE = "__size_delay_change",
-    MOUSE_WHEEL = "__mouse_wheel",
 }

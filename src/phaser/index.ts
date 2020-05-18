@@ -18,6 +18,11 @@ export import TransformMatrix = Phaser.GameObjects.Components.TransformMatrix;
 export import BitmapMask = Phaser.Display.Masks.BitmapMask;
 export import GeometryMask = Phaser.Display.Masks.GeometryMask;
 export import Input = Phaser.Input;
+export import Time = Phaser.Time;
+export import Math = Phaser.Math;
+export import Easing = Phaser.Math.Easing;
+export import Tween = Phaser.Tweens.Tween;
 
 export type MaskType = BitmapMask | GeometryMask;
 export * from './plugins/StageScalePlugin';
+require('./TweenPatch');

@@ -819,10 +819,11 @@ export class View {
         // if(toPool) {
         //     PoolManager.inst.put(this);
         //     return;
-        // }    
-
+        // }
         this._rootContainer.destroy();
         this._rootContainer = null;
+            
+        this._scene.tweens.killTweensOf(this);
     }
 
     /**@internal */
@@ -853,8 +854,8 @@ export class View {
             return this;
         }
         
-        let compType = ComponentFactory.inst.getType(type);
-        if(!this.hasComponent(compType)) {
+        let compType = ComponentFactory.inst.getEventComponentType(type);
+        if(compType && !this.hasComponent(compType)) {
             this.addComponentByType(compType);
         }
 
@@ -869,9 +870,18 @@ export class View {
 
         this._rootContainer.off(type, listener, thisObject);
 
-        if(!this.hasListener(type, listener)) {
-            let compType = ComponentFactory.inst.getType(type);
-            if(this.hasComponent(compType)) {
+        let events = ComponentFactory.inst.getRelationEvents(type);
+        let hasListens = false;
+        for(let idx in events) {
+            if(this.hasListener(events[idx])) {
+                hasListens = true;
+                break;
+            }
+        }
+
+        if(!hasListens) {
+            let compType = ComponentFactory.inst.getEventComponentType(type);
+            if(compType && this.hasComponent(compType)) {
                 this.removeComponentByType(compType);
             }
         }

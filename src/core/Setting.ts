@@ -14,4 +14,7 @@ export class Settings {
 
     /** the finger moving threshold in pixel to trigger the scrolling action.*/
     public static touchScrollSensitivity: number = 20;
+
+    /** the finger long touch time.*/
+    public static longTouchTime: number = 2000;
 }

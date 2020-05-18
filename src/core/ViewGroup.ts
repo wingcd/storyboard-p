@@ -6,6 +6,7 @@ import { ViewRoot } from "./ViewRoot";
 import { clonable } from "../annotations/Clonable";
 import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
+import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 
 export class ViewGroup extends View {
     protected _container: Container;
@@ -14,6 +15,7 @@ export class ViewGroup extends View {
 
     @clonable()
     protected _overflowType: EOverflowType = EOverflowType.Visible;
+    private _scrollPane: ScrollPaneComponent = null;
 
     /**debug */    
     private _gBounds: Graphics;
@@ -30,12 +32,23 @@ export class ViewGroup extends View {
         return false;
     }
 
+    /**@internal */
+    get container(): Container {
+        return this._container;
+    }
+
     /**
      * minimum bounds of all children's frame 
      */
     public get bounds(): Rectangle {
         this.checkDirty();
         return this._bounds;
+    }
+
+    public ensureBoundsCorrect(): void {
+        if (this.withDirty(EDirtyType.BoundsChanged)) {
+            this.updateBounds();
+        }
     }
 
     /**@internal */
@@ -297,9 +310,9 @@ export class ViewGroup extends View {
 
         this.removeDirty(EDirtyType.BoundsChanged);
 
-        // if(this._scrollPane) {
-        //     this._scrollPane.setContentSize(maxx, maxy);
-        // }
+        if(this._scrollPane) {
+            this._scrollPane.setContentSize(maxx, maxy);
+        }
     }   
 
     public dispose(toPool?: boolean) {
@@ -357,10 +370,9 @@ export class ViewGroup extends View {
         return this._overflowType;
     }
 
-    // public get scrollPane(): ScrollPaneComponent {
-    //     return this._scrollPane;
-    // }
-    
+    public get scrollPane(): ScrollPaneComponent {
+        return this._scrollPane;
+    }    
 
     protected applyOverflow() {
         switch(this._overflowType) {
@@ -368,20 +380,20 @@ export class ViewGroup extends View {
                 this._updateHideMask();
             break;
             case EOverflowType.Scroll:
-                // if(!this._scrollPane) {
-                //     this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
-                //     if(!this._scrollPane) {
-                //         this._scrollPane = this.addComponentByType(ScrollPaneComponent) as ScrollPaneComponent;
-                //     }
-                // }
+                if(!this._scrollPane) {
+                    this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
+                    if(!this._scrollPane) {
+                        this._scrollPane = this.addComponentByType(ScrollPaneComponent) as ScrollPaneComponent;
+                    }
+                }
             break;
             default:
-                // this._updateRootMask(true);
+                this._updateHideMask(true);
             break;
         }
 
         if(this._overflowType != EOverflowType.Scroll) {
-            // this.removeComponent(this._scrollPane);
+            this.removeComponent(this._scrollPane);
         }
     }
 
@@ -421,6 +433,24 @@ export class ViewGroup extends View {
         this._container.height = this.height;
         if(this._overflowType == EOverflowType.Hidden) {
             this._updateHideMask();
+        }
+    }
+
+    /**@internal */
+    scrollTo(x?: number, y?: number) {
+        let dirty = false;
+        if(this._container.x != x && x != null && x != undefined) {
+            this._container.x = x;
+            dirty = true;
+        }
+
+        if(this._container.y != y && y != null && y != undefined) {
+            this._container.y = y;
+            dirty = true;
+        }
+
+        if(dirty) {
+            this.addDirty(EDirtyType.DebugBoundsChanged);
         }
     }
 }
