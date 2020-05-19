@@ -19,7 +19,7 @@ export class DropComponent extends BaseComponent {
     }
 
     private _touchUp(pointer: Pointer) {
-        if(DragComponent.draggingObject) {
+        if(DragComponent.draggingObject && DragComponent.draggingObject != this.owner) {
             let pos = this.owner.globalToLocal(pointer.x, pointer.y);
             if(this.owner.scene.game.input.pointWithinHitArea(this.owner.rootContainer, pos.x, pos.y)) {
                 this._draggingObject = DragComponent.draggingObject;

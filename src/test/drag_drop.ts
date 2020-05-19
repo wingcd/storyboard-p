@@ -1,5 +1,5 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Input } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from '../events';
@@ -14,12 +14,23 @@ class UIScene extends ViewScene {
     }
 
     preload() {
+        
+    }
+
+    create(): void {
+        this.root.on(Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
+            console.log('root down')
+        });
+
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
-        view.setXY(100, 50);
+        view.setXY(50, 50);
         view.setSize(200, 40);
         view.name = 'view';
         view.draggable = true;
+        view.on(Input.Events.POINTER_DOWN, (pointer: Pointer, localX: number, localY: number, event: EventData)=>{
+            console.log('view down')
+        });
         
         view.dragComponent.topMostOnDragging = true;
         
@@ -35,11 +46,10 @@ class UIScene extends ViewScene {
         dropView.on(Events.DragEvent.DROP, (sender: View, target: View)=>{
             console.log(`drag ${target.name} drop to ${sender.name}`);
         }, this);
+        dropView.draggable = true;
 
+        // view.angle = 45;
         // dropView.addChild(view);
-    }
-
-    create(): void {
     }
 }
 

@@ -452,5 +452,9 @@ export class ViewGroup extends View {
         if(dirty) {
             this.addDirty(EDirtyType.DebugBoundsChanged);
         }
+
+        // this._children.forEach(child=>{
+        //     child.addDirty()
+        // });
     }
 }

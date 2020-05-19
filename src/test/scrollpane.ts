@@ -6,6 +6,7 @@ import { EOverflowType } from "../core/Defines";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
+Settings.showDebugBounds = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -17,6 +18,7 @@ class UIScene extends ViewScene {
         view.setBackgroundColor(0xff0000, true);
         view.setXY(50, 50);
         view.setSize(100, 100);
+        view.draggable = true;
         
         view = this.addUI.view();
         view.setBackgroundColor(0xffff00, true);

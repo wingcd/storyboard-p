@@ -112,7 +112,7 @@ export class DragComponent extends BaseComponent {
       DragComponent._sStatus = EDragStatus.DRAG_BEGIN;      
       DragComponent.draggingObject = this.owner;
       
-      let pos = PoolManager.inst.get(Point).setTo(this.owner.scene.input.x, this.owner.scene.input.y);
+      let pos = PoolManager.inst.get(Point).setTo(this.owner.scene.input.activePointer.worldX, this.owner.scene.input.activePointer.worldY);
       if(this.owner.parent) {
          this.owner.parent.globalToLocal(pos.x, pos.y, pos);
       }

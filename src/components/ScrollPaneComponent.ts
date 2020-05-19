@@ -354,8 +354,8 @@ export class ScrollPaneComponent extends BaseComponent {
         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_BEGIN;      
         ScrollPaneComponent.draggingPane = this;
   
-        ScrollPaneComponent.sLastScrollPt.x = ScrollPaneComponent.sGlobalScrollStart.x = this._owner.scene.input.mousePointer.worldX;
-        ScrollPaneComponent.sLastScrollPt.y = ScrollPaneComponent.sGlobalScrollStart.y = this._owner.scene.input.mousePointer.worldY;
+        ScrollPaneComponent.sLastScrollPt.x = ScrollPaneComponent.sGlobalScrollStart.x = this._owner.scene.input.activePointer.worldX;
+        ScrollPaneComponent.sLastScrollPt.y = ScrollPaneComponent.sGlobalScrollStart.y = this._owner.scene.input.activePointer.worldY;
     } 
 
     private _reset() {
@@ -387,7 +387,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
         if(status != EScrollAnimStatus.NONE) { 
             let time = Math.max(Math.max(dx, dy) / this._scrollSpeed * 2, 200);
-            let easing: any = Easing.Linear.Linear;
+            let easing: any = Easing.Linear;
             let tween = this._owner.scene.tweens.create({
                 targets: {
                     x: this.owner.container.x, 
