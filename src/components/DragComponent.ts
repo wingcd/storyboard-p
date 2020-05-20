@@ -7,7 +7,7 @@ import { clonable } from "../annotations/Clonable";
 import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
-import { TOP_MOST_DEPTH, DEFAULT_DEPTH } from "../core/Defines";
+import { TOP_MOST_DEPTH, DEFAULT_DEPTH, EDragType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
 
 const enum EDragStatus {
@@ -39,8 +39,13 @@ export class DragComponent extends BaseComponent {
    public dragBounds: Rectangle;
    @clonable()
    public topMostOnDragging: boolean = false;
+   @clonable()
+   public dragType: EDragType = EDragType.Both;
 
-   public static draggingObject: View;
+   private static _draggingObject: View;
+   public static get draggingObject(): View {
+      return DragComponent._draggingObject;
+   }
 
    constructor() {
       super();
@@ -110,7 +115,7 @@ export class DragComponent extends BaseComponent {
       this.owner.on(DisplayObjectEvent.XY_CHANGED, this._xyChanged, this);
 
       DragComponent._sStatus = EDragStatus.DRAG_BEGIN;      
-      DragComponent.draggingObject = this.owner;
+      DragComponent._draggingObject = this.owner;
       
       let pos = PoolManager.inst.get(Point).setTo(this.owner.scene.input.activePointer.worldX, this.owner.scene.input.activePointer.worldY);
       if(this.owner.parent) {
@@ -145,7 +150,7 @@ export class DragComponent extends BaseComponent {
 
    private _dragEnd(): void {
       this._reset();
-      DragComponent.draggingObject = null;
+      DragComponent._draggingObject = null;
       DragComponent._sStatus = EDragStatus.NONE;
       DragComponent._sDragBeginCancelled = true;
   }
@@ -171,16 +176,19 @@ export class DragComponent extends BaseComponent {
 
       if(DragComponent._sStatus == EDragStatus.TOUCH_DOWN || DragComponent._sStatus == EDragStatus.TOUCH_MOVING) {
          // check can into drag status
-         if (Math.abs(pointer.x - pointer.downX) < sensitivity &&
-            Math.abs(pointer.y - pointer.downY) < sensitivity) {
-            return;
-         }
+         let npassX = Math.abs(pointer.downX - pointer.x) < sensitivity;
+           let npassY = Math.abs(pointer.downY - pointer.y) < sensitivity;
+           if (npassX && npassY && this.dragType == EDragType.Both || 
+               npassX && this.dragType == EDragType.Horizontal ||
+               npassY && this.dragType == EDragType.Vertical) {
+              return;
+           }
          DragComponent._sStatus = EDragStatus.TOUCH_MOVING;
 
          this._reset();
          DragComponent._sDragBeginCancelled = false;
     
-         DragComponent.draggingObject = this.owner;
+         DragComponent._draggingObject = this.owner;
 
          this.owner.emit(Events.DragEvent.START);
 
@@ -215,6 +223,12 @@ export class DragComponent extends BaseComponent {
          }
 
          this._lockXY = true;
+         if(this.dragType == EDragType.Horizontal) {
+            ny = this.owner.y;
+         }else if(this.dragType == EDragType.Vertical) {
+            nx = this.owner.x;
+         }
+
          this.owner.setXY(nx, ny);
          this.owner.emit(Events.DragEvent.MOVING, nx, ny);
          this._lockXY = false;

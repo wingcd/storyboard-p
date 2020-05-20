@@ -23,3 +23,4 @@ export enum EDirtyType {
 
 export enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
 export enum EScrollType { Horizontal, Vertical, Both };
+export enum EDragType { Horizontal, Vertical, Both };

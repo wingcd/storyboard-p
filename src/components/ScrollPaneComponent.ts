@@ -9,6 +9,7 @@ import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
+import { clonable } from "../annotations/Clonable";
 
 const enum EScrollStatus {
     NONE,
@@ -29,29 +30,40 @@ const enum EScrollStatus {
 
  @disallow_multiple_component()
 export class ScrollPaneComponent extends BaseComponent {    
-    public static draggingPane: ScrollPaneComponent;
+    private static _draggingPane: ScrollPaneComponent;
+    private static get draggingPane(): ScrollPaneComponent {
+        return ScrollPaneComponent._draggingPane;
+    }
 
     protected static sGlobalScrollStart: Point = new Point();
     protected static sLastScrollPt: Point = new Point();
     private   static _sScrollBeginCancelled: boolean;    
     protected static _sStatus: EScrollStatus = EScrollStatus.NONE;
 
+    @clonable()
+    public scrollType: EScrollType = EScrollType.Both;
+    @clonable()
+    public scrollSpeed: number = Settings.defaultScrollSpeed;
+    @clonable()
+    public mouseScrollSpeed: number = Settings.defaultScrollSpeed * 2;
+    @clonable()
+    public enableMouseWheel: boolean = true;
+    @clonable()
+    public touchEffect: boolean = true;
+    @clonable()
+    public inertanceEffect: boolean = false;
+    @clonable()
+    public bouncebackEffect: boolean = false;
+
     private _viewSize: Point = new Point();
     private _contentSize: Point = new Point();
     private _overlapSize: Point = new Point();
-    private _scrollType: EScrollType = EScrollType.Both;
-    private _scrollSpeed: number = Settings.defaultScrollSpeed;
-    private _mouseScrollSpeed: number = Settings.defaultScrollSpeed * 2;
-
     private _endPos: Point = new Point();
     private _posX: number = 0;
     private _posY: number = 0;
     private _moveOffset: Point = new Point();
     private _group: ViewGroup;
 
-    private _enableMouseWheel: boolean = true;
-    private _touchEffect: boolean = true;
-    private _inertanceEffect: boolean = true;
     private _animationInfo: {
         status: EScrollAnimStatus,
         tween: Tween,
@@ -77,7 +89,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
     private onEnable() {
         this.owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
-        this.owner.on(Input.Events.GAMEOBJECT_WHEEL, this._mouseWheel, this);
+        this.owner.on(Input.Events.POINTER_WHEEL, this._mouseWheel, this);
 
         this.owner.on(Input.Events.POINTER_DOWN, this._touchDown, this);
 
@@ -86,7 +98,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
     private onDisable() {
         this.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
-        this.owner.off(Input.Events.GAMEOBJECT_WHEEL, this._mouseWheel, this);   
+        this.owner.off(Input.Events.POINTER_WHEEL, this._mouseWheel, this);   
 
         this.owner.off(Input.Events.POINTER_DOWN, this._touchDown, this);
 
@@ -101,13 +113,13 @@ export class ScrollPaneComponent extends BaseComponent {
     }
 
     private _updateOverlap() {
-        if (this._scrollType == EScrollType.Horizontal || this._scrollType == EScrollType.Both) {
+        if (this.scrollType == EScrollType.Horizontal || this.scrollType == EScrollType.Both) {
             this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
         }
         else {
             this._overlapSize.x = 0;
         }
-        if (this._scrollType == EScrollType.Vertical || this._scrollType == EScrollType.Both) {
+        if (this.scrollType == EScrollType.Vertical || this.scrollType == EScrollType.Both) {
             this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y));
         }
         else {
@@ -139,7 +151,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
         let value = this._clampX(val, 0, 1);
         if(value != this._posX) {
-            this._endPos.x = val;
+            this._endPos.x = value;
             this._refresh(ani);
         }
     }
@@ -150,7 +162,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
         let value = this._clampY(val, 0, 1);
         if(value != this._posY) {
-            this._endPos.y = val;
+            this._endPos.y = value;
             this._refresh(ani);
         }
     }
@@ -184,40 +196,52 @@ export class ScrollPaneComponent extends BaseComponent {
             this._animationInfo.status = EScrollAnimStatus.SLITHER;
             this._doAnimation();
         }else{
-            this._posX = this._endPos.y;
-            this._posY = this._endPos.x;
+            this._posX = this._endPos.x;
+            this._posY = this._endPos.y;
             this.owner.scrollTo(-this._posX, -this._posY);
         }
     }
 
-    private _mouseWheel(pointer: Pointer, gameObject: GameObject, deltaX: number, deltaY: number, deltaZ: number, event: EventData): void {
-        if (!this._enableMouseWheel)
+    private _mouseWheel(pointer: Pointer): void {
+        if (!this.enableMouseWheel)
             return;
         let dlt = 0;
-        if(Math.abs(deltaX) > Math.abs(deltaY)) {
-            dlt = deltaX;
+        if(Math.abs(pointer.deltaX) > Math.abs(pointer.deltaY)) {
+            dlt = pointer.deltaX;
         }else{
-            dlt = deltaY;
+            dlt = pointer.deltaY;
         }
         const delta = dlt > 0 ? -1 : (dlt < 0 ? 1 : 0);
         if(delta != 0) {
-            if(this._overlapSize.x == 0){
+            if((this.scrollType == EScrollType.Both  || this.scrollType == EScrollType.Horizontal) && 
+                this._overlapSize.x == 0){
                 this.setPosX(0);
             } 
-            if(this._overlapSize.y == 0) {
+            if((this.scrollType == EScrollType.Both  || this.scrollType == EScrollType.Vertical) && 
+                this._overlapSize.y == 0) {
                 this.setPosY(0);
             }
             
-            if(this._overlapSize.x > 0 && this._overlapSize.y == 0) {
-                this.setPosX(this._posX + delta * this._mouseScrollSpeed, false);
+            if(this.scrollType == EScrollType.Both) {
+                if(this._overlapSize.x > 0 && this._overlapSize.y == 0) {
+                    this.setPosX(this._posX + delta * this.mouseScrollSpeed, false);
+                }else{
+                    this.setPosY(this._posY + delta * this.mouseScrollSpeed, false);
+                }
+            }else if(this.scrollType == EScrollType.Horizontal) {
+                if(this._overlapSize.x > 0) {
+                    this.setPosX(this._posX + delta * this.mouseScrollSpeed, false);
+                }
             }else{
-                this.setPosY(this._posY + delta * this._mouseScrollSpeed, false);
+                if(this._overlapSize.y > 0){
+                    this.setPosY(this._posY + delta * this.mouseScrollSpeed, false);
+                }
             }
         }
     }
 
     private _touchDown(pointer: Pointer, localX: number, localY: number, event: EventData) {
-        if(!this._touchEffect) {
+        if(!this.touchEffect) {
             return;
         }
         this._scrollEnd();
@@ -254,8 +278,11 @@ export class ScrollPaneComponent extends BaseComponent {
         let sensitivity: number = Settings.touchScrollSensitivity;  
         if(ScrollPaneComponent._sStatus == EScrollStatus.TOUCH_DOWN || ScrollPaneComponent._sStatus == EScrollStatus.TOUCH_MOVING) {
            // check can into drag status
-           if (Math.abs(pointer.downX - pointer.x) < sensitivity &&
-              Math.abs(pointer.downY - pointer.y) < sensitivity) {
+           let npassX = Math.abs(pointer.downX - pointer.x) < sensitivity;
+           let npassY = Math.abs(pointer.downY - pointer.y) < sensitivity;
+           if (npassX && npassY && this.scrollType == EScrollType.Both || 
+               npassX && this.scrollType == EScrollType.Horizontal ||
+               npassY && this.scrollType == EScrollType.Vertical) {
               return;
            }
            ScrollPaneComponent._sStatus = EScrollStatus.TOUCH_MOVING;
@@ -264,7 +291,7 @@ export class ScrollPaneComponent extends BaseComponent {
            this._reset();
            ScrollPaneComponent._sScrollBeginCancelled = false;
       
-           ScrollPaneComponent.draggingPane = this;
+           ScrollPaneComponent._draggingPane = this;
   
            this.owner.emit(Events.ScrollEvent.START, pointer);
   
@@ -291,8 +318,13 @@ export class ScrollPaneComponent extends BaseComponent {
             let newPosX = Math.round(this.owner.container.x + this._moveOffset.x);
             let newPosY = Math.round(this.owner.container.y + this._moveOffset.y);
 
-            if(this._touchEffect) { 
-                if(this._scrollType == EScrollType.Both || this._scrollType == EScrollType.Horizontal) {
+            if(!this.bouncebackEffect) {
+                newPosX = this._clampX(newPosX);
+                newPosY = this._clampY(newPosY);
+            }
+
+            if(this.touchEffect) { 
+                if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Horizontal) {
                     if(newPosX > 0) {
                         // scroll to right
                         let x = Math.round(Math.min(newPosX, this._viewSize.x * 0.5));
@@ -306,7 +338,7 @@ export class ScrollPaneComponent extends BaseComponent {
                     }
                 }
 
-                if(this._scrollType == EScrollType.Both || this._scrollType == EScrollType.Vertical) {
+                if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Vertical) {
                     if(newPosY > 0) {
                         // scroll to bottom
                         let y = Math.round(Math.min(newPosY, this._viewSize.y * 0.5));
@@ -352,7 +384,7 @@ export class ScrollPaneComponent extends BaseComponent {
         this._canreset = true;
   
         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_BEGIN;      
-        ScrollPaneComponent.draggingPane = this;
+        ScrollPaneComponent._draggingPane = this;
   
         ScrollPaneComponent.sLastScrollPt.x = ScrollPaneComponent.sGlobalScrollStart.x = this._owner.scene.input.activePointer.worldX;
         ScrollPaneComponent.sLastScrollPt.y = ScrollPaneComponent.sGlobalScrollStart.y = this._owner.scene.input.activePointer.worldY;
@@ -386,7 +418,7 @@ export class ScrollPaneComponent extends BaseComponent {
         this._clearAnimation();
 
         if(status != EScrollAnimStatus.NONE) { 
-            let time = Math.max(Math.max(dx, dy) / this._scrollSpeed * 2, 200);
+            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 200);
             let easing: any = Easing.Linear;
             let tween = this._owner.scene.tweens.create({
                 targets: {
@@ -445,7 +477,7 @@ export class ScrollPaneComponent extends BaseComponent {
         }
         this._pointerId = -1;
 
-        if(this._touchEffect && this._inertanceEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
+        if(this.touchEffect && this.inertanceEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
             let dx: number = Math.round(pointer.worldX - ScrollPaneComponent.sLastScrollPt.x);
             let dy: number = Math.round(pointer.worldY - ScrollPaneComponent.sLastScrollPt.y);
 
@@ -472,7 +504,7 @@ export class ScrollPaneComponent extends BaseComponent {
             }
         }
 
-        if(this._touchEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
+        if(this.touchEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
             if(this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x ||
                this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y ) {
                 this._animationInfo.status = EScrollAnimStatus.BOUNCE;
@@ -481,9 +513,11 @@ export class ScrollPaneComponent extends BaseComponent {
 
         if (ScrollPaneComponent.draggingPane == this) {
             this._reset();    
-            if(this._animationInfo.status != EScrollAnimStatus.NONE) {
+            if(this.bouncebackEffect && this._animationInfo.status != EScrollAnimStatus.NONE) {
                 this._doAnimation();
-            }                       
+            }else{
+                this._scrollEnd();  
+            }                    
         } else if(!ScrollPaneComponent.draggingPane) {
             this._scrollEnd();
         }
@@ -491,7 +525,7 @@ export class ScrollPaneComponent extends BaseComponent {
 
     private _scrollEnd(): void {
         this._reset();
-        ScrollPaneComponent.draggingPane = null;
+        ScrollPaneComponent._draggingPane = null;
         ScrollPaneComponent._sStatus = EScrollStatus.NONE;
         ScrollPaneComponent._sScrollBeginCancelled = true;
     }

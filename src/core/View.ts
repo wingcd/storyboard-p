@@ -15,6 +15,7 @@ import { Clone } from "../utils/Object";
 import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
+import { Relations } from "./Relations";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -79,6 +80,7 @@ export class View {
     @clonable()
     protected _backgroundColor: number = 0xffffff;
     protected _gBackground: Graphics = null;
+    private _relations: Relations;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -115,6 +117,7 @@ export class View {
             this._rootContainer = scene.make.container({}, false);
             (this._rootContainer as any).owner = this;
 
+            this._relations = new Relations(this);
             this.createDisplayObject();
             return true;
         }
@@ -168,7 +171,10 @@ export class View {
         this._dirtyType = dirty;
     }
 
-    protected addDirty(dirty: EDirtyType) {
+    /**
+     * @internal
+     */
+    addDirty(dirty: EDirtyType) {
         this._dirtyType |= dirty;
 
         if((dirty & EDirtyType.FrameChanged) == EDirtyType.FrameChanged) {
@@ -535,6 +541,10 @@ export class View {
         return this._rootContainer.parentContainer != null;
     } 
 
+    public get relations(): Relations {
+        return this._relations;
+    }
+
     public get mask(): MaskType {
         return this._rootContainer.mask;
     }
@@ -617,7 +627,6 @@ export class View {
     }    
 
     protected updateBorder() {        
-
         this._updateRootMask();
     }
 
@@ -724,7 +733,7 @@ export class View {
             return;
         }
 
-        let parent = this._parent ? this._parent._rootContainer : this._rootContainer.parentContainer;
+        let parent = this._rootContainer.parentContainer;
         if(parent) {
             if(!this._gFrame) {
                 this._gFrame = this._scene.make.graphics({}, false);
@@ -739,9 +748,9 @@ export class View {
             let rect = this.frame;
             this._gFrame.lineStyle(2/Math.min(this._scaleX, this._scaleY), 0xffff00, 1);
             this._gFrame.strokeRect(rect.x, rect.y, rect.width, rect.height);
-            
-            this.removeDirty(EDirtyType.DebugFrameChanged);
         }
+            
+        this.removeDirty(EDirtyType.DebugFrameChanged);
     }
 
     private showBorder() {
@@ -1283,10 +1292,9 @@ export class View {
      * @returns if continue to clone this component
      */
     protected onBeforeCloneComponent(comp: IComponent): boolean {
-        // if(comp instanceof DragComponent ||
-        //    comp instanceof ScrollPaneComponent) {
-        //        return false;
-        // } 
+        if(comp instanceof DragComponent) {
+               return false;
+        } 
 
         return true;
     }

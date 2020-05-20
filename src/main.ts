@@ -1,1 +1,1 @@
-require('./test/scrollpane')
+require('./test/relations')

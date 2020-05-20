@@ -19,11 +19,17 @@ class UIScene extends ViewScene {
         view.setXY(50, 50);
         view.setSize(100, 100);
         view.draggable = true;
+
+        view.useBorderAsFrame = false;
+        view.angle = 45;
+        view.setScale(0.5, 0.5);
         
         view = this.addUI.view();
         view.setBackgroundColor(0xffff00, true);
         view.setXY(950, 500);
         view.setSize(100, 100);
+        view.draggable = true;
+        
 
         this.root.overflowType = EOverflowType.Scroll;
     }

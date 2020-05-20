@@ -7,6 +7,7 @@ import { clonable } from "../annotations/Clonable";
 import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
+import { IComponent } from "../components/IComponent";
 
 export class ViewGroup extends View {
     protected _container: Container;
@@ -452,9 +453,15 @@ export class ViewGroup extends View {
         if(dirty) {
             this.addDirty(EDirtyType.DebugBoundsChanged);
         }
+    }
 
-        // this._children.forEach(child=>{
-        //     child.addDirty()
-        // });
+    protected onBeforeCloneComponent(comp: IComponent): boolean {
+        let ret = super.onBeforeCloneComponent(comp);
+        if(ret) {
+            if(comp instanceof ScrollPaneComponent) {
+                ret = false;
+            } 
+        }
+        return ret;
     }
 }
