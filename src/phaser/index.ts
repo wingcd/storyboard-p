@@ -19,9 +19,12 @@ export import BitmapMask = Phaser.Display.Masks.BitmapMask;
 export import GeometryMask = Phaser.Display.Masks.GeometryMask;
 export import Input = Phaser.Input;
 export import Time = Phaser.Time;
-export import Math = Phaser.Math;
+export import PMath = Phaser.Math;
+
 export import Easing = Phaser.Math.Easing;
 export import Tween = Phaser.Tweens.Tween;
+export import Timeline = Phaser.Tweens.Timeline;
+export import Types = Phaser.Types;
 
 export type MaskType = BitmapMask | GeometryMask;
 export * from './plugins/StageScalePlugin';

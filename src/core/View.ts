@@ -16,6 +16,7 @@ import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
+import { PropertyManager } from "../animation/Property";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -81,6 +82,7 @@ export class View {
     protected _backgroundColor: number = 0xffffff;
     protected _gBackground: Graphics = null;
     private _relations: Relations;
+    private _propertyManager: PropertyManager;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -543,6 +545,13 @@ export class View {
 
     public get relations(): Relations {
         return this._relations;
+    }
+
+    public get propertyManager(): PropertyManager {
+        if(!this._propertyManager) {
+            this._propertyManager = new PropertyManager(this);
+        }
+        return this._propertyManager;
     }
 
     public get mask(): MaskType {

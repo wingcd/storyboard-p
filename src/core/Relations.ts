@@ -94,31 +94,34 @@ class RelationPin {
 
     private _getX(pin: RelationPin): number {
         let owner = pin._owner;
+        let x = owner.x;
+        if(pin._owner == this._owner.parent) {
+            x = 0;
+        }
 
         switch(pin._pinType) {
-            case ERelationPinType.LEFT:
-                return owner.x;
             case ERelationPinType.RIGHT:
-                return owner.x + owner._rawWidth;
+                return x + owner._rawWidth;
             case ERelationPinType.CENTER:
-                return owner.x + owner._rawWidth * 0.5;
+                return x + owner._rawWidth * 0.5;
             default:
-                return owner.x;
+                return x;
         }
     }
 
     private _getY(pin: RelationPin): number {
         let owner = pin._owner;
-
-        switch(pin._pinType) {            
-            case ERelationPinType.TOP:
-                return owner.y;
+        let y = owner.y;
+        if(pin._owner == this._owner.parent) {
+            y = 0;
+        }
+        switch(pin._pinType) {   
             case ERelationPinType.BOTTOM:
-                return owner.y + owner._rawHeight;
+                return y + owner._rawHeight;
             case ERelationPinType.MIDDLE:
-                return owner.y + owner._rawHeight * 0.5;
+                return y + owner._rawHeight * 0.5;
             default:
-                return owner.y;
+                return y;
         }
     }
 
@@ -160,9 +163,7 @@ class RelationPin {
             case ERelationPinType.LEFT:
                 if(opPin) {
                     newWidth -= dx;
-                    if(newWidth > 0) {
-                        newX += dx;
-                    }
+                    newX += dx;
                 }else{
                     newX += dx;
                 }
@@ -177,9 +178,7 @@ class RelationPin {
             case ERelationPinType.TOP:
                 if(opPin) {
                     newHeight -= dy;
-                    if(newHeight > 0) {
-                        newY += dy;
-                    }
+                    newY += dy;
                 }else{
                     newY += dy;
                 }
@@ -194,7 +193,7 @@ class RelationPin {
             case ERelationPinType.CENTER:
                 newX += dx;
                 break;
-            case ERelationPinType.MIDDLE:                
+            case ERelationPinType.MIDDLE:       
                 newY += dy;
                 break;
         }
@@ -273,6 +272,13 @@ export class Relations {
 
         if(this._owner.parent != target && this._owner.parent != target.parent) {
             throw new Error("just only support connect to parent or same parent object");
+        }
+
+        if(this._owner.parent == target && pinType != ERelationPinType.CENTER && pinType != ERelationPinType.MIDDLE) {
+           let opType = Relations.getOppositeType(pinType);
+           if(targetPinType == opType) {
+            throw new Error(`can not connect ${relationPinTypes[pinType]} to ${relationPinTypes[targetPinType]} in nest`);
+           }
         }
 
         targetPinType = targetPinType || pinType;

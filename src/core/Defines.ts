@@ -1,3 +1,5 @@
+import { Easing } from "../phaser";
+
 export const TOP_MOST_DEPTH = 99999;
 export const DEFAULT_DEPTH = 0;
 
@@ -24,3 +26,79 @@ export enum EDirtyType {
 export enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
 export enum EScrollType { Horizontal, Vertical, Both };
 export enum EDragType { Horizontal, Vertical, Both };
+
+let easeMap: ((t: number) => number)[] = [
+    null,
+    Easing.Linear,
+    Easing.Stepped,
+    Easing.Elastic.In,
+    Easing.Elastic.Out,
+    Easing.Elastic.InOut,
+    Easing.Quadratic.In,
+    Easing.Quadratic.Out,
+    Easing.Quadratic.InOut,
+    Easing.Cubic.In,
+    Easing.Cubic.Out,
+    Easing.Cubic.InOut,
+    Easing.Quartic.In,
+    Easing.Quartic.Out,
+    Easing.Quartic.InOut,
+    Easing.Quintic.In,
+    Easing.Quintic.Out,
+    Easing.Quintic.InOut,
+    Easing.Sine.In,
+    Easing.Sine.Out,
+    Easing.Sine.InOut,    
+    Easing.Bounce.In,
+    Easing.Bounce.Out,
+    Easing.Bounce.InOut,    
+    Easing.Circular.In,
+    Easing.Circular.Out,
+    Easing.Circular.InOut,
+    Easing.Expo.In,
+    Easing.Expo.Out,
+    Easing.Expo.InOut,
+    Easing.Back.In,
+    Easing.Back.Out,
+    Easing.Back.InOut,
+];
+
+export enum EEaseType {
+    Known,
+    Linear,
+    Stepped,
+    Elastic_In,
+    Elastic_Out,
+    Elastic_InOut,
+    Quad_In,
+    Quad_Out,
+    Quad_InOut,
+    Cube_In,
+    Cube_Out,
+    Cube_InOut,
+    Quart_In,
+    Quart_Out,
+    Quart_InOut,
+    Quint_In,
+    Quint_Out,
+    Quint_InOut,
+    Sine_In,
+    Sine_Out,
+    Sine_InOut,
+    Bounce_In,
+    Bounce_Out,
+    Bounce_InOut,
+    Circ_In,
+    Circ_Out,
+    Circ_InOut,
+    Expo_In,
+    Expo_Out,
+    Expo_InOut,
+    Back_In,
+    Back_Out,
+    Back_InOut,
+}
+
+export function ParseEaseType(easeType: EEaseType): (t: number) => number {
+    return easeMap[easeType];
+}

@@ -90,8 +90,18 @@ class UIScene extends ViewScene {
         innerCM.setBackgroundColor(0x0000ff, true);
         innerCM.setXY(90, 90);
         center.addChild(innerCM);
-        innerCM.relations.set(ERelationPinType.MIDDLE, center, ERelationPinType.MIDDLE);
-        innerCM.relations.set(ERelationPinType.CENTER, center, ERelationPinType.CENTER);
+        innerCM.relations.set(ERelationPinType.BOTTOM, center);
+        innerCM.relations.set(ERelationPinType.RIGHT, center);
+        innerCM.relations.set(ERelationPinType.LEFT, center);
+        innerCM.relations.set(ERelationPinType.TOP, center);
+
+        let innerCM1 = this.makeUI.view();
+        innerCM1.setSize(20, 20);
+        innerCM1.setBackgroundColor(0x00ffff, true);
+        innerCM1.setXY(90, 90);
+        center.addChild(innerCM1);
+        innerCM1.relations.set(ERelationPinType.MIDDLE, center, ERelationPinType.MIDDLE);
+        innerCM1.relations.set(ERelationPinType.CENTER, center, ERelationPinType.CENTER);
         
         let innerRT = this.makeUI.view();
         innerRT.setSize(20, 20);
@@ -115,6 +125,70 @@ class UIScene extends ViewScene {
         center.addChild(innerRB);
         innerRB.relations.set(ERelationPinType.RIGHT, center);
         innerRB.relations.set(ERelationPinType.BOTTOM, center);
+
+        let outterLT = this.addUI.view();
+        outterLT.setSize(20, 20);
+        outterLT.setBackgroundColor(0xff00ff, true);
+        outterLT.setXY(180, 180);
+        outterLT.relations.set(ERelationPinType.TOP, center);
+        outterLT.relations.set(ERelationPinType.LEFT, center);
+
+        let outterLM = this.addUI.view();
+        outterLM.setSize(20, 20);
+        outterLM.setBackgroundColor(0xff00ff, true);
+        outterLM.setXY(180, 280);
+        outterLM.relations.set(ERelationPinType.MIDDLE, center);
+        outterLM.relations.set(ERelationPinType.LEFT, center);
+
+        let outterLB = this.addUI.view();
+        outterLB.setSize(20, 20);
+        outterLB.setBackgroundColor(0xff00ff, true);
+        outterLB.setXY(180, 400);
+        outterLB.relations.set(ERelationPinType.BOTTOM, center);
+        outterLB.relations.set(ERelationPinType.LEFT, center);
+
+        let outterCT = this.addUI.view();
+        outterCT.setSize(20, 20);
+        outterCT.setBackgroundColor(0xff00ff, true);
+        outterCT.setXY(280, 180);
+        outterCT.relations.set(ERelationPinType.TOP, center);
+        outterCT.relations.set(ERelationPinType.CENTER, center);
+
+        let outterCM = this.addUI.view();
+        outterCM.setSize(20, 20);
+        outterCM.setBackgroundColor(0xff00ff, true);
+        outterCM.setXY(280, 280);
+        outterCM.relations.set(ERelationPinType.MIDDLE, center);
+        outterCM.relations.set(ERelationPinType.CENTER, center);
+
+        let outterCB = this.addUI.view();
+        outterCB.setSize(20, 20);
+        outterCB.setBackgroundColor(0xff00ff, true);
+        outterCB.setXY(280, 400);
+        outterCB.relations.set(ERelationPinType.BOTTOM, center);
+        outterCB.relations.set(ERelationPinType.CENTER, center);
+
+        
+        let outterRT = this.addUI.view();
+        outterRT.setSize(20, 20);
+        outterRT.setBackgroundColor(0xff00ff, true);
+        outterRT.setXY(400, 180);
+        outterRT.relations.set(ERelationPinType.TOP, center);
+        outterRT.relations.set(ERelationPinType.RIGHT, center);
+
+        let outterRM = this.addUI.view();
+        outterRM.setSize(20, 20);
+        outterRM.setBackgroundColor(0xff00ff, true);
+        outterRM.setXY(400, 280);
+        outterRM.relations.set(ERelationPinType.MIDDLE, center);
+        outterRM.relations.set(ERelationPinType.RIGHT, center);
+
+        let outterRB = this.addUI.view();
+        outterRB.setSize(20, 20);
+        outterRB.setBackgroundColor(0xff00ff, true);
+        outterRB.setXY(400, 400);
+        outterRB.relations.set(ERelationPinType.BOTTOM, center);
+        outterRB.relations.set(ERelationPinType.RIGHT, center);
     }
 
     create(): void {
