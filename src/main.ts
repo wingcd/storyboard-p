@@ -1,1 +1,1 @@
-require('./test/properties')
+require('./test/timeline')

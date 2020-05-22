@@ -22,6 +22,7 @@ export import Time = Phaser.Time;
 export import PMath = Phaser.Math;
 
 export import Easing = Phaser.Math.Easing;
+export import Tweens = Phaser.Tweens;
 export import Tween = Phaser.Tweens.Tween;
 export import Timeline = Phaser.Tweens.Timeline;
 export import Types = Phaser.Types;

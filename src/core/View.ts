@@ -16,7 +16,8 @@ import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
-import { PropertyManager } from "../animation/Property";
+import { PropertyManager } from "../tween/Property";
+import { TimelineManager } from "../tween/Timeline";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -83,6 +84,7 @@ export class View {
     protected _gBackground: Graphics = null;
     private _relations: Relations;
     private _propertyManager: PropertyManager;
+    private _timelineManager: TimelineManager;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -552,6 +554,14 @@ export class View {
             this._propertyManager = new PropertyManager(this);
         }
         return this._propertyManager;
+    }
+
+    public get timelineManager(): TimelineManager {
+        if(!this._timelineManager) {
+            this._timelineManager = new TimelineManager(this._scene, this);
+        }
+        
+        return this._timelineManager;
     }
 
     public get mask(): MaskType {
