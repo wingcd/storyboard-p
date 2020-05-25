@@ -143,7 +143,7 @@ class KeyFrameGroup {
         this._keyframes.sort(KeyFrame.sort);
     }
 
-    private _createTween(index: number, reverse?: boolean): Types.Tweens.TweenBuilderConfig {
+    private _createTween(index: number, reverse?: boolean, withRaw?:boolean, setStart?: boolean): Types.Tweens.TweenBuilderConfig {
         if(index >= this._keyframes.length - 1 || index < 0) {
             return null;
         }
@@ -178,13 +178,23 @@ class KeyFrameGroup {
             index == this._keyframes.length - 1 && reverse) {
             tween.offset = from.time;
         }
-
-        let data = {
-            from: from.property.value,
-            to: to.property.value,
-        };
+        
         tween.props = {};
-        tween.props[from.property.name] = data as any;
+        if(setStart ||
+            index == 0 && !reverse || 
+            reverse && (index + 1) == this._keyframes.length - 1) {
+            let data: any = {
+                to: to.property.value,
+                from: from.property.value,
+            };
+            tween.props[from.property.name] = data as any;
+        }else{
+            tween.props[from.property.name] = to.property.value;
+        }
+        if(withRaw) {
+            (tween as any).___from__ = kf;
+            (tween as any).___to__ = nextKF;
+        }
 
         return tween;
     }
@@ -207,14 +217,37 @@ class KeyFrameGroup {
         let tweens: Types.Tweens.TweenBuilderConfig[] = [];
         if(!reverse) {
             for(let idx = 0; idx < this._keyframes.length - 1; idx ++) {
-                tweens.push(this._createTween(idx, reverse));
+                tweens.push(this._createTween(idx, reverse, true));
             }
         }else{
             for(let idx = this._keyframes.length - 2; idx >= 0; idx--) {
-                tweens.push(this._createTween(idx, reverse));
+                tweens.push(this._createTween(idx, reverse, true));
             }
         }
         return tweens;
+    }
+
+    public getTween(time: number): Types.Tweens.TweenBuilderConfig {
+        if(this._keyframes.length == 0) {
+            return;
+        }
+        this.sort();
+
+        let index = -1;
+        for(let idx = 0; idx < this._keyframes.length - 1; idx ++) {
+            let kf = this._keyframes[idx];
+            let next = this._keyframes[idx + 1];   
+            if(kf.time <= time && next.time > time ||
+                kf.time <= time && idx == this._keyframes.length - 1) {
+                index = idx;
+            }
+        }
+
+        if(index >= 0 || index < this._keyframes.length) {
+            return this._createTween(index, false, true, true);
+        }else{
+            return null;
+        }
     }
 }
 
@@ -369,7 +402,6 @@ export class TimelineManager extends EventEmitter {
         this._reverse = reverse;
         if(this._timeline) {
             this._timeline.stop();
-            this._timeline.shutdown();
             this._timeline = null;
         }    
         this._timeline = this._scene.tweens.createTimeline({
@@ -377,8 +409,36 @@ export class TimelineManager extends EventEmitter {
         });
         this._groups.forEach(group=>{
             group.addTweens(this._timeline, reverse);
-        });      
+        });    
+        this._timeline.init();  
         this._timeline.on(Tweens.Events.TIMELINE_UPDATE, this._update, this); 
+        this._timeline.on(Tweens.Events.TIMELINE_PAUSE, this._pause, this);
+        this._timeline.on(Tweens.Events.TIMELINE_RESUME, this._resume, this);
+        this._timeline.on(Tweens.Events.TIMELINE_COMPLETE, this._stop, this);
+    }
+
+    private _goto(time: number) {
+        this._timeline.manager.preUpdate();
+        this._timeline.update(window.performance.now()-this._startTime, 0);
+        this._timeline.update(window.performance.now()-this._startTime, this._startTime);
+        let duration = 0;
+        for(let i=0;i<this._timeline.data.length;i++) {
+            let tween =  (this._timeline.data[i] as Tween);
+            if(i == 0) {
+                if(tween.isPlaying()) {
+                    break;
+                }
+            }                
+            if(i > 0) {
+                if(!(this._timeline.data[i-1] as Tween).isPlaying()) {
+                    let last = this._timeline.data[i-1] as Tween; 
+                    tween.update(window.performance.now(), 0);
+                    tween.update(window.performance.now(), tween.duration - time);
+                }else{
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -389,16 +449,20 @@ export class TimelineManager extends EventEmitter {
      * @param precent if use precent time mode, do not use when duration is Infinity
      */
     public play(startTime?: number, endTime?: number, reverse?: boolean, precent?: boolean){
-        if(!this._timeline || this._reverse != reverse) {
-            this.reset(reverse);
+        // if(!this._timeline || this._reverse != reverse) {
+        //     this.reset(reverse);
+        // }        
+        if(this._playing){
+            return;
         }
+        this.reset(reverse);
 
-        if(precent) {
+        let duration = this.totalDuration;
+        if(precent && MathUtils.isNumber(duration)) {
             let startPerc: number = startTime || 0;
             let endPrec: number = endTime || 1;
             startTime = MathUtils.clamp01(startPerc);
             endTime = MathUtils.clamp01(endPrec);
-            let duration = this.totalDuration;
             startTime = startPerc * duration;
             endTime = endPrec * duration;
         }
@@ -406,23 +470,71 @@ export class TimelineManager extends EventEmitter {
         this._startTime = startTime;
         this._endTime = endTime;
 
-        if(this._playing){
-            return;
-        }
-        this._playing = true;   
-
-        if(this._startTime) {
-            this._timeline.totalElapsed = this._startTime;
-        }
         this._timeline.play();
+        if(this._startTime && MathUtils.isNumber(duration)) {
+            this._goto(this._startTime);
+        }
 
-        this._emit(Events.AnimationEvent.START, this);
+        this._playing = true; 
+        this._emit(Events.TimelineEvent.START, this);
+    }
+
+    /**
+     * gotoInDuration 
+     * @param time target time in duration,  range 0 to duration when precent is false, range 0 to 1 when precent is true
+     * @param precent if use precent mode, do not use when duration is Infinity
+     */
+    public gotoInDuration(time: number, precent?: boolean) {
+        if(this._playing) {
+            this.stop();
+        }
+
+        if(precent) {
+            time = MathUtils.clamp01(time);
+            time = this.duration * time;
+        }
+
+        this._groups.forEach(g=>{
+            let tweenCfg = g.getTween(time);
+            if(tweenCfg) {
+               let tween = this._scene.tweens.add(tweenCfg);
+               let kf = (tweenCfg as any).___from__ as KeyFrame;               
+               delete (tween as any).___from__;
+               this._scene.tweens.preUpdate();               
+            //    tween.update(window.performance.now(), 0);
+               tween.update(window.performance.now(), time - kf.time);
+               tween.stop();
+            }
+        });
+    }
+
+    /**
+     * gotoInTotalDuration 
+     * @param time target time in total duration,  range 0 to duration when precent is false, range 0 to 1 when precent is true
+     * @param precent if use precent mode, do not use when duration is Infinity
+     */
+    public gotoInTotalDuration(time: number, precent?: boolean) {
+        if(this._playing) {
+            this.stop();
+        }
+
+        if(precent) {
+            time = MathUtils.clamp01(time);
+            time = this.totalDuration * time;
+        }
+
+        this.reset(false);
+        this._goto(time);
     }
 
     private _update(timeline: Timeline) {
-        this._emit(Events.AnimationEvent.UPDATE, this);
+        if(!this._playing) {
+            return;
+        }
 
-        if(this._endTime && timeline.totalElapsed >= this._endTime) {
+        this._emit(Events.TimelineEvent.UPDATE, this);
+
+        if(this._endTime && timeline.totalElapsed - 16 >= this._endTime) {
             this.stop();
             return;
         }
@@ -430,7 +542,7 @@ export class TimelineManager extends EventEmitter {
 
     private _stop() {
         this._playing = false;
-        this._emit(Events.AnimationEvent.STOP, this);
+        this._emit(Events.TimelineEvent.STOP, this);
     }
 
     /**
@@ -447,7 +559,7 @@ export class TimelineManager extends EventEmitter {
 
     private _pause() {
         this._paused = true;   
-        this._emit(Events.AnimationEvent.PAUSE, this);
+        this._emit(Events.TimelineEvent.PAUSE, this);
     }
 
     /**
@@ -465,7 +577,7 @@ export class TimelineManager extends EventEmitter {
 
     private _resume() {
         this._paused = false;
-        this._emit(Events.AnimationEvent.RESUME, this);
+        this._emit(Events.TimelineEvent.RESUME, this);
     }
 
     /**
