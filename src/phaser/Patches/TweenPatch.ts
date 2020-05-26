@@ -1,6 +1,7 @@
 Phaser.Tweens.TweenManager.prototype.getAllTweens = function ()
 {
     var that = this as any;
+    //add _add list to final list, so we can remove tween after after create it now
     var list = that._active.slice().concat(that._add);
     var output = [];
 
@@ -15,6 +16,7 @@ Phaser.Tweens.TweenManager.prototype.getAllTweens = function ()
 Phaser.Tweens.TweenManager.prototype.getTweensOf = function (target: any)
 {
     var that = this as any;
+    //add _add list to final list, so we can remove tween after after create it now
     var list = that._active.slice().concat(that._add);
     var tween;
     var output = [];

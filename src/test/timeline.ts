@@ -59,7 +59,7 @@ class UIScene extends ViewScene {
         state4.setSize(100, 40);
         state4.rootContainer.add(this.add.text(20, 10, '3000-1000', {color: '#000000'}));
         state4.onClick(()=>{        
-            console.log(`x from 200 to 150`);
+            console.log(`x from 400 to 200`);
             target.timelineManager.play(1000, 3000, true);
         })
 

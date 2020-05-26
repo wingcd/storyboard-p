@@ -28,5 +28,8 @@ export import Timeline = Phaser.Tweens.Timeline;
 export import Types = Phaser.Types;
 
 export type MaskType = BitmapMask | GeometryMask;
+
+require('./Patches/GameObjectFactoryPatch');
 export * from './plugins/StageScalePlugin';
-require('./TweenPatch');
+require('./Patches/TweenPatch');
+require('./Patches/TextPatch');

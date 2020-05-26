@@ -425,15 +425,16 @@ export class TimelineManager extends EventEmitter {
         for(let i=0;i<this._timeline.data.length;i++) {
             let tween =  (this._timeline.data[i] as Tween);
             if(i == 0) {
+                duration += tween.duration;
                 if(tween.isPlaying()) {
                     break;
                 }
             }                
             if(i > 0) {
                 if(!(this._timeline.data[i-1] as Tween).isPlaying()) {
-                    let last = this._timeline.data[i-1] as Tween; 
                     tween.update(window.performance.now(), 0);
-                    tween.update(window.performance.now(), tween.duration - time);
+                    tween.update(window.performance.now(), time - duration);
+                    duration += tween.duration;
                 }else{
                     break;
                 }
@@ -498,10 +499,8 @@ export class TimelineManager extends EventEmitter {
             let tweenCfg = g.getTween(time);
             if(tweenCfg) {
                let tween = this._scene.tweens.add(tweenCfg);
-               let kf = (tweenCfg as any).___from__ as KeyFrame;               
-               delete (tween as any).___from__;
-               this._scene.tweens.preUpdate();               
-            //    tween.update(window.performance.now(), 0);
+               let kf = (tweenCfg as any).___from__ as KeyFrame;
+               this._scene.tweens.preUpdate();              
                tween.update(window.performance.now(), time - kf.time);
                tween.stop();
             }
@@ -534,9 +533,19 @@ export class TimelineManager extends EventEmitter {
 
         this._emit(Events.TimelineEvent.UPDATE, this);
 
-        if(this._endTime && timeline.totalElapsed - 16 >= this._endTime) {
-            this.stop();
-            return;
+        // limit end time
+        if(this._endTime != undefined) {            
+            let limit = true;
+            if(MathUtils.isNumber(this.totalDuration)) {
+                if(this.totalDuration == this._endTime) {
+                    limit = false;
+                }
+            }
+            
+            if(limit && timeline.totalElapsed - 20 >= this._endTime) {
+                this.stop();
+                return;
+            }
         }
     }
 
