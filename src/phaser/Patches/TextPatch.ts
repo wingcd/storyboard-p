@@ -4,34 +4,56 @@ import { isCJK } from '../../libs/hanzi/isCJK';
 var GetAdvancedValue = Phaser.Utils.Objects.GetAdvancedValue;
 var GetValue = Phaser.Utils.Objects.GetValue;
 
-var propertyMap:any = {
-    fontFamily: [ 'fontFamily', 'Courier' ],
-    fontSize: [ 'fontSize', '16px' ],
-    fontStyle: [ 'fontStyle', '' ],
-    backgroundColor: [ 'backgroundColor', null ],
-    color: [ 'color', '#fff' ],
-    stroke: [ 'stroke', '#fff' ],
-    strokeThickness: [ 'strokeThickness', 0 ],
-    shadowOffsetX: [ 'shadow.offsetX', 0 ],
-    shadowOffsetY: [ 'shadow.offsetY', 0 ],
-    shadowColor: [ 'shadow.color', '#000' ],
-    shadowBlur: [ 'shadow.blur', 0 ],
-    shadowStroke: [ 'shadow.stroke', false ],
-    shadowFill: [ 'shadow.fill', false ],
-    align: [ 'align', 'left' ],
-    maxLines: [ 'maxLines', 0 ],
-    fixedWidth: [ 'fixedWidth', 0 ],
-    fixedHeight: [ 'fixedHeight', 0 ],
-    resolution: [ 'resolution', 0 ],
-    rtl: [ 'rtl', false ],
-    testString: [ 'testString', '|MÃ‰qgy' ],
-    baselineX: [ 'baselineX', 1.2 ],
-    baselineY: [ 'baselineY', 1.4 ],
-    wordWrapWidth: [ 'wordWrap.width', null ],
-    wordWrapCallback: [ 'wordWrap.callback', null ],
-    wordWrapCallbackScope: [ 'wordWrap.callbackScope', null ],
-    wordWrapUseAdvanced: [ 'wordWrap.useAdvancedWrap', false ]
-};
+const isEmojiChar = function(charCode:number, nextCharCode:number):number {
+    const hs = charCode;
+    const nextCharValid = typeof nextCharCode === 'number' && !isNaN(nextCharCode) && nextCharCode > 0;
+
+    // surrogate pair
+    if (hs >= 0xd800 && hs <= 0xdbff)    {
+        if (nextCharValid)        {
+            const uc = ((hs - 0xd800) * 0x400) + (nextCharCode - 0xdc00) + 0x10000;
+
+            if (uc >= 0x1d000 && uc <= 0x1f77f)            {
+                return 2;
+            }
+        }
+    }
+    // non surrogate
+    else if ((hs >= 0x2100 && hs <= 0x27ff)
+        || (hs >= 0x2B05 && hs <= 0x2b07)
+        || (hs >= 0x2934 && hs <= 0x2935)
+        || (hs >= 0x3297 && hs <= 0x3299)
+        || hs === 0xa9 || hs === 0xae || hs === 0x303d || hs === 0x3030
+        || hs === 0x2b55 || hs === 0x2b1c || hs === 0x2b1b
+        || hs === 0x2b50 || hs === 0x231a)    {
+        return 1;
+    }
+    else if (nextCharValid && (nextCharCode === 0x20e3 || nextCharCode === 0xfe0f || nextCharCode === 0xd83c))  {
+        return 2;
+    }
+    return 0;
+}
+
+const trimEmoji = function(text: string): {text: string, count: number} {
+    let result = [];
+    let count = 0;
+    for(let i=0;i<text.length;i++) {
+        let cur = text[i];
+        let next = i < text.length - 1 ? text[i+1] : '';
+        let emoji = isEmojiChar(cur.charCodeAt(0), next.charCodeAt(0));
+        if(emoji == 0) {
+            result.push(cur);
+        }else{
+            i+=(emoji-1);
+            count++;
+        }
+    }
+
+    return {
+        text: result.join(''),
+        count,
+    };
+}
 
 var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser.Types.GameObjects.Text.TextMetrics, lines: string[])
 {
@@ -55,8 +77,9 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
     for (var i = 0; i < drawnLines; i++)
     {
         var lineWidth = style.strokeThickness;
-
-        lineWidth += context.measureText(lines[i]).width;
+        let line = lines[i];
+        let strArr = Array.from ? Array.from(line) : line.split('')
+        lineWidth += context.measureText(lines[i]).width + ((strArr.length - 1) * (style as any).letterSpacing);
 
         // Adjust for wrapped text
         if ((style as any).wordWrap)
@@ -65,7 +88,15 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
         }
 
         lineWidths[i] = Math.ceil(lineWidth);
+        
+        if(style.shadowOffsetX) {
+            maxLineWidth += style.shadowOffsetX;
+        }
         maxLineWidth = Math.max(maxLineWidth, lineWidths[i]);
+    }
+
+    if((style as any).minWidth) {
+        maxLineWidth = Math.max(maxLineWidth, (style as any).minWidth);
     }
 
     //  Text Height
@@ -78,6 +109,10 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
     if (drawnLines > 1)
     {
         height += lineSpacing * (drawnLines - 1);
+    }
+
+    if(style.shadowOffsetY) {
+        height += style.shadowOffsetY;
     }
 
     return {
@@ -136,13 +171,15 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
 
     // 计算每个字符的尺寸信息
     let charInfo: Array<Array<CharInfo>> = [];
-    let allP = (style as any).punctuation || code.ALLBIAODIAN;
+    let allP = style.punctuation || code.ALLBIAODIAN;
 
     for(let i=0;i<drawnLines;i++) {
         let line = lines[i];
         let lineChars: Array<CharInfo> = [];
         var stringArray = Array.from ? Array.from(line) : line.split('');
-        for (let char of stringArray) {
+        for (let i=0;i<stringArray.length;i++) {
+            let char = stringArray[i];
+            let nextChar = i < stringArray.length - 1 ? stringArray[i+1] : '';
             let isP = allP.indexOf(char) >= 0;
             let needRotate = false;
             if(!(style as any).rotateP && isP) {
@@ -171,7 +208,7 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
     // 计算每一列
     let lineInfo = [];
     for (let lineCharInfo of charInfo) {
-        let curLineHeight = 0;
+        let curLineHeight = style.strokeThickness;
         for(let i =0;i<lineCharInfo.length;i++) {
             let info = lineCharInfo[i];
             curLineHeight += info.height;
@@ -186,14 +223,23 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
             height: curLineHeight
         })
 
+        // Adjust for wrapped text
+        if ((style as any).wordWrap)
+        {
+            curLineHeight -= context.measureText(' ').width;
+        }
         maxLineHeight = Math.max(maxLineHeight, curLineHeight);
+    }
+
+    if(style.shadowOffsetY) {
+        maxLineHeight += style.shadowOffsetY;
     }
 
     //miniHeight
     if((style as any).miniHeight) {
         maxLineHeight = Math.max(maxLineHeight, (style as any).miniHeight);
     }
-    var height = maxLineHeight + style.strokeThickness;
+    var height = maxLineHeight;
 
     var lineWidth: number = size.fontSize + style.strokeThickness + lineSpacing;
     var width = Math.max(lineWidth, size.fontSize + style.strokeThickness)
@@ -225,9 +271,39 @@ class Text extends Phaser.GameObjects.Text {
     {
         super(scene, x, y, text, style);
 
+        style = style || {};
         let customStyle: any = this.style;
+        /**
+         * {Number} spacing of ever letters
+         */
         customStyle.letterSpacing = style.letterSpacing || 0;
-        customStyle.vertical = style.vertical || false;    
+
+        style.vertical = style.vertical || {};
+
+        /**
+         * {Boolean} support vertical layout
+         */
+        customStyle.vertical = style.vertical.enable;
+        /**
+         * {Array<string>} this array will support punctuations to roate, or all punctuations will rotate
+         */
+        customStyle.punctuation = style.vertical.punctuation;
+        /**
+         * {Boolean} when in vertical mode, need to rotate punctuation
+         */
+        customStyle.rotateP = style.vertical.rotateP;
+        /**
+         * {Array<string>} when in vertical mode, need to rotate western character
+         */
+        customStyle.rotateWC = style.vertical.rotateWC;
+        /**
+         * set mini width in horizontal mode
+         */
+        customStyle.minWidth = style.minWidth;
+        /**
+         * set mini height in vertical mode
+         */
+        customStyle.miniHeight = style.vertical.miniHeight;
 
         this.updateText();
     }
@@ -259,7 +335,25 @@ class Text extends Phaser.GameObjects.Text {
         if (style.rtl)
         {
             for(let i=0;i<lines.length;i++) {
-                lines[i] = lines[i].split("").reverse().join("");
+                let line = lines[i];
+                if(Array.from) {
+                    lines[i] = Array.from(line).reverse().join('');
+                }else{
+                    let reverse = new Array<string>(line.length);
+                    for(let j=0;j<line.length;j++) {
+                        let cur = line[j];
+                        let next = (j<line.length-1) ? line[j+1] : '';
+                        let emoji = isEmojiChar(cur.charCodeAt(0), next.charCodeAt(0));
+                        if(emoji == 0 || emoji == 1) {
+                            reverse[line.length - j - 1] = cur;
+                        }else{
+                            reverse[line.length - j - 2] = cur;
+                            reverse[line.length - j - 1] = next;
+                            j++;
+                        }
+                    }
+                    lines[i] = reverse.join('');
+                }
             }
         }
 
@@ -306,6 +400,9 @@ class Text extends Phaser.GameObjects.Text {
 
         w = Math.max(w, 1);
         h = Math.max(h, 1);
+
+        w = Math.min(document.body.clientWidth * style.resolution * 3, Math.ceil((Math.max(1, w) + (padding.left + padding.right)) * style.resolution));
+        h = Math.min(document.body.clientHeight * style.resolution * 3, Math.ceil((Math.max(1, h) + (padding.top + padding.bottom)) * style.resolution));
 
         if (canvas.width !== w || canvas.height !== h)
         {
@@ -404,15 +501,13 @@ class Text extends Phaser.GameObjects.Text {
             if (style.strokeThickness)
             {
                 this.style.syncShadow(context, style.shadowStroke);
-
-                context.strokeText(lines[i], linePositionX, linePositionY);
+                this.drawLetterHorizontal(lines[i], linePositionX, linePositionY, true);
             }
 
             if (style.color)
             {
                 this.style.syncShadow(context, style.shadowFill);
-
-                context.fillText(lines[i], linePositionX, linePositionY);
+                this.drawLetterHorizontal(lines[i], linePositionX, linePositionY, false);
             }
         }
 
@@ -461,9 +556,7 @@ class Text extends Phaser.GameObjects.Text {
         var lines = outputText.split(this.splitRegExp);   
         if (style.rtl)
         {
-            for(let i=0;i<lines.length;i++) {
-                lines[i] = lines[i].split("").reverse().join("");
-            }
+            lines = lines.reverse();
         }
 
         var textSize = GetTextSizeVertical(this, size, lines);
@@ -611,8 +704,10 @@ class Text extends Phaser.GameObjects.Text {
             }
 
             let lineInfo = textSize.lineInfo[i];
-            if (style.stroke && style.strokeThickness)
+            if (style.strokeThickness)
             {
+                this.style.syncShadow(context, style.shadowStroke);
+
                 this.drawLetterSpacingVertical(
                     lineInfo,
                     linePositionX,
@@ -623,6 +718,8 @@ class Text extends Phaser.GameObjects.Text {
 
             if (style.color)
             {
+                this.style.syncShadow(context, style.shadowFill);
+
                 this.drawLetterSpacingVertical(
                     lineInfo,
                     linePositionX,
@@ -653,6 +750,61 @@ class Text extends Phaser.GameObjects.Text {
         }
 
         return this;
+    }
+
+    drawLetterHorizontal (text: string, x: number, y: number, isStroke: boolean)
+    {
+        if ( isStroke === void 0 ) { isStroke = false; }
+
+        var style:any = this.style;
+
+        // letterSpacing of 0 means normal
+        var letterSpacing = style.letterSpacing;
+
+        if (letterSpacing === 0)
+        {
+            if (isStroke)
+            {
+                this.context.strokeText(text, x, y);
+            }
+            else
+            {
+                this.context.fillText(text, x, y);
+            }
+
+            return;
+        }
+
+        var currentPosition = x;
+
+        // Using Array.from correctly splits characters whilst keeping emoji together.
+        // This is not supported on IE as it requires ES6, so regular text splitting occurs.
+        // This also doesn't account for emoji that are multiple emoji put together to make something else.
+        // Handling all of this would require a big library itself.
+        // https://medium.com/@giltayar/iterating-over-emoji-characters-the-es6-way-f06e4589516
+        // https://github.com/orling/grapheme-splitter
+        var stringArray = Array.from ? Array.from(text) : text.split('');
+        var currentWidth = 0;
+
+        for (var i = 0; i < stringArray.length; ++i)
+        {
+            var currentChar = stringArray[i];
+
+            if (isStroke)
+            {
+                this.context.strokeText(currentChar, currentPosition, y);
+            }
+            else
+            {
+                this.context.fillText(currentChar, currentPosition, y);
+            }
+            currentWidth = this.context.measureText(currentChar).width;
+            currentPosition += currentWidth + letterSpacing;
+            
+            if(currentPosition > this.canvas.width) {
+                break;
+            }
+        }
     }
 
     drawLetterSpacingVertical(line: VerticalLine, x: number, y: number, isStroke?: boolean) { 
@@ -689,7 +841,7 @@ class Text extends Phaser.GameObjects.Text {
             if (cInfo.rotate) {
                 this.context.setTransform(resolution, 0, 0, resolution, 0, 0);
             }
-    
+            
             currentPosition += cInfo.height + letterSpacing;
     
             if(currentPosition > this.canvas.height) {

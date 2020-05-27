@@ -12,40 +12,14 @@ class UIScene extends ViewScene {
     }
 
     preload() {
-        
+        // (this.add as any).bbCodeText(100, 100, "[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]", {
+        //     fontSize: 24,
+        // });
+        this.load.plugin('rexbbcodetextplugin', './libs/rex/rexbbcodetextplugin.min.js', true);
     }
 
     create(): void {
-        this.add.text(100, 100, "Hello World! \n你好，世界🙂", 
-        {
-            // backgroundColor: '#ffff00',
-            color: '#ff0000',
-            align: 'right',
-            rtl: true,
-            // wordWrap: {width: 50},
-            lineSpacing: 2,
-            
-            letterSpacing: 3,
-            // align: 'bottom',
-            // stroke: '#0000ff',
-            // strokeThickness: 2,
-            shadowStroke: true,
-            shadow: {
-                fill: true,
-                offsetX: 1,
-                offsetY: 1,
-                blur: 5,
-            },
-            
-            // minWidth: 300,
-            vertical: {
-                enable: true,                
-                // rotateP: true,
-                // rotateWC: true,
-                // punctuation: [',','!','?'],
-                // miniHeight: 290,
-            },
-        })
+        this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]', {});
     }
 }
 

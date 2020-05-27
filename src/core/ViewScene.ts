@@ -1,4 +1,4 @@
-import { Scene } from "../phaser"
+import { Scene,GameObjectFactoryExt } from "../phaser"
 import { UIManager } from "./UIManager";
 import { ViewRoot } from "./ViewRoot";
 import { ViewFactory } from "./ViewFactory";
@@ -8,6 +8,7 @@ export class ViewScene extends Scene {
     _root: ViewRoot;
     _addFactory: ViewFactory;
     _makeFactory: ViewFactory;
+    _addExt: GameObjectFactoryExt;
     constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
         super(config);
     }
@@ -17,7 +18,12 @@ export class ViewScene extends Scene {
         this._root = this._uimgr.create(this);
         this._addFactory = new ViewFactory(this, true);
         this._makeFactory = new ViewFactory(this, false);
+        this._addExt = new GameObjectFactoryExt(this);
         this.scale.refresh();
+    }
+
+    get addExt(): GameObjectFactoryExt {        
+        return this._addExt;
     }
 
     public get ui(): UIManager {
