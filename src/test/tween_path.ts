@@ -14,22 +14,9 @@ class UIScene extends ViewScene {
     }
 
     preload() {
-        // (this.add as any).bbCodeText(100, 100, "[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]", {
-        //     fontSize: 24,
-        // });
-        this.load.plugin('rexbbcodetextplugin', './libs/rex/rexbbcodetextplugin.min.js', true);
-        this.load.plugin('rextexttypingplugin', './libs/rex/rextexttypingplugin.min.js', true);
     }
 
-    create(): void {
-        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]', {
-            color: '#ff0000',
-            typing: {
-                speed: 333,
-                start: true,
-            } 
-        });
-       
+    create(): void {       
         let obj = this.addUI.view();
         obj.setPivot(0.5, 0.5, true);
         let path = new TweenPath(obj)
@@ -45,6 +32,7 @@ class UIScene extends ViewScene {
         path.draw(g);
         obj.timelineManager.add("p___path___", {})
             .add(0, 0, {
+                repeat: -1,
                 yoyo: true,
                 plugin: path,
             })

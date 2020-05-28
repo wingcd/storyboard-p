@@ -1,1 +1,1 @@
-require('./test/raw_richtext')
+require('./test/tween_path')

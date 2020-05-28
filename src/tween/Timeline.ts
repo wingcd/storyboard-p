@@ -4,7 +4,7 @@ import { EEaseType, ParseEaseType } from "../core/Defines";
 import * as Events from "../events";
 import { View } from "../core/View";
 import { PoolManager } from "../utils/PoolManager";
-import { ITweenInfo } from "./TweenInfo";
+import { ITweenInfo, installTweenPlugin } from "./TweenInfo";
 import { MathUtils } from "../utils/Math";
 
 class KeyFrame {
@@ -166,7 +166,10 @@ class KeyFrameGroup {
             tween.repeat = kf.tweenInfo.repeat ? (kf.tweenInfo.repeat < 0 ? Infinity : kf.tweenInfo.repeat) : 0; 
             tween.delay = kf.tweenInfo.delay || 0;
             tween.repeatDelay = kf.tweenInfo.repeatDelay || 0;
-            // tween.plugin = kf.tween.plugin;
+
+            if(kf.tweenInfo.plugin) {
+                installTweenPlugin(tween, kf.tweenInfo.plugin);
+            }
         }
 
         let duration = Math.abs(nextKF.time - kf.time);

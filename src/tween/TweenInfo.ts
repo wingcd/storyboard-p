@@ -1,19 +1,17 @@
 import { EEaseType } from "../core/Defines";
-import { Tween } from "../phaser";
+import { Tween, Types } from "../phaser";
 
 export interface ITweenPlugin {    
-    start?(tween: Tween, t: number): void;
-    update(tween: Tween, property: string, t: number, v: number): void;
-    repeat?(tween: Tween, property: string, t: number): void;
-    stop?(tween: Tween, t: number): void;
-    end?(tween: Tween, t: number): void;
-    pause?(tween: Tween, t: number): void;
-    resume?(tween: Tween, t: number): void;
-    complete?(tween: Tween, t: number): void;
+    start?(tween: Tween): void;
+    update?(tween: Tween): void;
+    repeat?(tween: Tween): void;
+    yoyo?(tween: Tween): void;
+    complete?(tween: Tween): void;
 }
 
 export interface ITweenInfo {
     type?: EEaseType;
+    duration?: number;
     yoyo?: boolean;
     repeat?: number;
     delay?: number;
@@ -23,5 +21,37 @@ export interface ITweenInfo {
 
 export class TweenInfo implements ITweenInfo {
     type?: EEaseType = EEaseType.Known;
-    duration: number = 1000;
+    duration?: number = 1000;
+}
+
+export function installTweenPlugin(tween: Types.Tweens.TweenBuilderConfig, plugin: ITweenPlugin) {
+    if(plugin.start) {
+        tween.onStart = (tw, targets, param) =>{
+            plugin.start(tw);
+        };
+    }
+
+    if(plugin.update) {
+        tween.onUpdate = (tw, targets, param) =>{
+            plugin.update(tw);
+        };
+    }
+
+    if(plugin.repeat) {
+        tween.onRepeat = (tw, targets, param) =>{
+            plugin.repeat(tw);
+        };
+    }
+
+    if(plugin.yoyo) {
+        tween.onYoyo = (tw, targets, param) =>{
+            plugin.yoyo(tw);
+        };
+    }
+
+    if(plugin.complete) {
+        tween.onComplete = (tw, targets, param) =>{
+            plugin.complete(tw);
+        };
+    }
 }
