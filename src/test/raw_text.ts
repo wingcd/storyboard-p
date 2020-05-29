@@ -16,7 +16,7 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        this.add.text(100, 100, "Hello World! \n你好，世界🙂", 
+        let text = this.add.text(100, 100, "Hello World! \n你好，世界🙂", 
         {
             // backgroundColor: '#ffff00',
             color: '#ff0000',
@@ -30,6 +30,7 @@ class UIScene extends ViewScene {
             // stroke: '#0000ff',
             // strokeThickness: 2,
             shadowStroke: true,
+            shadowFill: true,
             shadow: {
                 fill: true,
                 offsetX: 1,
@@ -46,6 +47,14 @@ class UIScene extends ViewScene {
                 // miniHeight: 290,
             },
         })
+
+        let json = text.toJSON();
+
+        let t = this.add.text(0,0,'',json.data);
+        // t.x = 300;
+
+        let tt = Phaser.GameObjects.BuildGameObject(this, t, json as any) as BBCodeText;
+        t.x = 500;
     }
 }
 

@@ -1,6 +1,7 @@
 import { MathUtils } from "../../utils/Math";
 import * as code from '../../libs/hanzi/code';
 import { isCJK } from '../../libs/hanzi/isCJK';
+import { Scene } from "..";
 var GetAdvancedValue = Phaser.Utils.Objects.GetAdvancedValue;
 var GetValue = Phaser.Utils.Objects.GetValue;
 
@@ -272,18 +273,21 @@ class Text extends Phaser.GameObjects.Text {
         super(scene, x, y, text, style);
 
         style = style || {};
+
+        (this as any).__style__ = style;
+
         let customStyle: any = this.style;
         /**
          * {Number} spacing of ever letters
          */
         customStyle.letterSpacing = style.letterSpacing || 0;
 
+        customStyle.vertical = style.vertical;
         style.vertical = style.vertical || {};
-
         /**
          * {Boolean} support vertical layout
          */
-        customStyle.vertical = style.vertical.enable;
+        customStyle.enableVertical = style.vertical.enable;
         /**
          * {Array<string>} this array will support punctuations to roate, or all punctuations will rotate
          */
@@ -854,7 +858,7 @@ class Text extends Phaser.GameObjects.Text {
     {
         let that: any = this;
         let style = this.style;
-        if((style as any).vertical === true) {
+        if((style as any).enableVertical === true) {
             that.updateTextVertical();
         }else{
             that.updateTextHorizontal();
@@ -862,9 +866,74 @@ class Text extends Phaser.GameObjects.Text {
     
         return this;
     }
+
+    toJSON ()
+    {
+        var out = super.toJSON();
+
+        (out.data as any).style =  (this as any).__style__;
+        
+        return out;
+    }
 }
 
-Phaser.GameObjects.GameObjectFactory.register('text', function (this:any, x:number, y:number,text:string|string[], style:any)
+Phaser.GameObjects.GameObjectFactory.register('text', function (this:Phaser.GameObjects.GameObjectFactory, x:number, y:number,text:string|string[], style:any)
 {
     return this.displayList.add(new Text(this.scene, x, y, text, style));
+});
+
+(Phaser.GameObjects.GameObjectCreator as any).register('text', function (this:Phaser.GameObjects.GameObjectCreator, config:any, addToScene: Scene)
+{
+    if (config === undefined) { config = {}; }
+
+    // style Object = {
+    //     font: [ 'font', '16px Courier' ],
+    //     backgroundColor: [ 'backgroundColor', null ],
+    //     fill: [ 'fill', '#fff' ],
+    //     stroke: [ 'stroke', '#fff' ],
+    //     strokeThickness: [ 'strokeThickness', 0 ],
+    //     shadowOffsetX: [ 'shadow.offsetX', 0 ],
+    //     shadowOffsetY: [ 'shadow.offsetY', 0 ],
+    //     shadowColor: [ 'shadow.color', '#000' ],
+    //     shadowBlur: [ 'shadow.blur', 0 ],
+    //     shadowStroke: [ 'shadow.stroke', false ],
+    //     shadowFill: [ 'shadow.fill', false ],
+    //     align: [ 'align', 'left' ],
+    //     maxLines: [ 'maxLines', 0 ],
+    //     fixedWidth: [ 'fixedWidth', false ],
+    //     fixedHeight: [ 'fixedHeight', false ],
+    //     rtl: [ 'rtl', false ]
+    // }
+
+    var content = GetAdvancedValue(config, 'text', '');
+    var style = GetAdvancedValue(config, 'style', null);
+
+    //  Padding
+    //      { padding: 2 }
+    //      { padding: { x: , y: }}
+    //      { padding: { left: , top: }}
+    //      { padding: { left: , right: , top: , bottom: }}
+
+    var padding = GetAdvancedValue(config, 'padding', null);
+
+    if (padding !== null)
+    {
+        style.padding = padding;
+    }
+
+    var text = new Text(this.scene, 0, 0, content, style);
+
+    if (addToScene !== undefined)
+    {
+        config.add = addToScene;
+    }
+
+    Phaser.GameObjects.BuildGameObject(this.scene, text, config);
+
+    //  Text specific config options:
+
+    text.autoRound = GetAdvancedValue(config, 'autoRound', true);
+    (text as any).resolution = GetAdvancedValue(config, 'resolution', 1);
+
+    return text;
 });
