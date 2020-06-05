@@ -1,6 +1,16 @@
 
 declare class BBCodeText extends Phaser.GameObjects.Text{
     typing: TextTyping;
+    addImage(data: {
+        imgKey: string, config?:{
+        key?: string,
+        frame?: string,
+        width?: number,
+        height?: number,
+        y?: number,
+        left?: number,
+        right?: number,
+    }}): BBCodeText;
 }
 
 /**

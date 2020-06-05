@@ -50,10 +50,10 @@ class UIScene extends ViewScene {
 
         let json = text.toJSON();
 
-        let t = this.add.text(0,0,'',json.data);
+        let t = this.make.text(json.data);
         // t.x = 300;
 
-        let tt = Phaser.GameObjects.BuildGameObject(this, t, json as any) as BBCodeText;
+        // let tt = Phaser.GameObjects.BuildGameObject(this, t, json as any) as BBCodeText;
         t.x = 500;
     }
 }

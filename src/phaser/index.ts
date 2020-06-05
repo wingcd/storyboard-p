@@ -35,3 +35,6 @@ require('./patches/GameObjectCreatorPatch');
 export * from './plugins/StageScalePlugin';
 require('./patches/TweenPatch');
 require('./patches/TextPatch');
+
+require('../libs/rex/bbcodetext.js');
+require('../libs/rex/texttyping.js');

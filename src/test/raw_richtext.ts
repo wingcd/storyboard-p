@@ -17,18 +17,19 @@ class UIScene extends ViewScene {
         // (this.add as any).bbCodeText(100, 100, "[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]", {
         //     fontSize: 24,
         // });
-        this.load.plugin('rexbbcodetextplugin', './libs/rex/rexbbcodetextplugin.min.js', true);
-        this.load.plugin('rextexttypingplugin', './libs/rex/rextexttypingplugin.min.js', true);
+        // this.load.plugin('rexbbcodetextplugin', './libs/rex/rexbbcodetextplugin.min.js', true);
+        // this.load.plugin('rextexttypingplugin', './libs/rex/rextexttypingplugin.min.js', true);
+        this.load.image('smile', './res/1.jpg');
     }
 
     create(): void {
-        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color] [size=12]is a [color=yellow]fast[/color]', {
+        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color][size=12][img=smile] is a [color=yellow]fast[/color]', {
             color: '#ff0000',
             typing: {
                 speed: 333,
                 start: true,
             } 
-        });
+        }).addImage({imgKey:'smile', config: {key:"smile", width:10, height: 10}});
        
         let obj = this.addUI.view();
         obj.setPivot(0.5, 0.5, true);
