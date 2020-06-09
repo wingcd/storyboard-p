@@ -1,7 +1,7 @@
 import { IComponent } from "./IComponent";
 import { View } from "../core/View";
-import { Clone } from "../utils/Object";
-import { clonable, clonable_object } from "../annotations/Clonable";
+import { serializable_object, SerializeInfo } from "../annotations/Serialize";
+import { Serialize } from "../utils/Serialize";
 
 export type ComponentOptions = {
     containsParentType?: boolean; 
@@ -9,12 +9,20 @@ export type ComponentOptions = {
     containsSameParentType?: boolean;
 }
 
-@clonable_object()
 export class BaseComponent implements IComponent {
     protected _owner: View;
-
-    @clonable()
     protected _enable: boolean = true;
+
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        return [
+            {
+                sourceProp: "enable",
+                targetProp: "_enable",
+                default: false,
+                type: Boolean,
+            }
+        ]
+    }
 
     constructor() {
         let that = this as any;
@@ -92,8 +100,8 @@ export class BaseComponent implements IComponent {
         }
     }
 
-    public clone(): IComponent {
-        let so = Clone(this);
-        return so;
+    public toJson(): any {
+        let json = Serialize(this);
+        return json;
     }
 }

@@ -1,7 +1,6 @@
 import "reflect-metadata";
 
 import { EDirtyType, EOverflowType } from "./Defines";
-import { clonable } from "../annotations/Clonable";
 import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2, GeometryMask, MaskType, BitmapMask } from "../phaser";
 import { ViewGroup } from "./ViewGroup";
 import { Settings } from "./Setting";
@@ -11,7 +10,6 @@ import { ViewEvent } from "../events/ViewEvent";
 import { ViewRoot } from "./ViewRoot";
 import { IComponent } from "../components/IComponent";
 import { ComponentOptions, BaseComponent } from "../components/BaseComponent";
-import { Clone } from "../utils/Object";
 import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
@@ -22,36 +20,24 @@ import { TimelineManager } from "../tween/Timeline";
 export class View {
     static sInstanceCounter: number = 0;
 
-    @clonable()
     public data: any;
 
     private _id: string;
     private _name: string = "";
     protected _root: ViewRoot = null;
 
-    @clonable()
     private _visible: boolean = true;
     private _internalVisible: boolean = true;
-    @clonable()
     private _hiddenCollapsed: boolean = false;
-    @clonable()
     protected _x: number = 0; 
-    @clonable()   
     protected _y: number = 0;    
-    @clonable()
     protected _width: number = 100;
-    @clonable()
     protected _height: number = 100;  
-    @clonable()
     protected _scaleX: number = 1;
-    @clonable()
     protected _scaleY: number = 1;
-    @clonable()
     protected _angle: number = 0;
-    @clonable()
     protected _pivot: Point = new Point();
     protected _pivotOffset: Point = new Point();
-    @clonable()
     protected _pivotAsAnchor: boolean = false;
     
     /**@internal */
@@ -63,23 +49,15 @@ export class View {
     protected _rootContainer: Container;
     private _displayObject: GameObject;
 
-    @clonable()
     protected _useBorderAsFrame: boolean = true;
-    @clonable()
     protected _focusable: boolean = false;
-    @clonable()
     protected _touchable: boolean = true;    
     /** enable trigger when touch point moved */
-    @clonable()
     public touchEnableMoved: boolean = true;
-    @clonable()
     protected _draggable: boolean = false;
     protected _dragComponent: DragComponent;
-    @clonable()
     protected _opaque: boolean = false;
-    @clonable()
     protected _enableBackground: boolean = false;
-    @clonable()
     protected _backgroundColor: number = 0xffffff;
     protected _gBackground: Graphics = null;
     private _relations: Relations;
@@ -1318,21 +1296,21 @@ export class View {
         return true;
     }
 
-    public clone(): View {
-        let obj = Clone(this) as View;
+    // public clone(): View {
+    //     let obj = Clone(this) as View;
 
-        if(this._components) {
-            this._components.forEach(comp=>{
-                if(obj.onBeforeCloneComponent(comp)) {
-                    let p = comp.clone();
-                    obj.addComponent(p);
-                }
-            });
-        }
+    //     if(this._components) {
+    //         this._components.forEach(comp=>{
+    //             if(obj.onBeforeCloneComponent(comp)) {
+    //                 let p = comp.clone();
+    //                 obj.addComponent(p);
+    //             }
+    //         });
+    //     }
     
-        // obj._relayout();
-        return obj;
-    }
+    //     // obj._relayout();
+    //     return obj;
+    // }
 
     public get dragComponent(): DragComponent {
         return this._dragComponent;

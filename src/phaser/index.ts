@@ -37,4 +37,4 @@ require('./patches/TweenPatch');
 require('./patches/TextPatch');
 
 require('../libs/rex/bbcodetext.js');
-require('../libs/rex/texttyping.js');
+(window as any).TextTyping = (require('../libs/rex/texttyping.js').default as any);

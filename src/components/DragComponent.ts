@@ -3,12 +3,12 @@ import { BaseComponent } from "./BaseComponent";
 import { Point, Rectangle, Input, Pointer, EventData } from "../phaser";
 import * as Events from "../events";
 import { Settings } from "../core/Setting";
-import { clonable } from "../annotations/Clonable";
 import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
 import { TOP_MOST_DEPTH, DEFAULT_DEPTH, EDragType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
+import { SerializeInfo } from "../annotations/Serialize";
 
 const enum EDragStatus {
    NONE,
@@ -35,17 +35,32 @@ export class DragComponent extends BaseComponent {
     * @description clamp range in parent axis system 
     * @default null
     * */ 
-   @clonable()
+   // @clonable()
    public dragBounds: Rectangle;
-   @clonable()
    public topMostOnDragging: boolean = false;
-   @clonable()
    public dragType: EDragType = EDragType.Both;
 
    private static _draggingObject: View;
    public static get draggingObject(): View {
       return DragComponent._draggingObject;
    }
+
+   static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+      let fields = BaseComponent.SERIALIZABLE_FIELDS;
+      fields.push(
+      {
+         sourceProp: "topMostOnDragging",
+         alias: "topmost",
+         default: false,
+         type: Boolean,
+      },
+      {
+         sourceProp: "dragType",
+         default: EDragType.Both,
+         type: EDragType,
+      });
+      return fields;
+  }
 
    constructor() {
       super();

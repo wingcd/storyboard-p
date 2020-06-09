@@ -9,7 +9,6 @@ import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
-import { clonable } from "../annotations/Clonable";
 
 const enum EScrollStatus {
     NONE,
@@ -40,19 +39,12 @@ export class ScrollPaneComponent extends BaseComponent {
     private   static _sScrollBeginCancelled: boolean;    
     protected static _sStatus: EScrollStatus = EScrollStatus.NONE;
 
-    @clonable()
     public scrollType: EScrollType = EScrollType.Both;
-    @clonable()
     public scrollSpeed: number = Settings.defaultScrollSpeed;
-    @clonable()
     public mouseScrollSpeed: number = Settings.defaultScrollSpeed * 2;
-    @clonable()
     public enableMouseWheel: boolean = true;
-    @clonable()
     public touchEffect: boolean = true;
-    @clonable()
     public inertanceEffect: boolean = false;
-    @clonable()
     public bouncebackEffect: boolean = false;
 
     private _viewSize: Point = new Point();

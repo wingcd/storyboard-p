@@ -3,7 +3,6 @@ import { Container, Scene, Rectangle, Graphics, GeometryMask } from "../phaser";
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
-import { clonable } from "../annotations/Clonable";
 import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
@@ -14,7 +13,6 @@ export class ViewGroup extends View {
     protected _children: View[] = [];  
     protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
 
-    @clonable()
     protected _overflowType: EOverflowType = EOverflowType.Visible;
     private _scrollPane: ScrollPaneComponent = null;
 
@@ -202,7 +200,7 @@ export class ViewGroup extends View {
         if(index >= 0 && index <= cnt) {
             if(child.parent == this) {
                 this.setChildIndex(child, index);
-            }else{
+            }else{ 
                 child.parent = this;
 
                 if(index == cnt){
@@ -333,23 +331,23 @@ export class ViewGroup extends View {
         super.checkDirty();
     }
 
-    public clone(): View {        
-        let obj = super.clone() as ViewGroup;    
-        obj._buildingDisplayList = true;
+    // public clone(): View {        
+    //     let obj = super.clone() as ViewGroup;    
+    //     obj._buildingDisplayList = true;
 
-        if(this._children) {
-            this._children.forEach(child=>{
-                let c = child.clone();
-                obj.addChild(c);
-            });
-        }
+    //     if(this._children) {
+    //         this._children.forEach(child=>{
+    //             let c = child.clone();
+    //             obj.addChild(c);
+    //         });
+    //     }
 
-        obj._buildingDisplayList = false;
+    //     obj._buildingDisplayList = false;
 
-        this.appendChildrenList();
+    //     this.appendChildrenList();
         
-        return obj;
-    }
+    //     return obj;
+    // }
 
     /**
      * @internal

@@ -8,9 +8,8 @@ export class GameObjectFactoryExt {
 
     addTyping(text:Phaser.GameObjects.Text, config?: any): TextTyping {
         if(config) {
-            let tpPlugin = this._scene.plugins.get('rextexttypingplugin');
-            if(tpPlugin) {
-                let typing: TextTyping = tpPlugin.add(text, config);
+            if(TextTyping) {
+                let typing: TextTyping = new TextTyping(text, config);
                 if(typing.start) {
                     typing.start(text.text);
                 }

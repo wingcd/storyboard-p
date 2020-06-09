@@ -29,7 +29,7 @@ class UIScene extends ViewScene {
                 speed: 333,
                 start: true,
             } 
-        }).addImage({imgKey:'smile', config: {key:"smile", width:10, height: 10}});
+        }).addImage('smile', {key:"smile", width:24, height: 24, left: 5});
        
         let obj = this.addUI.view();
         obj.setPivot(0.5, 0.5, true);
