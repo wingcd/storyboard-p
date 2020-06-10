@@ -16,6 +16,8 @@ import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
 import { PropertyManager } from "../tween/Property";
 import { TimelineManager } from "../tween/Timeline";
+import { SerializeInfo } from "../annotations/Serialize";
+import { Serialize, Deserialize } from "../utils/Serialize";
 
 export class View {
     static sInstanceCounter: number = 0;
@@ -23,6 +25,7 @@ export class View {
     public data: any;
 
     private _id: string;
+    private _sourceId: string;
     private _name: string = "";
     protected _root: ViewRoot = null;
 
@@ -37,7 +40,7 @@ export class View {
     protected _scaleY: number = 1;
     protected _angle: number = 0;
     protected _pivot: Point = new Point();
-    protected _pivotOffset: Point = new Point();
+    private   _pivotOffset: Point = new Point();
     protected _pivotAsAnchor: boolean = false;
     
     /**@internal */
@@ -55,11 +58,11 @@ export class View {
     /** enable trigger when touch point moved */
     public touchEnableMoved: boolean = true;
     protected _draggable: boolean = false;
-    protected _dragComponent: DragComponent;
+    private _dragComponent: DragComponent;
     protected _opaque: boolean = false;
     protected _enableBackground: boolean = false;
     protected _backgroundColor: number = 0xffffff;
-    protected _gBackground: Graphics = null;
+    private _gBackground: Graphics = null;
     private _relations: Relations;
     private _propertyManager: PropertyManager;
     private _timelineManager: TimelineManager;
@@ -86,9 +89,140 @@ export class View {
 
     private _components: IComponent[]; 
 
-    constructor() {
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        fields.push(
+        {
+            sourceProp: "data",
+            default: null,
+            type: Object,
+        },{
+            sourceProp: "id",
+            targetProp: "_id",
+            default: null,
+            type: String,
+        },{
+            sourceProp: "name",
+            targetProp: "_name",
+            default: "",
+            type: String,
+        },{
+            sourceProp: "visible",
+            targetProp: "_visible",
+            default: true,
+            type: Boolean,
+        },{
+            sourceProp: "hiddenCollapsed",
+            targetProp: "_hiddenCollapsed",
+            default: true,
+            type: Boolean,
+        },{
+            sourceProp: "x",
+            targetProp: "_x",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "y",
+            targetProp: "_y",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "width",
+            targetProp: "_width",
+            alias: "w",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "height",
+            targetProp: "_height",
+            alias: "h",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "scaleX",
+            targetProp: "_scaleX",
+            alias: "sx",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "scaleY",
+            targetProp: "_scaleY",
+            alias: "sy",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "angle",
+            targetProp: "_angle",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "pivotX",
+            targetProp: "_pivot.x",
+            alias: "px",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "pivotY",
+            targetProp: "_pivot.y",
+            alias: "py",
+            default: 0,
+            type: Number,
+        },{
+            sourceProp: "pivotAsAnchor",
+            targetProp: "_pivotAsAnchor",
+            alias: "asAnchor",
+            default: false,
+            type: Boolean,
+        },{
+            sourceProp: "useBorderAsFrame",
+            targetProp: "_useBorderAsFrame",
+            alias: "asFrame",
+            default: true,
+            type: Boolean,
+        },{
+            sourceProp: "focusable",
+            targetProp: "_focusable",
+            default: false,
+            type: Boolean,
+        },{
+            sourceProp: "touchable",
+            targetProp: "_touchable",
+            default: true,
+            type: Boolean,
+        },{
+            sourceProp: "touchEnableMoved",
+            default: true,
+            type: Boolean,
+        },{
+            sourceProp: "draggable",
+            targetProp: "_draggable",
+            default: false,
+            type: Boolean,
+        },{
+            sourceProp: "opaque",
+            targetProp: "_opaque",
+            default: false,
+            type: Boolean,
+        },{
+            sourceProp: "enableBackground",
+            targetProp: "_enableBackground",
+            default: false,
+            type: Boolean,
+        },{
+            sourceProp: "backgroundColor",
+            targetProp: "_backgroundColor",
+            default: 0xffffff,
+            type: Number,
+        });
+        return fields;
+    }
+
+    constructor(scene: ViewScene, config?: any) {
         this._id = `${View.sInstanceCounter++}`;
+
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
+        this.bind(scene);
+        this.fromJson(config);
     }
 
     /**@internal */
@@ -98,7 +232,7 @@ export class View {
 
             this._rootContainer = scene.make.container({}, false);
             (this._rootContainer as any).owner = this;
-
+ 
             this._relations = new Relations(this);
             this.createDisplayObject();
             return true;
@@ -1311,6 +1445,33 @@ export class View {
     //     // obj._relayout();
     //     return obj;
     // }
+
+    protected applayProperties() {
+        this._rootContainer.angle = this._angle;
+    }
+
+    protected relayout() {        
+        this.addDirty(EDirtyType.BoundsChanged | EDirtyType.FrameChanged | EDirtyType.BorderChanged);
+        this.handleXYChanged();
+        this.updatePivotOffset();
+        this.applyBackgroundChange();
+        this.applyOpaque();
+        this.applayProperties();
+        this.applyDraggable();
+        this.checkDirty();
+        this.ensureSizeCorrect();
+    }
+
+    public toJson(): any {
+        return Serialize(this);
+    }
+
+    public fromJson(config: any) {
+        if(config !== undefined) {
+            Deserialize(this, config);
+            this.relayout();
+        }
+    }
 
     public get dragComponent(): DragComponent {
         return this._dragComponent;

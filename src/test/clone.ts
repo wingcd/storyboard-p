@@ -1,9 +1,11 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { BaseComponent } from "../components/BaseComponent";
 import { Deserialize } from "../utils/Serialize";
+import { DragComponent } from "../components/DragComponent";
+import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -19,13 +21,11 @@ class UIScene extends ViewScene {
         view.setXY(100, 50);
         view.setSize(200, 40);
         
-        let comp = new BaseComponent();
-        comp.enable = false;
-        let json = comp.toJson();
+        let json = view.toJson();
         console.log(json);
-
-        let cp = new BaseComponent();
-        Deserialize(cp, json);
+        
+        json.x = 400;
+        let v = this.addUI.view(json);
     }
 
     create(): void {

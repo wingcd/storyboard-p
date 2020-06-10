@@ -48,17 +48,22 @@ export class DragComponent extends BaseComponent {
    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
       let fields = BaseComponent.SERIALIZABLE_FIELDS;
       fields.push(
-      {
-         sourceProp: "topMostOnDragging",
-         alias: "topmost",
-         default: false,
-         type: Boolean,
-      },
-      {
-         sourceProp: "dragType",
-         default: EDragType.Both,
-         type: EDragType,
-      });
+         {
+            sourceProp: "dragBounds",
+            default: null,
+            type: Rectangle,
+         },
+         {
+            sourceProp: "topMostOnDragging",
+            alias: "topmost",
+            default: false,
+            type: Boolean,
+         },
+         {
+            sourceProp: "dragType",
+            default: EDragType.Both,
+            type: EDragType,
+         });
       return fields;
   }
 

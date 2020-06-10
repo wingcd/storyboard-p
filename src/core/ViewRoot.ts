@@ -6,12 +6,14 @@ export class ViewRoot extends ViewGroup {
     private _game: Game;
     private _uiRoot: Container;
 
-    constructor() {
-        super();
+    constructor(scene: ViewScene, config?: any) {
+        super(scene, config);
         this._root = this;
+
+        this._attachTo(scene);
     }
 
-    public attachTo(scene: ViewScene) {
+    private _attachTo(scene: ViewScene) {
         if(!this._game) {
             this._game = scene.game;
             this.bind(scene);
@@ -36,5 +38,11 @@ export class ViewRoot extends ViewGroup {
         let width = gameSize.width;
         let height = gameSize.height;
         this.setSize(width, height);
+    }
+
+    protected relayout() {
+        super.relayout();
+                
+        this.applyOverflow();
     }
 }

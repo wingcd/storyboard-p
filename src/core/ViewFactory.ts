@@ -11,20 +11,19 @@ export class ViewFactory {
         this._addToRoot = addToRoot;
     }
 
-    private _add(cls: {new():View}): View {
-        let view = new cls();
-        view.bind(this._scene);
+    private _add(cls: {new (scene:ViewScene, config?:any):View}, config?:any): View {
+        let view = new cls(this._scene, config);
         if(this._addToRoot) {
             this._scene.root.addChild(view);
         }
         return view;
     }
 
-    public view(): View {
-        return this._add(View);
+    public view(config?:any): View {
+        return this._add(View, config);
     }
 
-    public group(): ViewGroup {
-        return this._add(ViewGroup) as ViewGroup;
+    public group(config?:any): ViewGroup {
+        return this._add(ViewGroup, config) as ViewGroup;
     }
 }

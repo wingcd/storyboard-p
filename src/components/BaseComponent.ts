@@ -1,7 +1,7 @@
 import { IComponent } from "./IComponent";
 import { View } from "../core/View";
 import { serializable_object, SerializeInfo } from "../annotations/Serialize";
-import { Serialize } from "../utils/Serialize";
+import { Serialize, Deserialize } from "../utils/Serialize";
 
 export type ComponentOptions = {
     containsParentType?: boolean; 
@@ -18,7 +18,7 @@ export class BaseComponent implements IComponent {
             {
                 sourceProp: "enable",
                 targetProp: "_enable",
-                default: false,
+                default: true,
                 type: Boolean,
             }
         ]
@@ -103,5 +103,9 @@ export class BaseComponent implements IComponent {
     public toJson(): any {
         let json = Serialize(this);
         return json;
+    }
+
+    public fromJson(config: any) {
+        Deserialize(this, config);
     }
 }

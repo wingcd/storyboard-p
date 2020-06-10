@@ -13,9 +13,7 @@ export class UIManager extends Phaser.Plugins.BasePlugin {
             return root;
         }
 
-        root = new ViewRoot();
-        root.attachTo(scene);
-
+        root = new ViewRoot(scene);
         (scene as any).uiroot = root;
         return root;
     }

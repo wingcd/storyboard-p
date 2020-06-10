@@ -9,6 +9,7 @@ import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
+import { SerializeInfo } from "../annotations/Serialize";
 
 const enum EScrollStatus {
     NONE,
@@ -41,8 +42,8 @@ export class ScrollPaneComponent extends BaseComponent {
 
     public scrollType: EScrollType = EScrollType.Both;
     public scrollSpeed: number = Settings.defaultScrollSpeed;
-    public mouseScrollSpeed: number = Settings.defaultScrollSpeed * 2;
     public enableMouseWheel: boolean = true;
+    public mouseScrollSpeed: number = Settings.defaultScrollSpeed * 2;
     public touchEffect: boolean = true;
     public inertanceEffect: boolean = false;
     public bouncebackEffect: boolean = false;
@@ -65,6 +66,50 @@ export class ScrollPaneComponent extends BaseComponent {
     };
     private _canreset = false;
     private _pointerId = -1;
+
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        fields.push(
+           {
+              sourceProp: "scrollType",
+              default: EScrollType.Both,
+              type: EScrollType,
+           },
+           {
+              sourceProp: "scrollSpeed",
+              alias: "speed",
+              default: Settings.defaultScrollSpeed,
+              type: Number,
+           },
+           {
+              sourceProp: "enableMouseWheel",
+              alias: "mouseWheel",
+              default: true,
+              type: Boolean,
+           },
+           {
+              sourceProp: "mouseScrollSpeed",
+              alias: "mouseSpeed",
+              default: Settings.defaultScrollSpeed * 2,
+              type: Number,
+           },
+           {
+              sourceProp: "touchEffect",
+              default: true,
+              type: Boolean,
+           },
+           {
+              sourceProp: "inertanceEffect",
+              default: false,
+              type: Boolean,
+           },
+           {
+              sourceProp: "bouncebackEffect",
+              default: false,
+              type: Boolean,
+           });
+        return fields;
+    }
 
     public regist(view: ViewGroup) {
         if(!(view instanceof ViewGroup)) {
