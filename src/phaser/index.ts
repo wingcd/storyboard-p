@@ -38,3 +38,4 @@ require('./patches/TextPatch');
 
 require('../libs/rex/bbcodetext.js');
 (window as any).TextTyping = (require('../libs/rex/texttyping.js').default as any);
+(window as any).NinePatch = (require('../libs/rex/ninepatch.js').default as any);

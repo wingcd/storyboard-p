@@ -36,3 +36,7 @@ declare class TextTyping extends Phaser.Events.EventEmitter {
    resume(): TextTyping;
    setTypingContent(text: string): TextTyping;
 }
+
+declare class NinePatch extends Phaser.GameObjects.RenderTexture {
+    
+}

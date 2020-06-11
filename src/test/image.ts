@@ -6,6 +6,7 @@ import { BaseComponent } from "../components/BaseComponent";
 import { Deserialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
+import { ETextureScaleType } from "../ui/UIImage";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -16,19 +17,26 @@ class UIScene extends ViewScene {
     }
 
     preload() {
-        let view = this.addUI.view();
-        view.setBackgroundColor(0xff0000, true);
-        view.setXY(100, 50);
-        view.setSize(200, 40);
-        
-        let json = view.toJSON();
-        console.log(json);
-        
-        json.x = 400;
-        let v = this.addUI.view(json);
+        this.load.image('nine', './res/44.png');
     }
 
     create(): void {
+        let view = this.addUI.image({
+           scaleType: ETextureScaleType.Tile,
+           texture: "nine",
+           tile: {
+            scaleX: 0.5,
+            scaleY: 0.5,
+           },
+           ninePatch: {
+            left: 0.2,     
+            right: 0.8,   
+            top: 0.2,   
+            bottom: 0.8,             
+           }
+        });
+        view.setXY(200, 100);
+        view.setSize(500, 112);
     }
 }
 

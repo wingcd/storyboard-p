@@ -16,19 +16,13 @@ class UIScene extends ViewScene {
     }
 
     preload() {
-        let view = this.addUI.view();
-        view.setBackgroundColor(0xff0000, true);
-        view.setXY(100, 50);
-        view.setSize(200, 40);
-        
-        let json = view.toJSON();
-        console.log(json);
-        
-        json.x = 400;
-        let v = this.addUI.view(json);
+        this.load.image('nine', './res/44.png');
     }
 
     create(): void {
+        let view = this.addExt.ninePatchTexture(300, 100, 448, 112, "nine", undefined, [10, undefined, 10], [10, undefined, 10], {
+            stretchMode: 0,
+        });
     }
 }
 

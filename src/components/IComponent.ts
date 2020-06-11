@@ -6,7 +6,8 @@ export interface IComponent {
     regist(obj: View): void;
     unRegist(): void;
     dispose(): void;
-    toJson(): any;
+    toJSON(): any;
+    fromJSON(config: any): void;
 
     /**
      * awake(): void;

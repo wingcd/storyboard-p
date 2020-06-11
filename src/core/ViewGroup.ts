@@ -20,6 +20,12 @@ export class ViewGroup extends View {
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
 
+    constructor(scene: ViewScene, config?: any) {
+        super(scene, config);
+
+        this._type = 2;
+    }
+
     bind(scene: ViewScene) {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);

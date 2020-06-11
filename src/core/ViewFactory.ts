@@ -2,6 +2,7 @@ import { Scene } from "../phaser";
 import { View } from "./View";
 import { ViewGroup } from "./ViewGroup";
 import { ViewScene } from "./ViewScene";
+import { UIImage, IImageInfo } from "../ui/UIImage";
 
 export class ViewFactory {
     private _scene: ViewScene;
@@ -25,5 +26,9 @@ export class ViewFactory {
 
     public group(config?:any): ViewGroup {
         return this._add(ViewGroup, config) as ViewGroup;
+    }
+
+    public image(config?:IImageInfo): UIImage {
+        return this._add(UIImage, config) as UIImage;
     }
 }

@@ -26,6 +26,8 @@ export class View {
 
     private _id: string;
     private _sourceId: string;
+    protected _type: number = 1;
+
     private _name: string = "";
     protected _root: ViewRoot = null;
 
@@ -222,11 +224,11 @@ export class View {
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
-        this.fromJson(config);
+        this.fromJSON(config);
     }
 
     /**@internal */
-    bind(scene: ViewScene): boolean {
+    protected bind(scene: ViewScene): boolean {
         if(!this._scene) {
             this._scene = scene;
 
@@ -234,22 +236,19 @@ export class View {
             (this._rootContainer as any).owner = this;
  
             this._relations = new Relations(this);
-            this.createDisplayObject();
             return true;
         }
         return false;
     }
 
-    createDisplayObject(): void {
-
-    }
-
-    setDisplayObject(display: GameObject) {
+    protected setDisplayObject(display: GameObject) {
         if(this._displayObject) {
             this._rootContainer.remove(this._displayObject);
         }
         this._displayObject = display;
-        this._rootContainer.add(display);
+        if(display) {
+            this._rootContainer.add(display);
+        }
     }
 
     /**@internal */
@@ -506,6 +505,7 @@ export class View {
                 }
             }  
             this.handleBorderChange();
+            this.handleSizeChanged();
 
             this.addDirty(EDirtyType.FrameChanged | EDirtyType.BorderChanged);
             if(this._parent) {
@@ -1133,6 +1133,10 @@ export class View {
         this.applyOpaque();
     }
 
+    protected handleSizeChanged() {
+
+    }
+
     protected applyBackgroundChange() {
         if(this._enableBackground) {
             if(!this._gBackground) {
@@ -1453,6 +1457,7 @@ export class View {
     protected relayout() {        
         this.addDirty(EDirtyType.BoundsChanged | EDirtyType.FrameChanged | EDirtyType.BorderChanged);
         this.handleXYChanged();
+        this.handleSizeChanged();
         this.updatePivotOffset();
         this.applyBackgroundChange();
         this.applyOpaque();
@@ -1462,11 +1467,11 @@ export class View {
         this.ensureSizeCorrect();
     }
 
-    public toJson(): any {
+    public toJSON(): any {
         return Serialize(this);
     }
 
-    public fromJson(config: any) {
+    public fromJSON(config: any) {
         if(config !== undefined) {
             Deserialize(this, config);
             this.relayout();

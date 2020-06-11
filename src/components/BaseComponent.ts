@@ -100,12 +100,12 @@ export class BaseComponent implements IComponent {
         }
     }
 
-    public toJson(): any {
+    public toJSON(): any {
         let json = Serialize(this);
         return json;
     }
 
-    public fromJson(config: any) {
+    public fromJSON(config: any): void {
         Deserialize(this, config);
     }
 }
