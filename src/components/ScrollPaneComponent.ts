@@ -29,7 +29,22 @@ const enum EScrollStatus {
  }
 
  @disallow_multiple_component()
-export class ScrollPaneComponent extends BaseComponent {    
+export class ScrollPaneComponent extends BaseComponent {   
+
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        fields.push(
+           {property: "scrollType",default: EScrollType.Both,type: EScrollType},
+           {property: "scrollSpeed",alias: "speed",default: Settings.defaultScrollSpeed},
+           {property: "enableMouseWheel",alias: "mouseWheel",default: true},
+           {property: "mouseScrollSpeed",alias: "mouseSpeed",default: Settings.defaultScrollSpeed * 2},
+           {property: "touchEffect",default: true},
+           {property: "inertanceEffect",default: false},
+           {property: "bouncebackEffect",default: false}
+        );
+        return fields;
+    }
+
     private static _draggingPane: ScrollPaneComponent;
     private static get draggingPane(): ScrollPaneComponent {
         return ScrollPaneComponent._draggingPane;
@@ -66,50 +81,6 @@ export class ScrollPaneComponent extends BaseComponent {
     };
     private _canreset = false;
     private _pointerId = -1;
-
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-           {
-              sourceProp: "scrollType",
-              default: EScrollType.Both,
-              type: EScrollType,
-           },
-           {
-              sourceProp: "scrollSpeed",
-              alias: "speed",
-              default: Settings.defaultScrollSpeed,
-              type: Number,
-           },
-           {
-              sourceProp: "enableMouseWheel",
-              alias: "mouseWheel",
-              default: true,
-              type: Boolean,
-           },
-           {
-              sourceProp: "mouseScrollSpeed",
-              alias: "mouseSpeed",
-              default: Settings.defaultScrollSpeed * 2,
-              type: Number,
-           },
-           {
-              sourceProp: "touchEffect",
-              default: true,
-              type: Boolean,
-           },
-           {
-              sourceProp: "inertanceEffect",
-              default: false,
-              type: Boolean,
-           },
-           {
-              sourceProp: "bouncebackEffect",
-              default: false,
-              type: Boolean,
-           });
-        return fields;
-    }
 
     public regist(view: ViewGroup) {
         if(!(view instanceof ViewGroup)) {

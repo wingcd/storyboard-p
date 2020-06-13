@@ -2,8 +2,9 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Texture, Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
+import { SerializeInfo } from "../annotations/Serialize";
 
-export const enum ETextureScaleType {
+export enum ETextureScaleType {
     None,
     Tile,
     NinePatch,    
@@ -16,8 +17,8 @@ export interface INinePatchInfo {
     bottom?: number;
 
     stretchMode?: number | {
-        edge: 0, // 'scale', or 1, 'repeat'
-        internal: 0, // 'scale', or 1, 'repeat'
+        edge: number, // 'scale', or 1, 'repeat'
+        internal: number, // 'scale', or 1, 'repeat'
     };
 }
 
@@ -28,40 +29,75 @@ export class NinePatchInfo {
     public bottom?: number = 1;
 
     stretchMode?: number | {
-        edge: 0, // 'scale', or 1, 'repeat'
-        internal: 0, // 'scale', or 1, 'repeat'
+        edge: number, // 'scale', or 1, 'repeat'
+        internal: number, // 'scale', or 1, 'repeat'
     };
 }
 
-export interface IImageInfo {
-    texture: string;
+export interface IUIImage {
+    textureKey: string;
+    textureFrame?: string | number;
     scaleType?: ETextureScaleType;
-    frame?: string | number;
     tile?: {
         scaleX?: number;
         scaleY?: number;
     }
     ninePatch?: NinePatchInfo;  
+
+    flipX?: boolean;
+    flipY?: boolean;
 }
 
-export class ImageInfo {
-    texture: string;
-    scaleType?: ETextureScaleType = ETextureScaleType.None;
-    frame?: string | number;
-    ninePatch?: INinePatchInfo;    
-}
+export class UIImage extends View implements IUIImage{
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields = View.SERIALIZABLE_FIELDS;
+        fields.push(
+            {property: "textureKey", importAs: "_textureKey", alias:"texture", type: String},
+            {property: "textureFrame", importAs: "_textureFrame", alias:"frame", type: String},
+            {property: "scaleType", importAs: "_scaleType", type: ETextureScaleType, default: ETextureScaleType.None},
+            {property: "tile", importAs: "_tile", default: null},
+            {property: "ninePatch", importAs: "_ninePatch", default: null},
+            {property: "flipX", importAs: "_flipX", default: false},
+            {property: "flipY", importAs: "_flipY", default: false},
+        );
+        return fields;
+    }
+    
+    private _disp: TileSprite | Sprite | NinePatch;
 
-export type TextureInfo = ImageInfo;
+    private _textureKey?: string;
+    private _textureFrame?: string;
+    private _scaleType: ETextureScaleType = ETextureScaleType.None;
+    private _tile?: {scaleX: number, scaleY: number};
+    private _ninePatch?: NinePatchInfo;  
+    private _flipX: boolean = false;
+    private _flipY: boolean = false;    
 
-export class UIImage extends View {
-    protected _disp: TileSprite | Sprite | NinePatch;
-    private _options: IImageInfo;
-    constructor(scene: ViewScene, config?: IImageInfo) {
-        config = config || new ImageInfo();
-        super(scene, config);
-        
+    constructor(scene: ViewScene, config?: IUIImage|any) {
+        super(scene, config);        
         this._type = 3;
-        this._options = config;
+    }
+    
+    public get textureKey(): string {
+        return this._textureKey;
+    }
+    public get scaleType(): ETextureScaleType {
+        return this._scaleType;
+    }
+    public get textureFrame(): string | number {
+        return this._textureFrame;
+    }
+    public get tile() {
+        return this._tile;
+    }
+    public get ninePatch(): NinePatchInfo {
+        return this._ninePatch;
+    }
+    public get flipX(): boolean {
+        return this._flipX;
+    }
+    public get flipY(): boolean {
+        return this._flipY;
     }
 
     private _updateSize() {
@@ -85,11 +121,17 @@ export class UIImage extends View {
     }
 
     private _updateInfo() {
-        if(this._disp instanceof TileSprite && this._options.tile) {
-            let tile = this._options.tile;
+        if(!this._disp) {
+            return;
+        }
+
+        if(this._disp instanceof TileSprite && this.tile) {
+            let tile = this._tile;
             this._disp.tileScaleX = MathUtils.isNumber(tile.scaleX) ?  tile.scaleX : 1;
             this._disp.tileScaleY = MathUtils.isNumber(tile.scaleY) ?  tile.scaleY : 1;
         }
+        this._disp.flipX = this._flipX || false;
+        this._disp.flipY = this._flipY || false;
     }
 
     private _updateTexture() {
@@ -102,29 +144,26 @@ export class UIImage extends View {
         let y = this.y;
         let width = this.width;
         let height = this.height;
-        let texture = this._scene.textures.get(this._options.texture);
+        let texture = this._scene.textures.get(this._textureKey);
         let frame = texture.get(0);
         if(!frame) {
-            console.error(`can not find texture named ${this._options.texture}`);
+            console.error(`can not find texture named ${this._textureKey}`);
             return;
         }
-        switch(this._options.scaleType){
-            case ETextureScaleType.None:
-                this._disp = this._scene.add.sprite(x, y, this._options.texture, this._options.frame);
-                break;
+        switch(this._scaleType){
             case ETextureScaleType.Tile:
-                this._disp = this._scene.add.tileSprite(x, y, width, height, this._options.texture, this._options.frame);
+                this._disp = this._scene.add.tileSprite(x, y, width, height, this._textureKey, this._textureFrame);
                 break;
             case ETextureScaleType.NinePatch:
                 let columns: number[] = [], rows: number[] = [];
-                let ninePatch = this._options.ninePatch;
+                let ninePatch = this._ninePatch;
                 let left = MathUtils.isNumber(ninePatch.left) ? ninePatch.left : 0;
                 let right = MathUtils.isNumber(ninePatch.right) ? ninePatch.right : 1;
                 let top = MathUtils.isNumber(ninePatch.top) ? ninePatch.top : 0;
                 let bottom = MathUtils.isNumber(ninePatch.bottom) ? ninePatch.bottom : 1;
                 if(!ninePatch 
                     || (top == 0 && left == 0 && right == 1 && bottom == 1)) {
-                        this._disp = this._scene.add.sprite(x, y, this._options.texture, this._options.frame);    
+                        this._disp = this._scene.add.sprite(x, y, this._textureKey, this._textureFrame);    
                 }else {
                     let hl = left * frame.width || 1;
                     let hr = frame.width - frame.width * right || 1;
@@ -136,9 +175,17 @@ export class UIImage extends View {
                     let vm = frame.height - vt - vb || 1;
                     rows = [vt, vm, vb];
 
+                    let cfg: any = {};
+                    if(ninePatch.stretchMode) {
+                        cfg.stretchMode = ninePatch.stretchMode;
+                    }
+
                     this._disp = this._scene.addExt.ninePatchTexture(x, y, width || frame.width, height || frame.width, 
-                        this._options.texture, this._options.frame as any, columns, rows);
+                        this._textureKey, this._textureFrame as any, columns, rows, cfg);
                 }
+                break;            
+            default:
+                this._disp = this._scene.add.sprite(x, y, this._textureKey, this._textureFrame);
                 break;
         }
 
@@ -158,7 +205,6 @@ export class UIImage extends View {
         }
         super.fromJSON(config);
 
-        this._options = config;
         this._updateTexture();
     }
 }

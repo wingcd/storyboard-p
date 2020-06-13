@@ -19,7 +19,62 @@ import { TimelineManager } from "../tween/Timeline";
 import { SerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 
-export class View {
+export interface IView {
+    data?:any;
+    name?:string;
+    visible?:boolean;
+    hiddenCollapsed?:boolean;
+    x?:number;
+    y?:number;
+    width?:number;
+    height?:number;
+    scaleX?:number;
+    scaleY?:number;
+    angle?:number;
+    pivotX?:number;
+    pivotY?:number;
+    pivotAsAnchor?:boolean;
+    useBorderAsFrame?:boolean;
+    focusable?:boolean;
+    touchable?:boolean,
+    touchEnableMoved?:boolean,
+    draggable?:boolean,
+    opaque?:boolean,
+    enableBackground?:boolean,
+    backgroundColor?:number;
+}
+
+export class View {  
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        fields.push(
+            {property: "data",default: null},
+            {property: "id",importAs: "_id",default: null},
+            {property: "name",importAs: "_name",default: ""},
+            {property: "visible",importAs: "_visible",default: true},
+            {property: "hiddenCollapsed",importAs: "_hiddenCollapsed",default: true},
+            {property: "x",importAs: "_x",default: 0},
+            {property: "y",importAs: "_y",default: 0},
+            {property: "width",importAs: "_width",alias: "w",default: 0},
+            {property: "height",importAs: "_height",alias: "h",default: 0},
+            {property: "scaleX",importAs: "_scaleX",alias: "sx",default: 0},
+            {property: "scaleY",importAs: "_scaleY",alias: "sy",default: 0},
+            {property: "angle",importAs: "_angle",default: 0},
+            {property: "pivotX",importAs: "_pivot.x",alias: "px",default: 0},
+            {property: "pivotY",importAs: "_pivot.y", alias: "py",default: 0},
+            {property: "pivotAsAnchor",importAs: "_pivotAsAnchor",alias: "asAnchor",default: false},
+            {property: "useBorderAsFrame",importAs: "_useBorderAsFrame",alias: "asFrame",default: true},
+            {property: "focusable",importAs: "_focusable",default: false},
+            {property: "touchable",importAs: "_touchable",default: true},
+            {property: "touchEnableMoved",default: true},
+            {property: "draggable",importAs: "_draggable",default: false},
+            {property: "opaque",importAs: "_opaque",default: false},
+            {property: "enableBackground",importAs: "_enableBackground",default: false},
+            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff}
+        );
+        return fields;
+    }
+
     static sInstanceCounter: number = 0;
 
     public data: any;
@@ -91,135 +146,7 @@ export class View {
 
     private _components: IComponent[]; 
 
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-        {
-            sourceProp: "data",
-            default: null,
-            type: Object,
-        },{
-            sourceProp: "id",
-            targetProp: "_id",
-            default: null,
-            type: String,
-        },{
-            sourceProp: "name",
-            targetProp: "_name",
-            default: "",
-            type: String,
-        },{
-            sourceProp: "visible",
-            targetProp: "_visible",
-            default: true,
-            type: Boolean,
-        },{
-            sourceProp: "hiddenCollapsed",
-            targetProp: "_hiddenCollapsed",
-            default: true,
-            type: Boolean,
-        },{
-            sourceProp: "x",
-            targetProp: "_x",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "y",
-            targetProp: "_y",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "width",
-            targetProp: "_width",
-            alias: "w",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "height",
-            targetProp: "_height",
-            alias: "h",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "scaleX",
-            targetProp: "_scaleX",
-            alias: "sx",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "scaleY",
-            targetProp: "_scaleY",
-            alias: "sy",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "angle",
-            targetProp: "_angle",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "pivotX",
-            targetProp: "_pivot.x",
-            alias: "px",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "pivotY",
-            targetProp: "_pivot.y",
-            alias: "py",
-            default: 0,
-            type: Number,
-        },{
-            sourceProp: "pivotAsAnchor",
-            targetProp: "_pivotAsAnchor",
-            alias: "asAnchor",
-            default: false,
-            type: Boolean,
-        },{
-            sourceProp: "useBorderAsFrame",
-            targetProp: "_useBorderAsFrame",
-            alias: "asFrame",
-            default: true,
-            type: Boolean,
-        },{
-            sourceProp: "focusable",
-            targetProp: "_focusable",
-            default: false,
-            type: Boolean,
-        },{
-            sourceProp: "touchable",
-            targetProp: "_touchable",
-            default: true,
-            type: Boolean,
-        },{
-            sourceProp: "touchEnableMoved",
-            default: true,
-            type: Boolean,
-        },{
-            sourceProp: "draggable",
-            targetProp: "_draggable",
-            default: false,
-            type: Boolean,
-        },{
-            sourceProp: "opaque",
-            targetProp: "_opaque",
-            default: false,
-            type: Boolean,
-        },{
-            sourceProp: "enableBackground",
-            targetProp: "_enableBackground",
-            default: false,
-            type: Boolean,
-        },{
-            sourceProp: "backgroundColor",
-            targetProp: "_backgroundColor",
-            default: 0xffffff,
-            type: Number,
-        });
-        return fields;
-    }
-
-    constructor(scene: ViewScene, config?: any) {
+    constructor(scene: ViewScene, config?: IView | any) {
         this._id = `${View.sInstanceCounter++}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);

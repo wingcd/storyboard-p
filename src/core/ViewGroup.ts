@@ -1,4 +1,4 @@
-import { View } from "./View";
+import { View, IView } from "./View";
 import { Container, Scene, Rectangle, Graphics, GeometryMask } from "../phaser";
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
@@ -7,6 +7,10 @@ import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { IComponent } from "../components/IComponent";
+
+export interface IViewGroup {
+    overflowType?: EOverflowType;
+}
 
 export class ViewGroup extends View {
     protected _container: Container;
@@ -20,9 +24,8 @@ export class ViewGroup extends View {
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
 
-    constructor(scene: ViewScene, config?: any) {
+    constructor(scene: ViewScene, config?: IView & IViewGroup | any) {
         super(scene, config);
-
         this._type = 2;
     }
 

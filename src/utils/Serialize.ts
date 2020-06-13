@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { SerializeInfo } from "../annotations/Serialize";
 import { SerializeFactory } from "./SerializeFactory";
-let SetValue = Phaser.Utils.Objects.SetValue;
+import { SetValue } from "./Object";
 
 function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: any = null) {
-    let targetProp = info.alias || info.sourceProp;
-    let sourceProp = info.sourceProp;
+    let targetProp = info.alias || info.property;
+    let sourceProp = info.property;
 
     let sourceData = source[sourceProp];
     if(typeof(sourceData) === 'function' || !sourceData || sourceData == info.default) {
@@ -21,7 +21,7 @@ function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: an
                         target[targetProp] = sdata;
                     }else {
                         if(tpl) {
-                            target[targetProp] = Serialize(sourceData, tpl[info.alias || info.targetProp] || tpl[sourceData]);
+                            target[targetProp] = Serialize(sourceData, tpl[info.alias || info.importAs] || tpl[sourceData]);
                         }else{
                             target[targetProp] = Serialize(sourceData);
                         }
@@ -39,8 +39,8 @@ function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: an
 }
 
 function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:any = null) {
-    let cfgProp = info.alias || info.sourceProp;
-    let targetProp = info.targetProp || info.sourceProp;     
+    let cfgProp = info.alias && config.hasOwnProperty(info.alias) ? info.alias : info.property;
+    let targetProp = info.importAs || info.property;
 
     let cfgData = config[cfgProp];
     if(typeof(cfgData) === 'function') {
@@ -48,7 +48,7 @@ function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:a
     }
     
     if(tpl) {
-        tpl = tpl[cfgProp] || tpl[targetProp];
+        tpl = tpl[cfgProp] == undefined ?  tpl[cfgProp] : tpl[targetProp];
     }
     if(cfgData === undefined) {
         target[targetProp] = tpl != undefined ? tpl : info.default;
@@ -62,7 +62,9 @@ function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:a
                     target[targetProp] = new info.type();
                 }
                 if(!SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
-                    Deserialize(target[cfgProp], cfgData, tpl);
+                    if(!Deserialize(target[cfgProp], cfgData, tpl)) {
+                        SetValue(target, targetProp, cfgData);
+                    }
                 }
             }else{      
                 SetValue(target, targetProp, cfgData);
@@ -95,10 +97,15 @@ export function Serialize(source: any, tpl?: any) {
  * @param config 序列化后的数据
  * @param tpl 模板对象，当设置此参数后，需要将模板数据一起赋值
  */
-export function Deserialize(target: any, config: any, tpl?:any) {
+export function Deserialize(target: any, config: any, tpl?:any): boolean {
+    if(!target.constructor.SERIALIZABLE_FIELDS) {
+        return false;
+    }
+
     let pnames: SerializeInfo[] = target.constructor.SERIALIZABLE_FIELDS || [];
 
     for(let item of pnames) {
         deserializeProperty(target, item, config, tpl);
     }
+    return true;
 }

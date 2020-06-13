@@ -1,6 +1,6 @@
 export interface SerializeInfo {
-    sourceProp: string,
-    targetProp?: string,
+    property: string,
+    importAs?: string,
     alias?: string,
     default?: any,
     type?: any,

@@ -14,14 +14,7 @@ export class BaseComponent implements IComponent {
     protected _enable: boolean = true;
 
     static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
-        return [
-            {
-                sourceProp: "enable",
-                targetProp: "_enable",
-                default: true,
-                type: Boolean,
-            }
-        ]
+        return [{property: "enable",importAs: "_enable",default: true}];
     }
 
     constructor() {

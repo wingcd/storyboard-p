@@ -22,8 +22,8 @@ class UIScene extends ViewScene {
 
     create(): void {
         let view = this.addUI.image({
-           scaleType: ETextureScaleType.Tile,
-           texture: "nine",
+           scaleType: ETextureScaleType.NinePatch,
+           textureKey: "nine",
            tile: {
             scaleX: 0.5,
             scaleY: 0.5,
@@ -32,7 +32,11 @@ class UIScene extends ViewScene {
             left: 0.2,     
             right: 0.8,   
             top: 0.2,   
-            bottom: 0.8,             
+            bottom: 0.8,      
+            stretchMode: {
+                edge: 0,
+                internal: 0,
+            }       
            }
         });
         view.setXY(200, 100);
