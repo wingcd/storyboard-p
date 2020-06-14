@@ -10,6 +10,11 @@ export enum ETextureScaleType {
     NinePatch,    
 }
 
+interface ITileInfo {
+    scaleX?: number;
+    scaleY?: number;
+}
+
 export interface INinePatchInfo {
     left?: number;
     right?: number;
@@ -38,14 +43,12 @@ export interface IUIImage {
     textureKey: string;
     textureFrame?: string | number;
     scaleType?: ETextureScaleType;
-    tile?: {
-        scaleX?: number;
-        scaleY?: number;
-    }
-    ninePatch?: NinePatchInfo;  
+    tile?: ITileInfo;
+    ninePatch?: INinePatchInfo;  
 
     flipX?: boolean;
     flipY?: boolean;
+    tint?: number;
 }
 
 export class UIImage extends View implements IUIImage{
@@ -59,6 +62,7 @@ export class UIImage extends View implements IUIImage{
             {property: "ninePatch", importAs: "_ninePatch", default: null},
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
+            {property: "tint", importAs: "_tint", default: 0xfffff},
         );
         return fields;
     }
@@ -66,38 +70,81 @@ export class UIImage extends View implements IUIImage{
     private _disp: TileSprite | Sprite | NinePatch;
 
     private _textureKey?: string;
-    private _textureFrame?: string;
+    private _textureFrame?: string | number;
     private _scaleType: ETextureScaleType = ETextureScaleType.None;
-    private _tile?: {scaleX: number, scaleY: number};
-    private _ninePatch?: NinePatchInfo;  
+    private _tile?: ITileInfo;
+    private _ninePatch?: INinePatchInfo;
     private _flipX: boolean = false;
-    private _flipY: boolean = false;    
+    private _flipY: boolean = false;   
+    private _tint: number = 0xffffff; 
 
     constructor(scene: ViewScene, config?: IUIImage|any) {
-        super(scene, config);        
+        super(scene, config);
         this._type = 3;
     }
     
     public get textureKey(): string {
         return this._textureKey;
     }
+    public set textureKey(val: string) {
+        if(this._textureKey != val) {
+            this._textureKey = val;
+            this._updateTexture();
+        }
+    }
     public get scaleType(): ETextureScaleType {
         return this._scaleType;
+    }
+    public set scaleType(val: ETextureScaleType) {
+        if(this._scaleType != val) {
+            this._scaleType = val;
+            this._updateTexture();
+        }
     }
     public get textureFrame(): string | number {
         return this._textureFrame;
     }
+    public set textureFrame(val: string | number) {
+        if(this._textureFrame != val) {
+            this._textureFrame = val;
+            this._updateTexture();
+        }
+    }
     public get tile() {
         return this._tile;
     }
-    public get ninePatch(): NinePatchInfo {
+    public set tile(val: ITileInfo) {
+        if(this._tile != val) {
+            this._tile = val;
+            this._updateInfo();
+        }
+    }
+    public get ninePatch(): INinePatchInfo {
         return this._ninePatch;
+    }
+    public set ninePatch(val: INinePatchInfo) {
+        if(this._ninePatch != val) {
+            this._ninePatch = val;
+            this._updateTexture();
+        }
     }
     public get flipX(): boolean {
         return this._flipX;
     }
+    public set flipX(val:boolean) {
+        if(this._flipX != val) {
+            this._flipX = val;
+            this._updateInfo();
+        }
+    }
     public get flipY(): boolean {
         return this._flipY;
+    }
+    public set flipY(val: boolean) {
+        if(this._flipY != val) {
+            this._flipY = val;
+            this._updateInfo();
+        }
     }
 
     private _updateSize() {
@@ -130,8 +177,9 @@ export class UIImage extends View implements IUIImage{
             this._disp.tileScaleX = MathUtils.isNumber(tile.scaleX) ?  tile.scaleX : 1;
             this._disp.tileScaleY = MathUtils.isNumber(tile.scaleY) ?  tile.scaleY : 1;
         }
-        this._disp.flipX = this._flipX || false;
-        this._disp.flipY = this._flipY || false;
+        this._disp.flipX = this._flipX;
+        this._disp.flipY = this._flipY;
+        this._disp.tint = this._tint;
     }
 
     private _updateTexture() {
@@ -145,7 +193,8 @@ export class UIImage extends View implements IUIImage{
         let width = this.width;
         let height = this.height;
         let texture = this._scene.textures.get(this._textureKey);
-        let frame = texture.get(0);
+        let frameName = this._textureFrame === undefined ? 0 : this._textureFrame;
+        let frame = texture.get(frameName);
         if(!frame) {
             console.error(`can not find texture named ${this._textureKey}`);
             return;

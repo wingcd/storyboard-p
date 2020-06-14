@@ -37,7 +37,8 @@ class UIScene extends ViewScene {
                 edge: 0,
                 internal: 0,
             }       
-           }
+           },
+           tint: 0xffffff,
         });
         view.setXY(200, 100);
         view.setSize(500, 112);
