@@ -3,9 +3,20 @@ import { SerializeInfo } from "../annotations/Serialize";
 import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 
-function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: any = null) {
+function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: any = null, callback?: Function) {
     let targetProp = info.alias || info.property;
     let sourceProp = info.property;
+
+    if(tpl) {
+        let t = tpl[info.alias || info.importAs];
+        tpl =  t !== undefined ? t : tpl[sourceProp];
+    }
+
+    if(callback) {
+        if(!callback(source, target, sourceProp, targetProp, tpl)) {
+            return;
+        }
+    }
 
     let sourceData = source[sourceProp];
     if(typeof(sourceData) === 'function' || !sourceData || sourceData == info.default) {
@@ -21,7 +32,7 @@ function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: an
                         target[targetProp] = sdata;
                     }else {
                         if(tpl) {
-                            target[targetProp] = Serialize(sourceData, tpl[info.alias || info.importAs] || tpl[sourceData]);
+                            target[targetProp] = Serialize(sourceData, tpl);
                         }else{
                             target[targetProp] = Serialize(sourceData);
                         }
@@ -38,7 +49,7 @@ function serializeProperty(target:any, info: SerializeInfo, source: any, tpl: an
     }
 }
 
-function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:any = null) {
+function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:any = null, onstart?: Function, onend?: Function) {
     let cfgProp = info.alias && config.hasOwnProperty(info.alias) ? info.alias : info.property;
     let targetProp = info.importAs || info.property;
 
@@ -53,6 +64,12 @@ function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:a
     if(cfgData === undefined) {
         target[targetProp] = tpl != undefined ? tpl : info.default;
         return;  
+    }
+
+    if(onstart) {
+        if(!onstart(target, config, targetProp, cfgProp, tpl)) {
+            return;
+        }
     }
 
     if(typeof(config) === 'object') {
@@ -73,6 +90,12 @@ function deserializeProperty(target:any, info: SerializeInfo, config: any, tpl:a
     }else{
         SetValue(target, targetProp, cfgData);
     }
+
+    if(onend) {
+        if(!onend(target, config, targetProp, cfgProp, tpl)) {
+            return;
+        }
+    }
 }
 
 /**
@@ -85,7 +108,7 @@ export function Serialize(source: any, tpl?: any) {
     let pnames: SerializeInfo[] = source.constructor.SERIALIZABLE_FIELDS || [];
 
     for(let item of pnames) {
-        serializeProperty(result, item, source, tpl);
+        serializeProperty(result, item, source, tpl, source.constructor.SERIALIZE_FIELD_START);
     }
 
     return result;
@@ -105,7 +128,11 @@ export function Deserialize(target: any, config: any, tpl?:any): boolean {
     let pnames: SerializeInfo[] = target.constructor.SERIALIZABLE_FIELDS || [];
 
     for(let item of pnames) {
-        deserializeProperty(target, item, config, tpl);
+        deserializeProperty(target, item, config, tpl, target.constructor.DESERIALIZE_FIELD_START, target.constructor.DESERIALIZE_FIELD_END);
+    }
+
+    if(target.constructor.DESERIALIZE_COMPLETED) {
+
     }
     return true;
 }
