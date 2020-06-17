@@ -1,6 +1,6 @@
 import { IComponent } from "./IComponent";
 import { View } from "../core/View";
-import { serializable_object, SerializeInfo } from "../annotations/Serialize";
+import { SerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 
 export type ComponentOptions = {

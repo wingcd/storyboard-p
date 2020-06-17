@@ -4,6 +4,7 @@ import { SerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
+import { DisplayObjectEvent } from "../events";
 
 export const enum EFillType {
     None,
@@ -18,7 +19,7 @@ interface IMaskable {
     mask: MaskType;
 }
 
-interface IFillMask {
+export interface IFillMask {
     fillType?: EFillType;
     value?: number;
     origin?: EDirectionType;
@@ -28,21 +29,48 @@ interface IFillMask {
 }
 
 export class FillMask {
+    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+        let fields:SerializeInfo[] = [
+            {property: "fillType", importAs:"_fillType", default: EFillType.None},
+            {property: "value", importAs:"_value", default: 0},
+            {property: "origin", importAs:"_origin", default: EDirectionType.None},
+            {property: "anticlockwise", importAs:"_anticlockwise", default: false},
+            {property: "outterRadius", importAs:"_outterRadius", default: null},
+            {property: "innerRadius", importAs:"_innerRadius", default: null},
+        ];
+        return fields;
+    }
+
     private _target:IMaskable = null;
     private _owner: View = null;
     private _mask: Graphics = null;
     private _fillType: EFillType = EFillType.None;
-    private _value: number = 1;
-    private _origin?: EDirectionType;
-    private _anticlockwise?: boolean;
+    private _value: number = 0;
+    private _origin?: EDirectionType = EDirectionType.None;
+    private _anticlockwise?: boolean = false;
     private _outterRadius?: number;
     private _innerRadius?: number;
 
     public attach(owner: View, target: IMaskable, config?: IFillMask | any) {
+        if(this._owner == owner && target == this._target) {
+            return;
+        }
+        if(this._owner) {            
+            this._dettach();
+        }
+
         this._target = target;
         this._owner = owner;
 
         this.fromJSON(config);
+
+        if(target) {
+            this._update();
+        }
+    }
+
+    private _onSizeChanged() {
+        this._update();
     }
 
     public toJSON(): any {
@@ -61,9 +89,16 @@ export class FillMask {
 
     private _attach() {
         this._dettach();
+        this._owner.on(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
+
         if(this._target) {
             if(!this._mask) {
-                this._mask = this._owner.scene.make.graphics({});
+                let mask = this._mask = this._owner.scene.make.graphics({});
+                let pos = this._owner.localToGlobal(0, 0);
+                mask.setPosition(pos.x, pos.y);
+                mask.visible = false;
+
+                this._owner.rootContainer.add(mask);
             }
             this._target.mask = this._mask.createGeometryMask();
             this._mask.clear();
@@ -80,6 +115,8 @@ export class FillMask {
             this._target.mask.destroy();
             this._target.mask = null;
         }
+
+        this._owner.off(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
     }
 
     public destory() {
@@ -120,9 +157,6 @@ export class FillMask {
             case EFillType.Rotate90:
                 {
                     let simple = this.innerRadius == 0;
-                    if(simple) {
-                        this._mask.fillStyle(0x1, 1);
-                    }
                     let value = this._anticlockwise ? 1 - this._value : this._value;
                     let width = this._owner.width, height = this._owner.height;
                     let posx = 0, posy = 0, startAngle = this.anticlockwise ? PI_2 : 0, endAngle = PI_2 * value;
@@ -159,9 +193,6 @@ export class FillMask {
             case EFillType.Rotate180:
                 {
                     let simple = this.innerRadius == 0;
-                    if(simple) {
-                        this._mask.fillStyle(0x1, 1);
-                    }
                     let value = this._anticlockwise ? 1 - this._value : this._value;
                     let width = this._owner.width, height = this._owner.height;
                     let posx = 0, posy = 0, startAngle = this.anticlockwise ? Math.PI : 0, endAngle = Math.PI * value;
@@ -192,9 +223,6 @@ export class FillMask {
             case EFillType.Rotate360:
                 {
                     let simple = this.innerRadius == 0;
-                    if(simple) {
-                        this._mask.fillStyle(0x1, 1);
-                    }
                     let value = this._anticlockwise ? 1 - this._value : this._value;
                     let width = this._owner.width, height = this._owner.height;
                     let posx = width * 0.5, posy = height * 0.5, startAngle = this.anticlockwise ? Math.PI * 2 : 0, endAngle = Math.PI * 2 * value;
@@ -222,12 +250,15 @@ export class FillMask {
 
     private _drawArc(simple: boolean, posx: number, posy: number, radius: number, startAngle: number, endAngle: number) {
         if(simple) {
+            this._mask.fillStyle(0x1, 1);
             this._mask.moveTo(posx, posy);
             this._mask.arc(posx, posy, radius * this.outterRadius, startAngle, endAngle, this._anticlockwise);
-            this._mask.closePath();
+            this._mask.fill();
         }else{
             this._mask.lineStyle(radius * this.outterRadius - radius * this.innerRadius, 0x1, 1); //, this._anticlockwise ? 1 : 0);
-            this._mask.arc(posx, posy, radius * this.outterRadius, startAngle, endAngle, this._anticlockwise); 
+            this._mask.beginPath();
+            this._mask.arc(posx, posy, radius * this.outterRadius, startAngle, endAngle, this._anticlockwise);
+            this._mask.strokePath();
         }  
     }
 
@@ -243,7 +274,7 @@ export class FillMask {
     }
 
     public get outterRadius(): number {
-        return (this._outterRadius === undefined ? 1 : this._outterRadius);
+        return MathUtils.isNumber(this._outterRadius) ? this._outterRadius : 1;
     }
 
     public set outterRadius(val: number) {
@@ -255,7 +286,7 @@ export class FillMask {
     }
 
     public get innerRadius(): number {
-        return (this._innerRadius === undefined ? 0 : this._innerRadius);
+        return MathUtils.isNumber(this._innerRadius) ? this._innerRadius : 0;
     }
 
     public set innerRadius(val: number) {
@@ -298,5 +329,9 @@ export class FillMask {
             this._anticlockwise = val;
             this._update();
         }
+    }
+
+    public refresh() {
+        this._update();
     }
 }

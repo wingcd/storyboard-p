@@ -3,6 +3,7 @@ import { ViewScene } from "../core/ViewScene";
 import { Texture, Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
 import { SerializeInfo } from "../annotations/Serialize";
+import { FillMask, IFillMask } from "./FillMask";
 
 export enum ETextureScaleType {
     None,
@@ -49,6 +50,7 @@ export interface IUIImage {
     flipX?: boolean;
     flipY?: boolean;
     tint?: number;
+    fillMask?: IFillMask;
 }
 
 export class UIImage extends View implements IUIImage{
@@ -63,10 +65,11 @@ export class UIImage extends View implements IUIImage{
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
             {property: "tint", importAs: "_tint", default: 0xfffff},
+            {property: "_fillMask", importAs: "_fillMask", alias: "fillMask", type:FillMask, default: null},
         );
         return fields;
     }
-    
+        
     private _disp: TileSprite | Sprite | NinePatch;
 
     private _textureKey?: string;
@@ -76,11 +79,14 @@ export class UIImage extends View implements IUIImage{
     private _ninePatch?: INinePatchInfo;
     private _flipX: boolean = false;
     private _flipY: boolean = false;   
-    private _tint: number = 0xffffff; 
+    private _tint: number = 0xffffff;
+    private _fillMask: FillMask;
 
     constructor(scene: ViewScene, config?: IUIImage|any) {
-        super(scene, config);
+        super(scene);
         this._type = 3;
+
+        this.fromJSON(config);
     }
     
     public get textureKey(): string {
@@ -146,6 +152,18 @@ export class UIImage extends View implements IUIImage{
             this._updateInfo();
         }
     }
+    public get fillMask(): FillMask {
+        if(!this._disp) {
+            return null;
+        }
+
+        if(!this._fillMask) {
+            this._fillMask = new FillMask();
+            this._fillMask.attach(this, this._disp);
+        }
+
+        return this._fillMask;
+    }
 
     private _updateSize() {
         if(this._disp) {
@@ -180,6 +198,10 @@ export class UIImage extends View implements IUIImage{
         this._disp.flipX = this._flipX;
         this._disp.flipY = this._flipY;
         this._disp.tint = this._tint;
+
+        if(this._fillMask) {
+            this._fillMask.attach(this, this._disp);
+        }
     }
 
     private _updateTexture() {

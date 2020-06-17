@@ -55,10 +55,10 @@ export class View {
             {property: "hiddenCollapsed",importAs: "_hiddenCollapsed",default: true},
             {property: "x",importAs: "_x",default: 0},
             {property: "y",importAs: "_y",default: 0},
-            {property: "width",importAs: "_width",alias: "w",default: 0},
-            {property: "height",importAs: "_height",alias: "h",default: 0},
-            {property: "scaleX",importAs: "_scaleX",alias: "sx",default: 0},
-            {property: "scaleY",importAs: "_scaleY",alias: "sy",default: 0},
+            {property: "width",importAs: "_width",alias: "w",default: 100},
+            {property: "height",importAs: "_height",alias: "h",default: 100},
+            {property: "scaleX",importAs: "_scaleX",alias: "sx",default: 1},
+            {property: "scaleY",importAs: "_scaleY",alias: "sy",default: 1},
             {property: "angle",importAs: "_angle",default: 0},
             {property: "pivotX",importAs: "_pivot.x",alias: "px",default: 0},
             {property: "pivotY",importAs: "_pivot.y", alias: "py",default: 0},
@@ -73,6 +73,22 @@ export class View {
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff}
         );
         return fields;
+    }
+
+    static DESERIALIZE_FIELD_START(config: any, target: View, configProp: string, targetProp: string, tpl: any): boolean {
+        return true;
+    }
+
+    static DESERIALIZE_FIELD_END(config: any, target: View, configProp: string, targetProp: string, tpl: any) {
+        
+    }
+
+    static SERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+        
+    }
+
+    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+        
     }
 
     static sInstanceCounter: number = 0;
@@ -151,6 +167,7 @@ export class View {
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
+        
         this.fromJSON(config);
     }
 

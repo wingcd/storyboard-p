@@ -7,6 +7,8 @@ import { Deserialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ETextureScaleType } from "../ui/UIImage";
+import { EFillType } from "../ui/FillMask";
+import { EDirectionType } from "../core/Defines";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -39,9 +41,32 @@ class UIScene extends ViewScene {
             }       
            },
            tint: 0xffffff,
+           fillMask: {
+            fillType: EFillType.Rotate360,
+            value: 0.3,
+            anticlockwise: true,
+            outterRadius: 0.5,
+            innerRadius: 0.3,
+            origin: EDirectionType.Top,
+           },
         });
-        view.setXY(200, 100);
-        view.setSize(500, 112);
+        view.setXY(100, 100);
+        view.setSize(100, 100);
+
+        this.tweens.add({
+            targets: view.fillMask,
+            repeat: 10,
+            ease: 'Power1',
+            duration: 3000,
+            props: {
+                value: {
+                    from: 0,
+                    to: 1,
+                },
+            },
+        })
+
+        console.log(view.toJSON())
     }
 }
 
