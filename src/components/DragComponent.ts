@@ -8,7 +8,7 @@ import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
 import { TOP_MOST_DEPTH, DEFAULT_DEPTH, EDragType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 const enum EDragStatus {
    NONE,
@@ -45,7 +45,7 @@ export class DragComponent extends BaseComponent {
       return DragComponent._draggingObject;
    }
 
-   static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+   static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
       let fields = BaseComponent.SERIALIZABLE_FIELDS;
       fields.push(
          {property: "dragBounds",default: null,type: Rectangle},

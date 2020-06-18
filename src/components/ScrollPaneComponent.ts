@@ -9,7 +9,7 @@ import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 const enum EScrollStatus {
     NONE,
@@ -31,7 +31,7 @@ const enum EScrollStatus {
  @disallow_multiple_component()
 export class ScrollPaneComponent extends BaseComponent {   
 
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
            {property: "scrollType",default: EScrollType.Both,type: EScrollType},

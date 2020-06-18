@@ -38,9 +38,39 @@ class UIScene extends ViewScene {
             }       
            },
            tint: 0xffffff,
+           fillMask: {
+            fillType: EFillType.Rotate360,
+            value: 0.3,
+            anticlockwise: true,
+            outterRadius: 0.5,
+            innerRadius: 0.3,
+            origin: EDirectionType.Top,
+           },
         });
         view.setXY(100, 100);
-        view.setSize(300, 100);
+        view.setSize(100, 100);
+        
+        console.log(view.toJSON())
+
+        let json = view.toJSON();
+        json.name = "1231";
+        json.fillMask.innerRadius = undefined;
+        json.fillMask.anticlockwise = false;
+        let view2 = this.addUI.image(json);
+        view2.x = 200;
+
+        this.tweens.add({
+            targets: [view.fillMask, view2.fillMask],
+            repeat: Infinity,
+            ease: 'Power1',
+            duration: 3000,
+            props: {
+                value: {
+                    from: 0,
+                    to: 1,
+                },
+            },
+        })
     }
 }
 

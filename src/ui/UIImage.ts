@@ -2,7 +2,7 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Texture, Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 import { FillMask, IFillMask } from "./FillMask";
 
 export enum ETextureScaleType {
@@ -54,7 +54,7 @@ export interface IUIImage {
 }
 
 export class UIImage extends View implements IUIImage{
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "textureKey", importAs: "_textureKey", alias:"texture", type: String},
@@ -64,7 +64,7 @@ export class UIImage extends View implements IUIImage{
             {property: "ninePatch", importAs: "_ninePatch", default: null},
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
-            {property: "tint", importAs: "_tint", default: 0xfffff},
+            {property: "tint", importAs: "_tint", default: 0xffffff},
             {property: "_fillMask", importAs: "_fillMask", alias: "fillMask", type:FillMask, default: null},
         );
         return fields;
@@ -152,6 +152,15 @@ export class UIImage extends View implements IUIImage{
             this._updateInfo();
         }
     }
+    public get tint(): number {
+        return this._tint;
+    }
+    public set tint(val:number) {
+        if(this._tint != val) {
+            this._tint = val;
+            this._updateInfo();
+        }
+    }
     public get fillMask(): FillMask {
         if(!this._disp) {
             return null;
@@ -210,12 +219,10 @@ export class UIImage extends View implements IUIImage{
             this._disp = null;
         }
 
-        let x = this.x;
-        let y = this.y;
         let width = this.width;
         let height = this.height;
         let texture = this._scene.textures.get(this._textureKey);
-        let frameName = this._textureFrame === undefined ? 0 : this._textureFrame;
+        let frameName = this._textureFrame === undefined ? "__BASE" : this._textureFrame;
         let frame = texture.get(frameName);
         if(!frame) {
             console.error(`can not find texture named ${this._textureKey}`);
@@ -223,18 +230,18 @@ export class UIImage extends View implements IUIImage{
         }
         switch(this._scaleType){
             case ETextureScaleType.Tile:
-                this._disp = this._scene.add.tileSprite(x, y, width, height, this._textureKey, this._textureFrame);
+                this._disp = this._scene.add.tileSprite(0, 0, width, height, this._textureKey, this._textureFrame);
                 break;
             case ETextureScaleType.NinePatch:
                 let columns: number[] = [], rows: number[] = [];
-                let ninePatch = this._ninePatch;
+                let ninePatch = this._ninePatch || {};
                 let left = MathUtils.isNumber(ninePatch.left) ? ninePatch.left : 0;
                 let right = MathUtils.isNumber(ninePatch.right) ? ninePatch.right : 1;
                 let top = MathUtils.isNumber(ninePatch.top) ? ninePatch.top : 0;
                 let bottom = MathUtils.isNumber(ninePatch.bottom) ? ninePatch.bottom : 1;
                 if(!ninePatch 
                     || (top == 0 && left == 0 && right == 1 && bottom == 1)) {
-                        this._disp = this._scene.add.sprite(x, y, this._textureKey, this._textureFrame);    
+                        this._disp = this._scene.add.sprite(0, 0, this._textureKey, this._textureFrame);    
                 }else {
                     let hl = left * frame.width || 1;
                     let hr = frame.width - frame.width * right || 1;
@@ -251,12 +258,12 @@ export class UIImage extends View implements IUIImage{
                         cfg.stretchMode = ninePatch.stretchMode;
                     }
 
-                    this._disp = this._scene.addExt.ninePatchTexture(x, y, width || frame.width, height || frame.width, 
+                    this._disp = this._scene.addExt.ninePatchTexture(0, 0, width || frame.width, height || frame.width, 
                         this._textureKey, this._textureFrame as any, columns, rows, cfg);
                 }
                 break;            
             default:
-                this._disp = this._scene.add.sprite(x, y, this._textureKey, this._textureFrame);
+                this._disp = this._scene.add.sprite(0, 0, this._textureKey, this._textureFrame);
                 break;
         }
 
@@ -266,8 +273,6 @@ export class UIImage extends View implements IUIImage{
         }
         this._updateSize();
         this._updateInfo();
-
-        this.setDisplayObject(this._disp);
     }
 
     public fromJSON(config: any) {

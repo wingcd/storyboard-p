@@ -1,6 +1,6 @@
 import { IComponent } from "./IComponent";
 import { View } from "../core/View";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 
 export type ComponentOptions = {
@@ -13,7 +13,7 @@ export class BaseComponent implements IComponent {
     protected _owner: View;
     protected _enable: boolean = true;
 
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         return [{property: "enable",importAs: "_enable",default: true}];
     }
 

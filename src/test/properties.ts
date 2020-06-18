@@ -2,25 +2,34 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
+import { EFillType } from "../ui/FillMask";
 
 class UIScene extends ViewScene {
     constructor() {
         super({key: 'game', active: true})
     }
 
-    preload() {
-        let target = this.addUI.view();
+    preload() {        
+        this.load.image('img', './res/1.jpg');
+    }
+
+    create(): void {
+        let target = this.addUI.image({
+            textureKey: 'img',
+        });
+
         target.setBackgroundColor(0xc0c0c0, true);
         target.setXY(200, 200);
         target.propertyManager.add("s1");
         target.propertyManager.add("s2")
-            .add('backgroundColor', 0xffff00)
             .add('width', 200)
             .add('angle', 45);
         target.propertyManager.add("s3")
-            .add('backgroundColor', 0xff00ff)
             .add('width', 100)
-            .add('height', 100);
+            .add('tint', 0xff0000)   
+            .add('fillMask.fillType', EFillType.Horizontal)      
+            .add('fillMask.value', 0.5);
+
         target.propertyManager.store();
 
         let state1 = this.addUI.view();
@@ -50,9 +59,6 @@ class UIScene extends ViewScene {
             target.propertyManager.applyTo('s3');
         })
         
-    }
-
-    create(): void {
     }
 }
 

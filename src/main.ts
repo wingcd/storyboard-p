@@ -1,1 +1,1 @@
-require('./test/image')
+require('./test/properties')

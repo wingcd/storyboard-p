@@ -1,6 +1,10 @@
+import { GetValue } from "../utils/Object";
+
 export class Property {
+    _name: string = null;
     name: string = null;
     value: any = null;
+    target: any = null;
 }
 
 class PropertyGroup {
@@ -16,13 +20,18 @@ class PropertyGroup {
 
     public store() {
         this._properties.forEach(p=>{
-            this._store[p.name] = this._target[p.name];
+            this._store[p._name] = {
+                name: p.name,
+                target: p.target,
+                value: p.target[p.name],
+            }
         });
     }
 
     public resotre() {
         for(let name in this._store) {
-            this._target[name] = this._store[name];
+            let p = this._store[name];
+            p.target[p.name] = p.value;
         }
     }
 
@@ -52,12 +61,12 @@ class PropertyGroup {
         }
         
         for(let idx in this._properties) {
-            let prop = this._properties[idx];
-            if(prop === undefined) {
+            let p:Property = this._properties[idx];
+            if(p === undefined) {
                 continue;
             }
 
-            this._target[prop.name] = prop.value;
+            p.target[p.name] = p.value;
         }
 
         return this;
@@ -67,8 +76,16 @@ class PropertyGroup {
         let prop = this.getByName(propName);
         if(!prop) {
             prop = new Property();
-            prop.name = propName;
-            this._properties.push(prop);
+            prop._name = prop.name = propName;
+            prop.target = this._target;
+            this._properties.push(prop);            
+
+            if(propName.indexOf('.') >= 0) {
+                prop._name = propName.replace('.', '$');
+                prop.target = GetValue(prop.target, propName, undefined, true);
+                let names = propName.split('.');            
+                prop.name = names[names.length - 1];
+            }
         }
 
         if(prop.value != value) {

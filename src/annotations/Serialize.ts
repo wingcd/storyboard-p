@@ -1,9 +1,10 @@
-export interface SerializeInfo {
+export interface ISerializeInfo {
     property: string,
     importAs?: string,
     alias?: string,
     default?: any,
     type?: any,
+    raw?: boolean;
 }
 
 export function serializable_object(): ClassDecorator {

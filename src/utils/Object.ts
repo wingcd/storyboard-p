@@ -38,3 +38,48 @@ export function SetValue(source: any, key: string, value: any, checkProp: boolea
     
     return false;
 };
+
+export function GetValue(source: any, key: string, defaultValue?: any, back?: boolean)
+{
+    let defaultV = back ? source : defaultValue;
+
+    if (!source || typeof source === 'number')
+    {
+        return defaultV;
+    }
+    else if (source.hasOwnProperty(key))
+    {
+        return source[key];
+    }
+    else if (key.indexOf('.') !== -1)
+    {
+        var keys = key.split('.');
+        var parent = source;
+        var value = defaultV;
+
+        //  Use for loop here so we can break early
+        let backstep = back ? 1 : 0;
+        for (var i = 0; i < keys.length - backstep; i++)
+        {
+            if (parent[keys[i]] != undefined || parent.hasOwnProperty(keys[i]))
+            {
+                //  Yes it has a key property, let's carry on down
+                value = parent[keys[i]];
+
+                parent = parent[keys[i]];
+            }
+            else
+            {
+                //  Can't go any further, so reset to default
+                value = defaultValue;
+                break;
+            }
+        }
+
+        return value;
+    }
+    else
+    {
+        return defaultV;
+    }
+};

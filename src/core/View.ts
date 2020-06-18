@@ -16,7 +16,7 @@ import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
 import { PropertyManager } from "../tween/Property";
 import { TimelineManager } from "../tween/Timeline";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 
 export interface IView {
@@ -45,7 +45,7 @@ export interface IView {
 }
 
 export class View {  
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "data",default: null},

@@ -1,6 +1,6 @@
 import { Graphics, Container, MaskType } from "../phaser";
 import { EDirectionType } from "../core/Defines";
-import { SerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
@@ -29,8 +29,8 @@ export interface IFillMask {
 }
 
 export class FillMask {
-    static get SERIALIZABLE_FIELDS(): SerializeInfo[] {
-        let fields:SerializeInfo[] = [
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [
             {property: "fillType", importAs:"_fillType", default: EFillType.None},
             {property: "value", importAs:"_value", default: 0},
             {property: "origin", importAs:"_origin", default: EDirectionType.None},
@@ -51,6 +51,8 @@ export class FillMask {
     private _outterRadius?: number;
     private _innerRadius?: number;
 
+    private _attached = false;
+
     public attach(owner: View, target: IMaskable, config?: IFillMask | any) {
         if(this._owner == owner && target == this._target) {
             return;
@@ -67,6 +69,11 @@ export class FillMask {
         if(target) {
             this._update();
         }
+    }
+
+    private _onXYChanged() {
+        let pos = this._owner.localToGlobal(0, 0);
+        this._mask.setPosition(pos.x, pos.y);
     }
 
     private _onSizeChanged() {
@@ -88,8 +95,13 @@ export class FillMask {
     }
 
     private _attach() {
+        if(this._attached) {
+            return;
+        }
+
         this._dettach();
         this._owner.on(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
+        this._owner.on(DisplayObjectEvent.XY_CHANGED, this._onXYChanged, this);
 
         if(this._target) {
             if(!this._mask) {
@@ -103,9 +115,15 @@ export class FillMask {
             this._target.mask = this._mask.createGeometryMask();
             this._mask.clear();
         }
+
+        this._attached = true;
     }
 
     private _dettach() {
+        if(!this._attached) {
+            return;
+        }
+
         if(this._mask) {
             this._mask.destroy();
             this._mask = null;                        
@@ -117,6 +135,9 @@ export class FillMask {
         }
 
         this._owner.off(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
+        this._owner.off(DisplayObjectEvent.XY_CHANGED, this._onXYChanged, this);
+
+        this._attached = false;
     }
 
     public destory() {
@@ -129,6 +150,11 @@ export class FillMask {
         }else{
             this._attach();
         }
+        if(!this._mask) {
+            return;
+        }
+
+        this._mask.clear();
 
         let PI_2 = Math.PI * 0.5;
         switch(this._fillType) {
@@ -255,9 +281,10 @@ export class FillMask {
             this._mask.arc(posx, posy, radius * this.outterRadius, startAngle, endAngle, this._anticlockwise);
             this._mask.fill();
         }else{
-            this._mask.lineStyle(radius * this.outterRadius - radius * this.innerRadius, 0x1, 1); //, this._anticlockwise ? 1 : 0);
+            let width = radius * this.outterRadius - radius * this.innerRadius;
+            this._mask.lineStyle(width, 0x1, 1);
             this._mask.beginPath();
-            this._mask.arc(posx, posy, radius * this.outterRadius, startAngle, endAngle, this._anticlockwise);
+            this._mask.arc(posx, posy, radius * this.outterRadius - width * 0.5, startAngle, endAngle, this._anticlockwise);
             this._mask.strokePath();
         }  
     }
@@ -329,9 +356,5 @@ export class FillMask {
             this._anticlockwise = val;
             this._update();
         }
-    }
-
-    public refresh() {
-        this._update();
     }
 }
