@@ -4,6 +4,8 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EEaseType } from "../core/Defines";
 import { TimelineEvent } from "../events";
+import { ETextureScaleType } from "../ui/UIImage";
+import { EFillType } from "../ui/FillMask";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -11,7 +13,13 @@ class UIScene extends ViewScene {
     }
 
     preload() {
-        let target = this.addUI.view();
+        this.load.image('nine', './res/1.jpg');
+    }
+
+    create() {
+        let target = this.addUI.image({
+            textureKey: "nine",
+        });
         target.setBackgroundColor(0xc0c0c0, true);
         target.setXY(200, 200);
         target.timelineManager.add('x').
@@ -19,10 +27,17 @@ class UIScene extends ViewScene {
             add(2000, 200, {type: EEaseType.Linear}).
             add(4000, 400, {type: EEaseType.Linear}).
             add(5000, 600);   
+
+        target.fillMask.fillType = EFillType.Rotate360;
+        target.timelineManager.add("fillMask.value").
+            add(0, 0, {type: EEaseType.Linear}).
+            add(4000, 1);
+
         // target.timelineManager.add('y').add(0, 100, {type: EEaseType.Linear}).add(2000, 200, {type: EEaseType.Linear}).add(3000, 300);        
         target.timelineManager.store();
         target.on(TimelineEvent.UPDATE, (sender: any)=>{
-            console.log(`x${target.x},y:${target.y}`);
+            // console.log(`x${target.x},y:${target.y}`);
+            console.log(`${target.timelineManager.totalProgress}`);
         });
 
         let state1 = this.addUI.view();
@@ -80,9 +95,6 @@ class UIScene extends ViewScene {
         state6.onClick(()=>{
             target.timelineManager.gotoInDuration(4000);
         })
-    }
-
-    create(): void {
     }
 }
 

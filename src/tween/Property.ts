@@ -78,7 +78,7 @@ class PropertyGroup {
             prop = new Property();
             prop._name = prop.name = propName;
             prop.target = this._target;
-            this._properties.push(prop);            
+            this._properties.push(prop);
 
             if(propName.indexOf('.') >= 0) {
                 prop._name = propName.replace('.', '$');

@@ -6,6 +6,7 @@ import { View } from "../core/View";
 import { PoolManager } from "../utils/PoolManager";
 import { ITweenInfo, installTweenPlugin } from "./TweenInfo";
 import { MathUtils } from "../utils/Math";
+import { GetValue } from "../utils/Object";
 
 class KeyFrame {
     tag: string = "";
@@ -24,6 +25,7 @@ class KeyFrame {
 }
 
 class KeyFrameGroup {
+    private _keyName: string;
     private _propName: string;
     private _target: any;
     private _keyframes: KeyFrame[] = [];
@@ -32,18 +34,39 @@ class KeyFrameGroup {
     constructor(target: any, propName: string) {
         this._target = target;
         this._propName = propName;
+        
+        this._keyName = this._propName.replace('.', '$');
+        if(this._propName.indexOf('.') >= 0) {
+            this._target = GetValue(target, propName, undefined, true);
+            let names = this._propName.split('.'); 
+            this._propName = names[names.length - 1];
+        }
     }
 
     public store() {
+        // this._keyframes.forEach(kf=>{
+        //     let p = kf.property;
+        //     this._store[p.name] = this._target[p.name];
+        // });
+
         this._keyframes.forEach(kf=>{
             let p = kf.property;
-            this._store[p.name] = this._target[p.name];
+            this._store[p._name] = {
+                name: p.name,
+                target: p.target,
+                value: p.target[p.name],
+            }
         });
     }
 
     public resotre() {
+        // for(let name in this._store) {
+        //     this._target[name] = this._store[name];
+        // }
+
         for(let name in this._store) {
-            this._target[name] = this._store[name];
+            let p = this._store[name];
+            p.target[p.name] = p.value;
         }
     }
 
@@ -79,6 +102,9 @@ class KeyFrameGroup {
             kf = new KeyFrame();
             kf.property = new Property();
             kf.property.name = this._propName;
+            kf.property._name = this._keyName;
+            kf.property.target = this._target;
+
             this._keyframes.push(kf);
         }
 
@@ -143,7 +169,7 @@ class KeyFrameGroup {
         this._keyframes.sort(KeyFrame.sort);
     }
 
-    private _createTween(index: number, reverse?: boolean, withRaw?:boolean, setStart?: boolean): Types.Tweens.TweenBuilderConfig {
+    private _createTween(index: number, reverse?: boolean, withRaw?:boolean, setStart?: boolean, lastDuration?: number): Types.Tweens.TweenBuilderConfig {
         if(index >= this._keyframes.length - 1 || index < 0) {
             return null;
         }
@@ -177,8 +203,13 @@ class KeyFrameGroup {
         let to = reverse ? kf : nextKF;
 
         tween.duration = duration;
-        if(index == 0 && !reverse ||
-            index == this._keyframes.length - 1 && reverse) {
+        // if(index == 0 && !reverse ||
+        //     index == this._keyframes.length - 1 && reverse) {
+        //     tween.offset = from.time;
+        // }
+        if(reverse && index == this._keyframes.length - 2) {
+            tween.offset = lastDuration - from.time;
+        }else if(!reverse && index == 0) {
             tween.offset = from.time;
         }
         
@@ -202,15 +233,15 @@ class KeyFrameGroup {
         return tween;
     }
 
-    public addTweens(timeline: Timeline, reverse?: boolean) {
-        let tweens = this.getTweens(reverse);
+    public addTweens(timeline: Timeline, reverse?: boolean, lastDuration?: number) {
+        let tweens = this.getTweens(reverse, lastDuration);
         for(let i=0;i<tweens.length;i++) {
             let tween = tweens[i];
             timeline.add(tween);
         }
     }
 
-    public getTweens(reverse?: boolean): Types.Tweens.TweenBuilderConfig[] {
+    public getTweens(reverse?: boolean, lastDuration?: number): Types.Tweens.TweenBuilderConfig[] {
         if(this._keyframes.length == 0) {
             return;
         }
@@ -220,11 +251,11 @@ class KeyFrameGroup {
         let tweens: Types.Tweens.TweenBuilderConfig[] = [];
         if(!reverse) {
             for(let idx = 0; idx < this._keyframes.length - 1; idx ++) {
-                tweens.push(this._createTween(idx, reverse, true));
+                tweens.push(this._createTween(idx, reverse, true, false, lastDuration));
             }
         }else{
             for(let idx = this._keyframes.length - 2; idx >= 0; idx--) {
-                tweens.push(this._createTween(idx, reverse, true));
+                tweens.push(this._createTween(idx, reverse, true, false, lastDuration));
             }
         }
         return tweens;
@@ -411,9 +442,10 @@ export class TimelineManager extends EventEmitter {
             duration: 0,
         });
         this._groups.forEach(group=>{
-            group.addTweens(this._timeline, reverse);
+            this._timeline.init();  
+            group.addTweens(this._timeline, reverse, this._timeline.duration);
         });    
-        this._timeline.init();  
+        
         this._timeline.on(Tweens.Events.TIMELINE_UPDATE, this._update, this); 
         this._timeline.on(Tweens.Events.TIMELINE_PAUSE, this._pause, this);
         this._timeline.on(Tweens.Events.TIMELINE_RESUME, this._resume, this);
