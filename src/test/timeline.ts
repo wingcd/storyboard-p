@@ -30,14 +30,15 @@ class UIScene extends ViewScene {
 
         target.fillMask.fillType = EFillType.Rotate360;
         target.timelineManager.add("fillMask.value").
-            add(0, 0, {type: EEaseType.Linear}).
-            add(4000, 1);
+            add(0, 0, {type: EEaseType.Linear, repeat: 2}).
+            add(2000, 1);
 
         // target.timelineManager.add('y').add(0, 100, {type: EEaseType.Linear}).add(2000, 200, {type: EEaseType.Linear}).add(3000, 300);        
         target.timelineManager.store();
+        let start = Date.now();
         target.on(TimelineEvent.UPDATE, (sender: any)=>{
-            // console.log(`x${target.x},y:${target.y}`);
-            console.log(`${target.timelineManager.totalProgress}`);
+            console.log(`x${target.x},y:${target.y}`);
+            console.log(`${target.timelineManager.totalProgress}--${(Date.now() - start) / 1000}`);
         });
 
         let state1 = this.addUI.view();
@@ -55,6 +56,7 @@ class UIScene extends ViewScene {
         state2.setSize(100, 40);
         state2.rootContainer.add(this.add.text(20, 10, '1-0', {color: '#000000'}));
         state2.onClick(()=>{
+            start = Date.now();
             target.timelineManager.play(null, null, true);
         })
 
@@ -84,7 +86,7 @@ class UIScene extends ViewScene {
         state5.setSize(100, 40);
         state5.rootContainer.add(this.add.text(20, 10, '0.8-1', {color: '#000000'}));
         state5.onClick(()=>{
-            target.timelineManager.play(0.6, 1, false, true);
+            target.timelineManager.play(0.8, 1, false, true);
         })
 
         let state6 = this.addUI.view();
@@ -93,7 +95,7 @@ class UIScene extends ViewScene {
         state6.setSize(100, 40);
         state6.rootContainer.add(this.add.text(20, 10, 'to:4000', {color: '#000000'}));
         state6.onClick(()=>{
-            target.timelineManager.gotoInDuration(4000);
+            target.timelineManager.gotoInDuration(5000);
         })
     }
 }

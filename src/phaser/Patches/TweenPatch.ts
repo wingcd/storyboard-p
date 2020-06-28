@@ -89,17 +89,23 @@ Phaser.Tweens.Timeline.prototype.calcDuration = function ()
                 //  A relative offset (i.e. '-=1000', so starts at 'offset' ms relative to the PREVIOUS Tweens ending time)
                 tween.calculatedOffset = this.getRelativeOffset(tween.offset, prevEnd);
             }
+
+            //add by wing
+            offsetDuration += tween.calculatedOffset + tween.totalDuration;
         }
         else
         {
             //  Sequential
             tween.calculatedOffset = offsetDuration;
+
+            //add by wing
+            offsetDuration += tween.totalDuration;
         }
 
         prevEnd = tween.totalDuration + tween.calculatedOffset;
 
         // totalDuration += tween.totalDuration;
-        offsetDuration += tween.totalDuration;
+        // offsetDuration += tween.totalDuration;
 
         for(let t of tween.targets) {
             t.____total_druation____ += tween.totalDuration;
