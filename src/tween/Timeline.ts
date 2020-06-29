@@ -7,8 +7,9 @@ import { PoolManager } from "../utils/PoolManager";
 import { ITweenInfo, installTweenPlugin } from "./TweenInfo";
 import { MathUtils } from "../utils/Math";
 import { GetValue } from "../utils/Object";
+import TweenStep from "./TweenStep";
 
-class KeyFrame {
+export class KeyFrame {
     tag: string = "";
     time: number = 0;
     property: Property = null;
@@ -171,7 +172,7 @@ class KeyFrameGroup {
         this._keyframes.sort(KeyFrame.sort);
     }
 
-    private _createTween(index: number, reverse?: boolean, withRaw?:boolean, setStart?: boolean, totalDuration?: number, currentDuration?: number): Types.Tweens.TweenBuilderConfig {
+    private _createTween(index: number, reverse?: boolean, setStart?: boolean, totalDuration?: number, currentDuration?: number): Types.Tweens.TweenBuilderConfig {
         if(index >= this._keyframes.length - 1 || index < 0) {
             return null;
         }
@@ -197,6 +198,12 @@ class KeyFrameGroup {
 
             if(kf.tweenInfo.plugin) {
                 installTweenPlugin(tweenData, kf.tweenInfo.plugin);
+            }else if(typeof(kf.property.value) !== 'number') {
+                installTweenPlugin(tweenData, new TweenStep(this._target));
+            }
+        }else{
+            if(typeof(kf.property.value) !== 'number') {
+                installTweenPlugin(tweenData, new TweenStep(this._target));
             }
         }
 
@@ -220,10 +227,9 @@ class KeyFrameGroup {
             tweenData.props[from.property.name] = to.property.value;
         }
         
-        if(withRaw) {
-            (tweenData as any).___from__ = kf;
-            (tweenData as any).___to__ = nextKF;
-        }
+        (tweenData as any).___from__ = kf;
+        (tweenData as any).___to__ = nextKF;
+        (tweenData as any).___reverse__ = reverse;
 
         if(reverse && index == this._keyframes.length - 2) {
             tweenData.offset = totalDuration - currentDuration || 0;
@@ -236,10 +242,22 @@ class KeyFrameGroup {
 
     public addTweens(timeline: Timeline, reverse?: boolean, totalDuration?: number, currentDuration?: number) {
         let tweens = this.getTweens(reverse, totalDuration, currentDuration);
+        KeyFrameGroup.addTweensEx(timeline, tweens);
+    }
+
+    public static addTweensEx(timeline: Timeline, tweens: Types.Tweens.TweenBuilderConfig[]) {
         for(let i=0;i<tweens.length;i++) {
-            let tween = tweens[i];
-            timeline.add(tween);
+            let tweenData:any = tweens[i];
+            timeline.add(tweenData);
+            let tween = timeline.data[timeline.data.length - 1];
+            KeyFrameGroup.initTween(tween, tweenData);
         }
+    }
+
+    public static initTween(tween: Tween, tweenData: Types.Tweens.TweenBuilderConfig) {
+        (tween as any).___from__ = (tweenData  as any).___from__;
+        (tween as any).___to__ = (tweenData as any).___to__;
+        (tween as any).___reverse__ = (tweenData as any).___reverse__;
     }
 
     public getTweens(reverse?: boolean, totalDuration?: number, currentDuration?: number): Types.Tweens.TweenBuilderConfig[] {
@@ -252,11 +270,11 @@ class KeyFrameGroup {
         let tweens: Types.Tweens.TweenBuilderConfig[] = [];
         if(!reverse) {
             for(let idx = 0; idx < this._keyframes.length - 1; idx ++) {
-                tweens.push(this._createTween(idx, reverse, true, false, totalDuration, currentDuration));
+                tweens.push(this._createTween(idx, reverse, false, totalDuration, currentDuration));
             }
         }else{
             for(let idx = this._keyframes.length - 2; idx >= 0; idx--) {
-                tweens.push(this._createTween(idx, reverse, true, false, totalDuration, currentDuration));
+                tweens.push(this._createTween(idx, reverse, false, totalDuration, currentDuration));
             }
         }
         return tweens;
@@ -289,7 +307,7 @@ class KeyFrameGroup {
             return null;
         }
         
-        return this._createTween(index, false, true, true);
+        return this._createTween(index, false, true);
     }
 }
 
@@ -442,6 +460,7 @@ export class TimelineManager extends EventEmitter {
         let tweens: Tween[] = [];
         for(let tweenData of tweenDatas) {
             let tween = this._scene.add.tween(tweenData);
+            KeyFrameGroup.initTween(tween, tweenData);
             tween.init();
             tweens.push(tween);
         }
@@ -475,9 +494,7 @@ export class TimelineManager extends EventEmitter {
             let tweenDatas = group.getTweens(reverse);
             gtweens.push({group, tweenDatas});
 
-            for(let tweenData of tweenDatas) {
-                this._timeline.add(tweenData);
-            }
+            KeyFrameGroup.addTweensEx(this._timeline, tweenDatas);
         });   
         this._timeline.init();  
         
@@ -596,6 +613,7 @@ export class TimelineManager extends EventEmitter {
             let tweenCfg = g.getTween(time);
             if(tweenCfg) {
                let tween = this._scene.tweens.add(tweenCfg);
+               KeyFrameGroup.initTween(tween, tweenCfg);
                let kf = (tweenCfg as any).___from__ as KeyFrame;
                this._scene.tweens.preUpdate();              
                tween.update(window.performance.now(), 0);

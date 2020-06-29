@@ -1,1 +1,1 @@
-require('./test/timeline')
+require('./test/raw_bitmap_text')

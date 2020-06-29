@@ -33,13 +33,17 @@ class UIScene extends ViewScene {
             add(0, 0, {type: EEaseType.Linear, repeat: 2}).
             add(2000, 1);
 
+        // target.timelineManager.add("visible").
+        //     add(0, true).
+        //     add(4000, false);
+
         // target.timelineManager.add('y').add(0, 100, {type: EEaseType.Linear}).add(2000, 200, {type: EEaseType.Linear}).add(3000, 300);        
         target.timelineManager.store();
         let start = Date.now();
-        target.on(TimelineEvent.UPDATE, (sender: any)=>{
-            console.log(`x${target.x},y:${target.y}`);
-            console.log(`${target.timelineManager.totalProgress}--${(Date.now() - start) / 1000}`);
-        });
+        // target.on(TimelineEvent.UPDATE, (sender: any)=>{
+        //     console.log(`x${target.x},y:${target.y}:${target.data}`);
+        //     console.log(`${target.timelineManager.totalProgress}--${(Date.now() - start) / 1000}`);
+        // });
 
         let state1 = this.addUI.view();
         state1.setBackgroundColor(0xc0c0c0, true);

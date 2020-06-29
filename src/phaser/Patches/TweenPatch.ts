@@ -65,9 +65,14 @@ Phaser.Tweens.Timeline.prototype.calcDuration = function ()
         var tween = this.data[i];
         tween.init();
 
+        var keys:string[] = [];
+        for(let dt of tween.data) {
+            keys.push(dt.key);
+        }
+
         for(let t of tween.targets) {
             if(targets.indexOf(t) < 0) {
-                t.____total_druation____ = 0;
+                t.____total_druations____ = {};
                 targets.push(t);
             }
         }
@@ -108,13 +113,24 @@ Phaser.Tweens.Timeline.prototype.calcDuration = function ()
         // offsetDuration += tween.totalDuration;
 
         for(let t of tween.targets) {
-            t.____total_druation____ += tween.totalDuration;
+            for(let key of keys) {
+                if(t.____total_druations____[key] === undefined) {
+                    t.____total_druations____[key] = 0;
+                }
+                t.____total_druations____[key] += tween.totalDuration;
+            }
         }
     }
 
-    totalDuration = targets.reduce((maxvalue, current)=>{
-        let vlaue = Math.max(maxvalue, current.____total_druation____);
-        delete current.____total_druation____;
+    var durations:any[] = [];
+    targets.forEach((val)=>{
+        for(let key in val.____total_druations____) {
+            durations.push(val.____total_druations____[key]);
+        }
+        delete val.____total_druations____;
+    });
+    totalDuration = durations.reduce((maxvalue, current)=>{
+        let vlaue = Math.max(maxvalue, current);
         return vlaue;
     }, 0);
 
