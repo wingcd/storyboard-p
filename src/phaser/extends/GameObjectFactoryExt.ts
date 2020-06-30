@@ -1,3 +1,4 @@
+import { Text } from "../patches/TextPatch";
 
 export class GameObjectFactoryExt {
     private _scene: any;
@@ -19,9 +20,11 @@ export class GameObjectFactoryExt {
         return null;
     }
 
-    text(x:number, y:number, text: string, config?: any): Phaser.GameObjects.Text {
-        let nText = this._scene.add.text(x, y, text, config);            
-        this.addTyping(nText, config.typing);
+    text(x:number, y:number, text: string, config?: any): Text {
+        let nText = this._scene.add.text(x, y, text, config);       
+        if(config) {     
+            this.addTyping(nText, config.typing);
+        }
         return nText;
     }
 

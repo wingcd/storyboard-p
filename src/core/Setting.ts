@@ -1,4 +1,7 @@
 export class Settings {
+    /**default font name of your project. */
+    public static defaultFont: string = "Arial";
+    
     public static showDebugBorder = false;
     public static showDebugFrame =false;
     public static showDebugBounds = false;

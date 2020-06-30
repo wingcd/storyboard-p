@@ -26,15 +26,19 @@ export import Tweens = Phaser.Tweens;
 export import Tween = Phaser.Tweens.Tween;
 export import Timeline = Phaser.Tweens.Timeline;
 export import Types = Phaser.Types;
+export import Color = Phaser.Display.Color;
+
+require('./patches/GameObjectFactoryPatch');
+require('./patches/GameObjectCreatorPatch');
+
+export import BitmapText = Phaser.GameObjects.BitmapText;
+export * from './patches/TextPatch';
 
 export type MaskType = BitmapMask | GeometryMask;
 export * from './extends/GameObjectFactoryExt';
 
-require('./patches/GameObjectFactoryPatch');
-require('./patches/GameObjectCreatorPatch');
 export * from './plugins/StageScalePlugin';
 require('./patches/TweenPatch');
-require('./patches/TextPatch');
 
 require('../libs/rex/bbcodetext.js');
 (window as any).TextTyping = (require('../libs/rex/texttyping.js').default as any);

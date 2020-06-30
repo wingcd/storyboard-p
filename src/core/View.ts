@@ -1426,6 +1426,22 @@ export class View {
         return this._dragComponent;
     }
 
+    public get focusable(): boolean {
+        return this._focusable;
+    }
+
+    public set focusable(val: boolean) {
+        this._focusable = val;
+    }
+
+    public get touchable(): boolean {
+        return this._touchable;
+    }
+
+    public set touchable(val: boolean) {
+        this._touchable = val;
+    }
+
     public get draggable(): boolean {
         return this._draggable;
     }

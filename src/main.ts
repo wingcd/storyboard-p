@@ -1,1 +1,1 @@
-require('./test/raw_bitmap_text')
+require('./test/textfield')

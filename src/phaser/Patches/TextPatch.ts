@@ -141,7 +141,7 @@ type VerticalLine = {
 
 type VerticalLineInfo = {
     text: string,
-    style: Phaser.GameObjects.TextStyle,
+    style: Phaser.Types.GameObjects.Text.TextStyle,
     width: number,
     height: number,
     lines: string[],
@@ -267,10 +267,117 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
     };
 }
 
-class Text extends Phaser.GameObjects.Text {
-    constructor(scene:Phaser.Scene, x:number, y:number,text:string|string[], style:any)
+export interface ITextStyle {
+    /**
+     * The font the Text object will render with. This is a Canvas style font string.
+     */
+    fontFamily?: string;
+    
+    fontSize?: number;
+    /**
+     * Any addition font styles, such as 'strong'.
+     */
+    fontStyle?: string;
+    /**
+     * A solid fill color that is rendered behind the Text object. Given as a CSS string color such as `#ff0`.
+     */
+    backgroundColor?: number;
+    /**
+     * The color the Text is drawn in. Given as a CSS string color such as `#fff` or `rgb()`.
+     */
+    color?: number;
+    /**
+     * The color used to stroke the Text if the `strokeThickness` property is greater than zero.
+     */
+    stroke?: number;
+    /**
+     * The thickness of the stroke around the Text. Set to zero for no stroke.
+     */
+    strokeThickness?: number;
+    /**
+     * The Text shadow configuration object.
+     */
+    shadow?: Phaser.Types.GameObjects.Text.TextShadow;
+    /**
+     * A Text Padding object.
+     */
+    padding?: Phaser.Types.GameObjects.Text.TextPadding;
+    /**
+     * The alignment of the Text. This only impacts multi-line text. Either `left`, `right`, `center` or `justify`.
+     */
+    align?: string;
+    /**
+     * The maximum number of lines to display within the Text object.
+     */
+    maxLines?: integer;
+    /**
+     * Force the Text object to have the exact width specified in this property. Leave as zero for it to change accordingly to content.
+     */
+    fixedWidth?: number;
+    /**
+     * Force the Text object to have the exact height specified in this property. Leave as zero for it to change accordingly to content.
+     */
+    fixedHeight?: number;
+    /**
+     * Sets the resolution (DPI setting) of the Text object. Leave at zero for it to use the game resolution.
+     */
+    resolution?: number;
+    /**
+     * Set to `true` if this Text object should render from right-to-left.
+     */
+    rtl?: boolean;
+    /**
+     * This is the string used to aid Canvas in calculating the height of the font.
+     */
+    testString?: string;
+    /**
+     * The amount of horizontal padding added to the width of the text when calculating the font metrics.
+     */
+    baselineX?: number;
+    /**
+     * The amount of vertical padding added to the height of the text when calculating the font metrics.
+     */
+    baselineY?: number;
+    /**
+     * The Text Word wrap configuration object.
+     */
+    wordWrap?: Phaser.Types.GameObjects.Text.TextWordWrap;
+    /**
+     * A Text Metrics object. Use this to avoid expensive font size calculations in text heavy games.
+     */
+    metrics?: Phaser.Types.GameObjects.Text.TextMetrics;
+
+    leading?: number;
+    letterSpacing?: number;
+
+    vertical?: {
+        enable?: boolean,
+        // this array will support punctuations to roate, or all punctuations will rotate
+        punctuation?: string[],
+        // when in vertical mode, need to rotate punctuation
+        rotateP?: boolean,
+        // when in vertical mode, need to rotate western character
+        rotateWC?: boolean,
+        // set mini width in horizontal mode
+        minWidth?: number,
+        // set mini height in vertical mode
+        miniHeight?: number,
+    };
+}
+
+export class Text extends Phaser.GameObjects.Text {
+    private _lock = false;
+
+    constructor(scene:Phaser.Scene, x:number, y:number,text:string|string[], style:ITextStyle | any)
     {
-        super(scene, x, y, text, style);
+        super(scene, x, y, text, style);        
+        this.setStyle(style);
+    }
+
+    public setStyle(style: ITextStyle | any) {
+        this._lock = true;
+
+        super.setStyle(style);
 
         style = style || {};
 
@@ -308,8 +415,11 @@ class Text extends Phaser.GameObjects.Text {
          * set mini height in vertical mode
          */
         customStyle.miniHeight = style.vertical.miniHeight;
-
+        
+        this._lock = false;
         this.updateText();
+
+        return this;
     }
 
     initRTL() {
@@ -852,10 +962,14 @@ class Text extends Phaser.GameObjects.Text {
                 break;
             }
         }
-    } 
+    }
     
     updateText()
     {
+        if(this._lock) {
+            return;
+        }
+
         let that: any = this;
         let style = this.style;
         if((style as any).enableVertical === true) {

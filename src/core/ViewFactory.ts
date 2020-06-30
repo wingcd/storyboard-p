@@ -3,6 +3,7 @@ import { View } from "./View";
 import { ViewGroup } from "./ViewGroup";
 import { ViewScene } from "./ViewScene";
 import { UIImage, IUIImage } from "../ui/UIImage";
+import { ITextField, UITextField } from "../ui/UITextField";
 
 export class ViewFactory {
     private _scene: ViewScene;
@@ -30,5 +31,9 @@ export class ViewFactory {
 
     public image(config?:IUIImage): UIImage {
         return this._add(UIImage, config) as UIImage;
+    }
+
+    public textfield(config?: ITextField): UITextField {
+        return this._add(UITextField, config) as UITextField;
     }
 }
