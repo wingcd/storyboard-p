@@ -80,7 +80,7 @@ export class UITextField extends View {
         this._style = {
             fontSize: 24,
             align: EAlignType.Left,
-            leading: 3,
+            lineSpacing: 0,
             color: 0,
         };
         this._verticalAlign = EVertAlignType.Top;
@@ -145,6 +145,66 @@ export class UITextField extends View {
         }
     }
 
+    public get rtl(): boolean {
+        return this._style.rtl;
+    }
+
+    public set rtl(val: boolean) {
+        if(this._style.rtl != val) {
+            this._style.rtl = val;
+            this.render();
+        }
+    }
+
+    public get multipleLine(): boolean {
+        return !this._singleLine;
+    }
+
+    public set multipleLine(value: boolean) {
+        value = !value;
+        if(this._singleLine != value) {
+            this._singleLine = value;
+            this.render();
+        }
+    }
+
+    private _updateAutoSize() {
+        if(this.verticalMode) {
+            this._widthAutoSize = (this._autoSize == EAutoSizeType.Both || this._autoSize == EAutoSizeType.Width);
+            this._heightAutoSize = (this._autoSize == EAutoSizeType.Both || this._autoSize == EAutoSizeType.Shrink|| this._autoSize == EAutoSizeType.Height);
+        }else{
+            this._widthAutoSize = (this._autoSize == EAutoSizeType.Both || this._autoSize == EAutoSizeType.Shrink || this._autoSize == EAutoSizeType.Width);
+            this._heightAutoSize = (this._autoSize == EAutoSizeType.Both || this._autoSize == EAutoSizeType.Height);
+        }
+    }
+
+    public set autoSize(value: EAutoSizeType) {
+        if (this._autoSize != value) {
+            this._autoSize = value;
+            this._updateAutoSize();
+            this.render();
+        }
+    }
+
+    public get autoSize(): EAutoSizeType {
+        return this._autoSize;
+    }
+
+    public get verticalMode(): boolean {
+        return this._style.vertical != undefined && this._style.vertical.enable;
+    }
+
+    public set verticalMode(val: boolean) {
+        if(this.verticalMode != val) {
+            if(!this._style.vertical) {
+                this._style.vertical = {};
+            }
+            this._style.vertical.enable = val;
+            this._updateAutoSize();
+            this.render();
+        }
+    }
+
     private switchBitmapMode(val: boolean): void {
         if(val) {
             if(this._textField) {
@@ -191,6 +251,10 @@ export class UITextField extends View {
     }
 
     protected render() {
+        if(this._requireRender) {
+            return;
+        }
+        
         this._requireRender = true;
         this._scene.time.addEvent({
             delay: 1,
@@ -200,41 +264,142 @@ export class UITextField extends View {
         })
     }
 
+    private _getTextField() {
+        return this._textField || this._richTextField || this._bitmapTextField;
+    }
+
+    protected shrinkTextField():void {
+        let textField = this._getTextField();
+        let fitScale = Math.min(1, this.width / this._textWidth);
+        textField.setScale(fitScale, fitScale);
+    }
+
     private _render() {
         if(this._requireRender) {
             this.renderNow();
         }
     }
 
-    public renderNow() {
+    public withBitmapFont(): boolean {
+        return this.font.startsWith('ui://');
+    }
+
+    public renderNow(updateBounds: boolean = true) {
         this._requireRender = false;
         this._sizeDirty = false;
+
         this.font = this._style.fontFamily || Settings.defaultFont;
         if(this._rich && !this._richTextField) {  
-            if(!this.font.startsWith('ui://')) {
+            if(!this.withBitmapFont()) {
                 this.switchBitmapMode(false);
             }
         }
 
-        let textfield = this._textField || this._richTextField || this._bitmapTextField;
+        let textfield = this._getTextField();     
+        textfield.setOrigin(0, 0);
 
-        if(this._textField) {
-            this.applyStyle();
-            this._textField.text = this._text;
-
-        }else if(this._richTextField) {
-            this.applyRichStyle();
-            this._richTextField.text = this._text;
-
-        }else if(this._bitmapTextField) {
-            this.applyBitmapStyle();
-            this._bitmapTextField.text = this._text;
+        let style = this._getStyle();            
+        if(this.verticalMode) {
+            let wordHeightWrap = !this._heightAutoSize && this.multipleLine;
+            let warpHeight = (wordHeightWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.height) : 10000;
+            style.wordWrap = {
+                width: warpHeight,         
+                useAdvancedWrap: this.multipleLine,           
+            };
+        }else {
+            let wordWidthWrap = !this._widthAutoSize && this.multipleLine;
+            let warpWidth = (wordWidthWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.width) : 10000;
+            style.wordWrap = {
+                width: warpWidth,        
+                useAdvancedWrap: this.multipleLine,      
+            };
         }
 
-        this.setSize(textfield.width, textfield.height);
+        // update text 
+        if(this._textField || this._richTextField) {
+            if(this._textField) {
+                this.applyStyle(style);
+
+            }else if(this._richTextField) {
+                this.applyRichStyle(style);
+
+            }
+        }else if(this._bitmapTextField) {
+            this.applyBitmapStyle(style);
+        }      
+        textfield.text = this._text;
+
+        this._textWidth = Math.ceil(textfield.width);
+        if (this._textWidth > 0)
+            this._textWidth += UITextField.GUTTER_X * 2;   //margin gap
+        this._textHeight = Math.ceil(textfield.height);
+        if (this._textHeight > 0)
+            this._textHeight += UITextField.GUTTER_Y * 2;  //margin gap
+
+        let w = this.width, h = this.height;
+        if(this.autoSize == EAutoSizeType.Shrink)
+            this.shrinkTextField();
+        else if(!this.verticalMode)
+        {
+            textfield.setScale(1, 1);
+            if (this._widthAutoSize) {
+                w = this._textWidth;
+                if(this._textField) {
+                    this._textField.width = w;
+                }else if(this._richTextField) {
+                    this._richTextField.width = w;
+                }
+            }                
+                
+            if (this._heightAutoSize) {
+                h = this._textHeight;
+                if(this._textField) {
+                    this._textField.height = h;
+                }else if(this._richTextField) {
+                    this._richTextField.height = h;
+                }
+            }
+            else {
+                h = this.height;
+                if (this._textHeight > h) {
+                    this._textHeight = h;
+                }
+            }            
+        }else{
+            textfield.setScale(1, 1);
+            if (this._heightAutoSize) {
+                h = this._textHeight;
+                if(this._textField) {
+                    this._textField.height = h;
+                }else if(this._richTextField) {
+                    this._richTextField.height = h;
+                }
+            }                
+                
+            if (this._widthAutoSize) {
+                w = this._textWidth;
+                if(this._textField) {
+                    this._textField.width = w;
+                }else if(this._richTextField) {
+                    this._richTextField.width = w;
+                }
+            }
+            else {
+                w = this.width;
+                if (this._textWidth > w) {
+                    this._textWidth = w;
+                }
+            }  
+        }
+
+        if (updateBounds) {
+            this._updatingSize = true;
+            this.setSize(w, h);
+            this._updatingSize = false;
+        }
     } 
 
-    private _getStyle() {
+    private _getStyle(): ITextStyle {
         let style: any = {};
         Object.assign(style, this._style);
         if(typeof(style.fontSize) === 'number') {
@@ -252,25 +417,37 @@ export class UITextField extends View {
             let color  = Color.IntegerToRGB(style.stroke);
             style.stroke = Color.RGBToString(color.r, color.g, color.b, color.a);
         }
+        if(style.resolution) {
+            style.resolution = this._scene.game.config.resolution;
+        }
         return style;
     }
 
-    protected applyStyle() {
+    protected applyStyle(style: ITextStyle) {
         if(this._textField) {
-            this._textField.setStyle(this._getStyle());
+            this._textField.setStyle(style);
         }
     }
 
-    protected applyRichStyle() {
+    protected applyRichStyle(style: ITextStyle) {
         if(this._richTextField) {
-            this._richTextField.setStyle(this._getStyle());
+            this._richTextField.setStyle(style);
+            let richStyle: any = this._richTextField.style;
+            if(!richStyle.resolution) {
+                richStyle.resolution = this._scene.game.config.resolution;
+            }
+            this._richTextField.setWrapMode('char');
+            this._richTextField.setWrapWidth(style.wordWrap.width);
+            this._richTextField.updateText();
         }
     }
 
-    protected applyBitmapStyle() {
+    protected applyBitmapStyle(style: ITextStyle) {
         if(this._bitmapTextField) {
-            this._bitmapTextField.setFont(this.font);
-            this._bitmapTextField.setFontSize(this.fontSize);
+            this._bitmapTextField.setFont(this.font)
+                                 .setFontSize(this.fontSize)
+                                 .setMaxWidth(style.wordWrap.width);
+
         }
     }
 

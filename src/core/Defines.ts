@@ -27,7 +27,7 @@ export enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
 export enum EScrollType { Horizontal, Vertical, Both };
 export enum EDragType { Horizontal, Vertical, Both };
 export enum EVertAlignType { Top, Middle, Bottom };
-export enum EAutoSizeType { None, Both, Height, Shrink };
+export enum EAutoSizeType { None, Both, Width, Height, Shrink };
 export enum EAlignType { Left = "left", Center = "center", Right = "right" };
 
 let easeMap: ((t: number) => number)[] = [

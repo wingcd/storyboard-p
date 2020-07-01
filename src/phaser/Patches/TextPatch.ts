@@ -156,31 +156,35 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
     var context = text.context;
 
     var style: any = text.style;
+    var warpHeight: number = style.wordWrapWidth != undefined ? style.wordWrapWidth : 0;
 
     var maxLineHeight = 0;
-    var drawnLines = lines.length;
+    var drawnLines = 0;
     var lineSpacing = text.lineSpacing || 0;
-
-    if (style.maxLines > 0 && style.maxLines < lines.length)
-    {
-        drawnLines = style.maxLines;
-    }
 
     style.syncFont(canvas, context);
 
-    var maxLineHeight = 0;
-
     // 计算每个字符的尺寸信息
     let charInfo: Array<Array<CharInfo>> = [];
-    let allP = style.punctuation || code.ALLBIAODIAN;
-
-    for(let i=0;i<drawnLines;i++) {
-        let line = lines[i];
+    let allP = style.punctuation || code.ALLBIAODIAN;    
+ 
+    // 计算每一列
+    let lineInfo = [];
+    for(let line of lines) {
         let lineChars: Array<CharInfo> = [];
         var stringArray = Array.from ? Array.from(line) : line.split('');
+        let curLineHeight = style.strokeThickness;
+        let indexInLine = 0;   
+        let spliteLine = '';
+
         for (let i=0;i<stringArray.length;i++) {
+            if(style.maxLines) {
+                if(charInfo.length < style.maxLines) {
+                    break;
+                }
+            }
+
             let char = stringArray[i];
-            let nextChar = i < stringArray.length - 1 ? stringArray[i+1] : '';
             let isP = allP.indexOf(char) >= 0;
             let needRotate = false;
             if(!(style as any).rotateP && isP) {
@@ -195,42 +199,46 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
                 rotate: needRotate,
             };
 
+            let matrics = context.measureText(char);            
             if (cInfo.rotate) {
-                [cInfo.width, cInfo.height] = [size.fontSize, context.measureText(char).width];
+                [cInfo.width, cInfo.height] = [size.fontSize, matrics.width];
             } else {
-                [cInfo.width, cInfo.height] = [context.measureText(char).width, size.fontSize];
+                [cInfo.width, cInfo.height] = [matrics.width, size.fontSize];
             }
+
+            let curHeight = curLineHeight + cInfo.height;
+            if(indexInLine > 0) {
+                curHeight += style.letterSpacing;
+            }
+            
+            if(warpHeight && curHeight > warpHeight || i == line.length - 1) {
+                (lineChars as any).text = spliteLine;            
+                charInfo.push(lineChars);
+                lineInfo.push({
+                    text: spliteLine,
+                    charInfo: lineChars,
+                    height: curLineHeight
+                });
+
+                maxLineHeight = Math.max(maxLineHeight, curLineHeight);
+                // reset
+                curLineHeight = 0;
+                lineChars = [];
+                charInfo = [];
+                indexInLine = 0;
+                spliteLine = "";
+            }
+            
+            spliteLine += cInfo.char;
+            curLineHeight += cInfo.height; // + matrics.actualBoundingBoxDescent            
             lineChars.push(cInfo);
-        }
-        (lineChars as any).text = line;
-        charInfo.push(lineChars);
-    }
-
-    // 计算每一列
-    let lineInfo = [];
-    for (let lineCharInfo of charInfo) {
-        let curLineHeight = style.strokeThickness;
-        for(let i =0;i<lineCharInfo.length;i++) {
-            let info = lineCharInfo[i];
-            curLineHeight += info.height;
-            if(i > 0) {
-                curLineHeight += style.letterSpacing;
+            if(indexInLine > 0) {
+                curHeight += style.letterSpacing;
             }
-        }
-
-        lineInfo.push({
-            text: (lineCharInfo as any).text,
-            charInfo: lineCharInfo,
-            height: curLineHeight
-        })
-
-        // Adjust for wrapped text
-        if ((style as any).wordWrap)
-        {
-            curLineHeight -= context.measureText(' ').width;
-        }
-        maxLineHeight = Math.max(maxLineHeight, curLineHeight);
+            indexInLine++;
+        }   
     }
+    drawnLines = lineInfo.length;
 
     if(style.shadowOffsetY) {
         maxLineHeight += style.shadowOffsetY;
@@ -243,8 +251,7 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
     var height = maxLineHeight;
 
     var lineWidth: number = size.fontSize + style.strokeThickness + lineSpacing;
-    var width = Math.max(lineWidth, size.fontSize + style.strokeThickness)
-        + ((lines.length - 1) * lineWidth);
+    var width = size.fontSize + ((drawnLines - 1) * lineWidth);
     if (style.shadowOffsetX)
     {
         width += style.shadowOffsetX;
@@ -261,7 +268,6 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
         height,
         lineSpacing,
         lines: drawnLines,
-        lineStrings: lines,
         lineInfo,
         lineWidth,
     };
@@ -347,7 +353,7 @@ export interface ITextStyle {
      */
     metrics?: Phaser.Types.GameObjects.Text.TextMetrics;
 
-    leading?: number;
+    lineSpacing?: number;
     letterSpacing?: number;
 
     vertical?: {
@@ -660,20 +666,13 @@ export class Text extends Phaser.GameObjects.Text {
         style.syncFont(canvas, context);
 
         var outputText = that._text;
-
-        if (style.wordWrapWidth || style.wordWrapCallback)
-        {
-            outputText = this.runWordWrap(that._text);
-        }
-
         //  Split text into lines
         var lines = outputText.split(this.splitRegExp);   
+        var textSize = GetTextSizeVertical(this, size, lines);        
         if (style.rtl)
         {
-            lines = lines.reverse();
+            textSize.lineInfo = textSize.lineInfo.reverse();
         }
-
-        var textSize = GetTextSizeVertical(this, size, lines);
 
         var padding:any = this.padding;
 

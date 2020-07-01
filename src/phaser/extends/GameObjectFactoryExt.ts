@@ -30,6 +30,7 @@ export class GameObjectFactoryExt {
 
     richText(x:number, y:number, text: string, config?: any): BBCodeText {
         if(this._scene.add.rexBBCodeText) {
+            config = config || {};
             if(text && config.fontSize == null) {
                 let sizeRex = /size ?= ?(\d+)/ig;
                 let match = [];

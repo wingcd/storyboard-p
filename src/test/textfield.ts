@@ -2,9 +2,10 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
+import { EAutoSizeType } from "../core/Defines";
 
 Settings.showDebugBorder = true;
-Settings.showDebugFrame = true;
+// Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -17,8 +18,15 @@ class UIScene extends ViewScene {
 
     create(): void {
         let textfield = this.addUI.textfield();
-        textfield.text = "abcdefg";
+        textfield.setSize(100, 100);
+        textfield.multipleLine = true;
+        
+        textfield.text = '123131 31313131';
+        textfield.autoSize = EAutoSizeType.Height;
         // textfield.font = "ui://fonts/ice";
+        // textfield.rich = true;
+        // textfield.verticalMode = true;
+        // textfield.rtl = true;
     }
 }
 

@@ -10,6 +10,10 @@ declare class BBCodeText extends Phaser.GameObjects.Text{
         left?: number,
         right?: number,
     }): BBCodeText;
+
+    setWrapMode(mode: 'none'|'word'|'char'|'character'): BBCodeText;
+
+    setWrapWidth(width:number): BBCodeText;
 }
 
 /**
