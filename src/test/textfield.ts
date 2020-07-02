@@ -2,7 +2,7 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EAutoSizeType } from "../core/Defines";
+import { EAutoSizeType, EAlignType, EVertAlignType, EHorAlignType } from "../core/Defines";
 
 Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -18,15 +18,20 @@ class UIScene extends ViewScene {
 
     create(): void {
         let textfield = this.addUI.textfield();
-        textfield.setSize(100, 100);
+        textfield.setSize(200, 100);
         textfield.multipleLine = true;
         
-        textfield.text = '123131 31313131';
+        textfield.text = 'آزمایش برای Foo Ltd.‎ و Bar Inc.‎ باشد که آزموده شود.'; //'abcd efaf aefa fasdfaef asdf asf a'//
         textfield.autoSize = EAutoSizeType.Height;
         // textfield.font = "ui://fonts/ice";
         // textfield.rich = true;
         // textfield.verticalMode = true;
-        // textfield.rtl = true;
+        textfield.rtl = true;
+        textfield.textAlign = EAlignType.Right;
+        textfield.verticalAlign = EVertAlignType.Top;
+        textfield.horizontalAlign = EHorAlignType.Left;
+
+        textfield.setXY(100, 100);
     }
 }
 

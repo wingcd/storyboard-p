@@ -40,6 +40,6 @@ export * from './extends/GameObjectFactoryExt';
 export * from './plugins/StageScalePlugin';
 require('./patches/TweenPatch');
 
-require('../libs/rex/bbcodetext.js');
+(window as any).BBCodeText = (require('../libs/rex/bbcodetext.js').default as any);
 (window as any).TextTyping = (require('../libs/rex/texttyping.js').default as any);
 (window as any).NinePatch = (require('../libs/rex/ninepatch.js').default as any);

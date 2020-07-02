@@ -80,7 +80,16 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
         var lineWidth = style.strokeThickness;
         let line = lines[i];
         let strArr = Array.from ? Array.from(line) : line.split('')
-        lineWidth += context.measureText(lines[i]).width + ((strArr.length - 1) * (style as any).letterSpacing);
+        let letterSpacing = (style as any).letterSpacing || 0;
+        if(letterSpacing) {
+            if(line) {
+                for(let char of line) {
+                    lineWidth += context.measureText(char).width + (char != ' ' ? letterSpacing : 0);
+                }
+            }
+        }else{            
+            lineWidth += context.measureText(lines[i]).width;
+        }
 
         // Adjust for wrapped text
         if ((style as any).wordWrap)
@@ -309,9 +318,11 @@ export interface ITextStyle {
      */
     padding?: Phaser.Types.GameObjects.Text.TextPadding;
     /**
-     * The alignment of the Text. This only impacts multi-line text. Either `left`, `right`, `center` or `justify`.
+     * The alignment of the Text. This only impacts multi-line text.
+     *  Either `left`, `right`, `center` or `justify` in horizontal model.
+     *  Either `top`, `middle`, `bottom` or `justify` in vertical model.
      */
-    align?: string;
+    align?: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'justify' ;
     /**
      * The maximum number of lines to display within the Text object.
      */
@@ -332,6 +343,10 @@ export interface ITextStyle {
      * Set to `true` if this Text object should render from right-to-left.
      */
     rtl?: boolean;
+    /**
+     * Set to `true` if this Text object should render from right-to-left by words when rtl is true.
+     */
+    rtlByWord?: boolean;
     /**
      * This is the string used to aid Canvas in calculating the height of the font.
      */
@@ -373,6 +388,7 @@ export interface ITextStyle {
 
 export class Text extends Phaser.GameObjects.Text {
     private _lock = false;
+    private _useCanvasRTL = false;
 
     constructor(scene:Phaser.Scene, x:number, y:number,text:string|string[], style:ITextStyle | any)
     {
@@ -390,6 +406,7 @@ export class Text extends Phaser.GameObjects.Text {
         (this as any).__style__ = style;
 
         let customStyle: any = this.style;
+        customStyle.rtlByWord = style.rtlByWord;
         /**
          * {Number} spacing of ever letters
          */
@@ -429,11 +446,91 @@ export class Text extends Phaser.GameObjects.Text {
     }
 
     initRTL() {
+        if(this._useCanvasRTL) {
+            let style: ITextStyle = this.style as any;
+            if(!(style.vertical && style.vertical.enable)) {
+                let that = this as any;
+                that.__old_canvas_display = this.canvas.style.display;
 
+                super.initRTL();
+                this.originX = 0;
+            }
+        }
+    }
+
+    basicWordWrap (text: string, context: CanvasRenderingContext2D, wordWrapWidth: number)
+    {
+        var result = '';
+        var lines = text.split(this.splitRegExp as any);
+        var lastLineIndex = lines.length - 1;
+        var whiteSpaceWidth = context.measureText(' ').width;
+        var letterSpacing = (this.style as any).letterSpacing || 0;
+
+        for (var i = 0; i <= lastLineIndex; i++)
+        {
+            var spaceLeft = wordWrapWidth;
+            var words = lines[i].split(' ');
+            var lastWordIndex = words.length - 1;
+
+            for (var j = 0; j <= lastWordIndex; j++)
+            {
+                var word = words[j];
+                var wordWidth = 0;
+                if(letterSpacing) {
+                    for(let char of word) {
+                        wordWidth += context.measureText(char).width + letterSpacing;
+                    }
+                }else{
+                    wordWidth = context.measureText(word).width + letterSpacing * word.length;
+                }
+                var wordWidthWithSpace = wordWidth + whiteSpaceWidth;
+
+                if (wordWidthWithSpace > spaceLeft)
+                {
+                    // Skip printing the newline if it's the first word of the line that is greater
+                    // than the word wrap width.
+                    if (j > 0)
+                    {
+                        result += '\n';
+                        spaceLeft = wordWrapWidth;
+                    }
+                }
+
+                result += word;
+
+                if (j < lastWordIndex)
+                {
+                    result += ' ';
+                    spaceLeft -= wordWidthWithSpace;
+                }
+                else
+                {
+                    spaceLeft -= wordWidth;
+                }
+            }
+
+            if (i < lastLineIndex)
+            {
+                result += '\n';
+            }
+        }
+
+        return result;
     }
 
     updateTextHorizontal()
     {
+        if(this._useCanvasRTL) {
+            if(this.canvas.dir == 'rtl' && !this.style.rtl) {
+                this.canvas.dir = 'ltr';
+                this.context.direction = 'ltr';
+                this.canvas.style.display = (this as any).__old_canvas_display;
+                Phaser.DOM.RemoveFromDOM(this.canvas);
+            }else if((this.canvas.dir == 'ltr' || this.canvas.dir == '') && this.style.rtl) {
+                this.initRTL();
+            }
+        }
+
         let that:any = this;
         var canvas = this.canvas;
         var context = this.context;
@@ -452,12 +549,16 @@ export class Text extends Phaser.GameObjects.Text {
 
         //  Split text into lines
         var lines = outputText.split(this.splitRegExp);   
-        if (style.rtl)
+        if (!this._useCanvasRTL && style.rtl)
         {
             for(let i=0;i<lines.length;i++) {
                 let line = lines[i];
                 if(Array.from) {
-                    lines[i] = Array.from(line).reverse().join('');
+                    if(style.rtlByWord) {
+                        lines[i] = line.split(' ').reverse().join(' ');
+                    }else{
+                        lines[i] = Array.from(line).reverse().join('');
+                    }
                 }else{
                     let reverse = new Array<string>(line.length);
                     for(let j=0;j<line.length;j++) {
@@ -573,19 +674,35 @@ export class Text extends Phaser.GameObjects.Text {
             // if (style.rtl)
             // {
             //     linePositionX = w - linePositionX;
-            // }
+            // } //else  
             
-            
-            if (style.align === 'right')
+            if(style.align === 'left') {
+                if (this._useCanvasRTL && style.rtl) {
+                    linePositionX = textSize.lineWidths[i] - linePositionX;
+                }
+            }
+            else if (style.align === 'right')
             {
-                linePositionX += textWidth - textSize.lineWidths[i];
+                if (this._useCanvasRTL && style.rtl) {
+                    linePositionX = w - linePositionX;
+                }else {
+                    linePositionX += textWidth - textSize.lineWidths[i];
+                }
             }
             else if (style.align === 'center')
             {
-                linePositionX += (textWidth - textSize.lineWidths[i]) / 2;
+                if (this._useCanvasRTL && style.rtl) {
+                    linePositionX = w - (textWidth - textSize.lineWidths[i]) / 2 - linePositionX;
+                }else {
+                    linePositionX += (textWidth - textSize.lineWidths[i]) / 2;
+                }
             }
             else if (style.align === 'justify')
             {
+                if (this._useCanvasRTL && style.rtl) {
+                    linePositionX = w - linePositionX;
+                }
+
                 //  To justify text line its width must be no less than 85% of defined width
                 var minimumLengthToApplyJustification = 0.85;
 
@@ -901,7 +1018,11 @@ export class Text extends Phaser.GameObjects.Text {
 
         for (var i = 0; i < stringArray.length; ++i)
         {
-            var currentChar = stringArray[i];
+            var currentChar = stringArray[i];            
+            currentWidth = this.context.measureText(currentChar).width;
+            if(this._useCanvasRTL && style.rtl) {
+                currentPosition -= currentWidth;
+            }
 
             if (isStroke)
             {
@@ -911,11 +1032,18 @@ export class Text extends Phaser.GameObjects.Text {
             {
                 this.context.fillText(currentChar, currentPosition, y);
             }
-            currentWidth = this.context.measureText(currentChar).width;
-            currentPosition += currentWidth + letterSpacing;
-            
-            if(currentPosition > this.canvas.width) {
-                break;
+
+            let space = currentChar != ' ' ? letterSpacing : 0;
+            if(this._useCanvasRTL && this.style.rtl) {
+                currentPosition -= space;
+                if(currentPosition <= 0) {
+                    break;
+                }
+            }else{
+                currentPosition += currentWidth + space;            
+                if(currentPosition > this.canvas.width) {
+                    break;
+                }
             }
         }
     }

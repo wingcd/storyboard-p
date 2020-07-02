@@ -1,6 +1,6 @@
 import { View } from "../core/View";
 import { Text, BitmapText, Point, ITextStyle, Color } from "../phaser";
-import { EVertAlignType, EAutoSizeType, EAlignType } from "../core/Defines";
+import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
 
@@ -57,6 +57,7 @@ export class UITextField extends View {
 
     private _style: ITextStyle;
     private _verticalAlign: EVertAlignType = EVertAlignType.Top;
+    private _horizontalAlign: EHorAlignType = EHorAlignType.Left;
     private _offset: Point = new Point();
     private _singleLine:boolean = true;
 
@@ -82,8 +83,12 @@ export class UITextField extends View {
             align: EAlignType.Left,
             lineSpacing: 0,
             color: 0,
+            stroke: 0xff0000,
+            strokeThickness: 1,
+            letterSpacing: 5,
         };
         this._verticalAlign = EVertAlignType.Top;
+        this._horizontalAlign = EHorAlignType.Left;
         this._text = "";
         this._autoSize = EAutoSizeType.Both;
         this._widthAutoSize = true;
@@ -133,6 +138,18 @@ export class UITextField extends View {
         }
     }
 
+    public get fontStyle(): string {
+        return this._style.fontStyle;
+    }
+
+    public set fontStyle(val: string) {
+        if(val != this._style.fontStyle) {
+            this._style.fontStyle = val;
+
+            this.render();
+        }
+    }
+
     public get rich(): boolean {
         return this._rich;
     }
@@ -153,6 +170,20 @@ export class UITextField extends View {
         if(this._style.rtl != val) {
             this._style.rtl = val;
             this.render();
+        }
+    }
+
+    public get rtlByWord(): boolean {
+        return this._style.rtlByWord;
+    }
+
+    public set rtlByWord(val: boolean) {
+        if(this._style.rtlByWord != val) {
+            this._style.rtlByWord = val;
+
+            if(this.rtl) {
+                this.render();
+            }
         }
     }
 
@@ -201,6 +232,39 @@ export class UITextField extends View {
             }
             this._style.vertical.enable = val;
             this._updateAutoSize();
+            this.render();
+        }
+    }
+
+    public get verticalAlign(): EVertAlignType {
+        return this._verticalAlign;
+    }
+
+    public set verticalAlign(val: EVertAlignType) {
+        if(val != this._verticalAlign) {
+            this._verticalAlign = val;
+            this.render();
+        }
+    }
+
+    public get horizontalAlign(): EHorAlignType {
+        return this._horizontalAlign;
+    }
+
+    public set horizontalAlign(val: EHorAlignType) {
+        if(val != this._horizontalAlign) {
+            this._horizontalAlign = val;
+            this.render();
+        }
+    }
+
+    public get textAlign(): EAlignType {
+        return this._style.align as EAlignType;
+    }
+
+    public set textAlign(val: EAlignType) {
+        if(this._style.align != val) {
+            this._style.align = val;
             this.render();
         }
     }
@@ -304,14 +368,14 @@ export class UITextField extends View {
             let warpHeight = (wordHeightWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.height) : 10000;
             style.wordWrap = {
                 width: warpHeight,         
-                useAdvancedWrap: this.multipleLine,           
+                // useAdvancedWrap: this.multipleLine,           
             };
         }else {
             let wordWidthWrap = !this._widthAutoSize && this.multipleLine;
             let warpWidth = (wordWidthWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.width) : 10000;
             style.wordWrap = {
                 width: warpWidth,        
-                useAdvancedWrap: this.multipleLine,      
+                // useAdvancedWrap: this.multipleLine,      
             };
         }
 
@@ -397,6 +461,8 @@ export class UITextField extends View {
             this.setSize(w, h);
             this._updatingSize = false;
         }
+
+        this.layoutAlign();
     } 
 
     private _getStyle(): ITextStyle {
@@ -447,8 +513,76 @@ export class UITextField extends View {
             this._bitmapTextField.setFont(this.font)
                                  .setFontSize(this.fontSize)
                                  .setMaxWidth(style.wordWrap.width);
-
         }
+    }
+
+    protected layoutAlign(): void {
+        let textfield = this._getTextField();
+        if(!textfield) {
+            return;
+        }
+
+        let tw = this._textWidth, th = this._textHeight;
+        if(this.autoSize == EAutoSizeType.Shrink)
+        {
+            tw *= textfield.scaleX;
+            th *= textfield.scaleY;
+        }
+        if (this._verticalAlign == EVertAlignType.Top || th == 0)
+            this._offset.y = UITextField.GUTTER_Y;
+        else {
+            let dh: number = Math.max(0, this.height - th);
+            if (this._verticalAlign == EVertAlignType.Middle)
+                this._offset.y = dh * 0.5;
+            else if(this._verticalAlign == EVertAlignType.Bottom)
+                this._offset.y = dh;
+        }
+        
+        let xPos = 0;
+        switch(this._horizontalAlign)
+        {
+            case EHorAlignType.Left:
+                xPos = UITextField.GUTTER_X;
+                break;
+            case EHorAlignType.Center:
+                xPos = (this.width - tw) * 0.5;
+                break;
+            case EHorAlignType.Right:
+                xPos = this.width - tw;
+                break;
+        }
+        this._offset.x = xPos;
+
+        this.updatePosition();
+    }
+
+    private updatePosition():void {
+        let textfield = this._getTextField();
+        textfield.setPosition(Math.floor(this._offset.x), Math.floor(this._offset.y));
+    }
+
+    protected handleSizeChanged(): void {
+        if (this._updatingSize)
+            return;
+
+        if(this._autoSize == EAutoSizeType.Shrink)
+            this.shrinkTextField();
+        else {
+            let textfield = this._getTextField();
+            if(textfield instanceof Text || textfield instanceof BBCodeText) {
+                if (!this._widthAutoSize) {
+                    if (!this._heightAutoSize) {
+                        textfield.width = this.width;
+                        textfield.height = this.height;
+                    }
+                    else {
+                        textfield.width = this.width;
+                    }
+                }
+            }
+        }
+
+        this.layoutAlign();
     }
 
     public fromJSON(config: ITextField | any) {
