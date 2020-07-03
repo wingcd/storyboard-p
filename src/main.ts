@@ -1,1 +1,1 @@
-require('./test/textfield')
+require('./test/textinput')

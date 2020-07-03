@@ -1,4 +1,4 @@
-import { View } from "../core/View";
+import { View } from "./View";
 
 export interface IUIView {
     owner: View; 

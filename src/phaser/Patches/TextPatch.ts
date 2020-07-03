@@ -481,7 +481,7 @@ export class Text extends Phaser.GameObjects.Text {
                         wordWidth += context.measureText(char).width + letterSpacing;
                     }
                 }else{
-                    wordWidth = context.measureText(word).width + letterSpacing * word.length;
+                    wordWidth = context.measureText(word).width;
                 }
                 var wordWidthWithSpace = wordWidth + whiteSpaceWidth;
 
@@ -516,6 +516,137 @@ export class Text extends Phaser.GameObjects.Text {
         }
 
         return result;
+    }
+
+    advancedWordWrap(text: string, context: CanvasRenderingContext2D, wordWrapWidth: number)
+    {
+        var output = '';
+
+        // Condense consecutive spaces and split into lines
+        var lines = text
+            .replace(/ +/gi, ' ')
+            .split((this as any).splitRegExp);
+
+        var linesCount = lines.length;
+        var letterSpacing = (this.style as any).letterSpacing || 0;
+
+        for (var i = 0; i < linesCount; i++)
+        {
+            var line = lines[i];
+            var out = '';
+
+            // Trim whitespace
+            line = line.replace(/^ *|\s*$/gi, '');
+
+            // If entire line is less than wordWrapWidth append the entire line and exit early
+            var lineWidth = 0;//context.measureText(line).width;
+
+            if(letterSpacing) {
+                for(let char of line) {
+                    lineWidth += context.measureText(char).width + letterSpacing;
+                }
+            }else{
+                lineWidth = context.measureText(line).width;
+            }
+
+            if (lineWidth < wordWrapWidth)
+            {
+                output += line + '\n';
+                continue;
+            }
+
+            // Otherwise, calculate new lines
+            var currentLineWidth = wordWrapWidth;
+
+            // Split into words
+            var words = line.split(' ');
+
+            for (var j = 0; j < words.length; j++)
+            {
+                var word = words[j];
+                var wordWithSpace = word + ' ';
+                var wordWidth = 0; //context.measureText(wordWithSpace).width;
+                if(letterSpacing) {
+                    for(let char of wordWithSpace) {
+                        wordWidth += context.measureText(char).width + (char != ' ' ? letterSpacing : 0);
+                    }
+                }else{
+                    wordWidth = context.measureText(wordWithSpace).width;
+                }
+
+                if (wordWidth > currentLineWidth)
+                {
+                    // Break word
+                    if (j === 0)
+                    {
+                        // Shave off letters from word until it's small enough
+                        var newWord = wordWithSpace;
+                        wordWidth = 0;
+
+                        while (newWord.length)
+                        {
+                            newWord = newWord.slice(0, -1);
+                            // wordWidth = context.measureText(newWord).width;
+                            if(letterSpacing) {
+                                for(let char of newWord) {
+                                    wordWidth += context.measureText(char).width + (char != ' ' ? letterSpacing : 0);
+                                }
+                            }else{
+                                wordWidth = context.measureText(newWord).width;
+                            }
+
+                            if (wordWidth <= currentLineWidth)
+                            {
+                                break;
+                            }
+                        }
+
+                        // If wordWrapWidth is too small for even a single letter, shame user
+                        // failure with a fatal error
+                        if (!newWord.length)
+                        {
+                            throw new Error('This text\'s wordWrapWidth setting is less than a single character!');
+                        }
+
+                        // Replace current word in array with remainder
+                        var secondPart = word.substr(newWord.length);
+
+                        words[j] = secondPart;
+
+                        // Append first piece to output
+                        out += newWord;
+                    }
+
+                    // If existing word length is 0, don't include it
+                    var offset = (words[j].length) ? j : j + 1;
+
+                    // Collapse rest of sentence and remove any trailing white space
+                    var remainder = words.slice(offset).join(' ')
+                        .replace(/[ \n]*$/gi, '');
+
+                    // Prepend remainder to next line
+                    lines[i + 1] = remainder + ' ' + (lines[i + 1] || '');
+                    linesCount = lines.length;
+
+                    break; // Processing on this line
+
+                    // Append word with space to output
+                }
+                else
+                {
+                    out += wordWithSpace;
+                    currentLineWidth -= wordWidth;
+                }
+            }
+
+            // Append processed line to output
+            output += out.replace(/[ \n]*$/gi, '') + '\n';
+        }
+
+        // Trim the end of the string
+        output = output.replace(/[\s|\n]*$/gi, '');
+
+        return output;
     }
 
     updateTextHorizontal()

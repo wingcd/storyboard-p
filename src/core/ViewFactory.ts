@@ -4,6 +4,7 @@ import { ViewGroup } from "./ViewGroup";
 import { ViewScene } from "./ViewScene";
 import { UIImage, IUIImage } from "../ui/UIImage";
 import { ITextField, UITextField } from "../ui/UITextField";
+import { ITextInput, UITextInput } from "../ui/UITextInput";
 
 export class ViewFactory {
     private _scene: ViewScene;
@@ -35,5 +36,9 @@ export class ViewFactory {
 
     public textfield(config?: ITextField): UITextField {
         return this._add(UITextField, config) as UITextField;
+    }
+
+    public textinput(config?: ITextInput): UITextInput {
+        return this._add(UITextInput, config) as UITextInput;
     }
 }

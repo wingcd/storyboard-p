@@ -17,22 +17,27 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let textfield = this.addUI.textfield();
-        textfield.setSize(500, 100);
-        textfield.multipleLine = true;
-        
-        textfield.text = 'abcd efaf aefa fasdfaef asdf asf a'// 'آزمایش برای Foo Ltd.‎ و Bar Inc.‎ باشد که آزموده شود.'; //
+        let textfield = this.addUI.textinput();
+        textfield.setSize(300, 40);        
+        textfield.text = 'abc';
         textfield.autoSize = EAutoSizeType.None;
-        // textfield.font = "ui://fonts/ice";
-        textfield.rich = true;
-        textfield.verticalMode = true;
-        textfield.rtl = true;
-        textfield.rtlByWord = true;
-        textfield.textAlign = EAlignType.Right;
+        textfield.textAlign = EAlignType.Left;
         textfield.verticalAlign = EVertAlignType.Top;
-        textfield.horizontalAlign = EHorAlignType.Right;
+        textfield.horizontalAlign = EHorAlignType.Left;
 
-        textfield.setXY(100, 100);
+        let text = this.addExt.richText(100, 200, 'abc', {
+            color: 'yellow',
+            fontSize: '24px',
+            fixedWidth: 200,
+            // fixedHeight: 80,
+            backgroundColor: '#333333',
+        });
+        text.setOrigin(0.5)
+            .setInteractive();
+        let edit = (require('../libs/rex/behaviors/textedit/Edit.js').default);
+        text.on('pointerdown', ()=>{
+            edit(text);
+        }, this);
     }
 }
 
@@ -53,6 +58,9 @@ const config: Phaser.Types.Core.GameConfig = {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         autoRound: true,   
+    },
+    dom: {
+        createContainer: true
     },
     plugins: {
         global: [

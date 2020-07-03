@@ -8,7 +8,7 @@ import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { IComponent } from "../components/IComponent";
 
-export interface IViewGroup {
+export interface IViewGroup extends IView {
     overflowType?: EOverflowType;
 }
 

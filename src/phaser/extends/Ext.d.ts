@@ -1,4 +1,3 @@
-
 declare class BBCodeText extends Phaser.GameObjects.Text{
     typing: TextTyping;
     addImage(key: string, config?:{
@@ -43,4 +42,45 @@ declare class TextTyping extends Phaser.Events.EventEmitter {
 
 declare class NinePatch extends Phaser.GameObjects.RenderTexture {
     
+}
+
+declare interface IInputText {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    type?: 'text' | 'textarea';
+    style?: any;    
+}
+declare class InputText extends Phaser.GameObjects.DOMElement {
+    constructor(scene: Phaser.Scene, x?: number|IInputText, y?:number|IInputText, width?:number|IInputText, height?:number|IInputText, config?:IInputText);
+    text: string;
+    placeholder: string;
+    tooltip: string;
+    readOnly: boolean;
+    spellCheck: boolean;
+
+    setText(value:string): this;
+    selectText(): InputText;
+    setPlaceholder(value: string): InputText;
+    setTooltip(value:string): InputText;
+    setTextChangedCallback(callback: Function): InputText; 
+    setReadOnly(value: boolean): InputText;
+    setSpellCheck(value: boolean): InputText;
+    setStyle(key: string, value:any): void;
+    getStyle(key: string): any;
+    scrollToBottom(): void;
+    setEnabled(value: boolean): InputText;
+    setBlur(): InputText;
+    setFocus(): InputText;
+    resize(width: number, height: number): InputText;
+}
+declare class TextEdit {
+    constructor(gameObject: Phaser.GameObjects.GameObject);
+    open(config?: IInputText, onCloseCallback?: Function): TextEdit;
+    shutdown(): TextEdit;
+    destroy(): TextEdit;
+    close(): TextEdit;
+    get isOpened(): boolean;
+    get text(): string;
 }

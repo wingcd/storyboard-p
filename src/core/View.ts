@@ -1054,7 +1054,7 @@ export class View {
     }
 
     protected applyOpaque() {
-        if(!this._opaque && !this._enableBackground) {
+        if(!this._opaque && !this._enableBackground && !this._touchable) {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
@@ -1439,7 +1439,10 @@ export class View {
     }
 
     public set touchable(val: boolean) {
-        this._touchable = val;
+        if(this._touchable != val) {
+            this._touchable = val;
+            this.applyOpaque();
+        }
     }
 
     public get draggable(): boolean {
