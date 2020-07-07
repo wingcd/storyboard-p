@@ -629,7 +629,42 @@ export class View {
             this.setMask(this._rootContainer, mask);
             this._updateRootMask();
         }
-    }    
+    }   
+    
+    protected updateGraphicsMask(targetObj: Phaser.GameObjects.Components.Mask, x?: number, y?: number, width?: number, height?: number, clear: boolean = false) {
+        if(clear) {
+            this.setMask(targetObj, null, true);
+        }
+        let mask = targetObj.mask;
+        let target: Graphics;
+        if(!mask) {
+            target = this._scene.add.graphics({});
+            mask = target.createGeometryMask();
+        }else{
+            target = (mask as GeometryMask).geometryMask;
+        }
+
+        let mk = mask as any;
+        if(!mk.__mask_raw_x) {
+            mk.__mask_raw_x = x;
+            mk.__mask_raw_y = y;
+        }
+        if(x == undefined) {
+            x = mk.__mask_raw_x || 0;
+            y = mk.__mask_raw_y || 0;
+        }
+
+        let pos = this.localToGlobal(x, y);
+        target.visible = false;
+        // targetObj.add(target);
+        target.clear();
+
+        target.setPosition(pos.x, pos.y);
+        target.fillStyle(0x1, 1);
+        target.fillRect(0, 0, width, height);
+        this.setMask(targetObj, mask, true);
+        PoolManager.inst.put(pos);
+    }
 
     public static setMaskPosition(mask: MaskType, x: number, y: number) {
         let obj: any;
@@ -687,7 +722,7 @@ export class View {
         this._setToMask(this._rootContainer, mask);
     }
 
-    protected setMask(container: Container, mask: MaskType, dispose: boolean = false) {
+    protected setMask(container: Phaser.GameObjects.Components.Mask, mask: MaskType, dispose: boolean = false) {
         if(mask != container.mask) {
             if(container.mask && dispose) {
                 let mk = mask as any;

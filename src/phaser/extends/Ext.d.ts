@@ -49,8 +49,12 @@ declare interface IInputText {
     y?: number;
     width?: number;
     height?: number;
-    type?: 'text' | 'textarea';
+    type?: 'text' | 'textarea' | 'password';
+    textAlign?: 'left' | 'center' | 'right';
+    paddingTop?: string,
     style?: any;    
+    onTextChanged?: Function;
+    onClose?: Function;
 }
 declare class InputText extends Phaser.GameObjects.DOMElement {
     constructor(scene: Phaser.Scene, x?: number|IInputText, y?:number|IInputText, width?:number|IInputText, height?:number|IInputText, config?:IInputText);
@@ -83,4 +87,5 @@ declare class TextEdit {
     close(): TextEdit;
     get isOpened(): boolean;
     get text(): string;
+    get inputText(): InputText;
 }

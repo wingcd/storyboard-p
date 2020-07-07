@@ -1,5 +1,5 @@
 import { View, IView } from "../core/View";
-import { Text, BitmapText, Point, ITextStyle, Color } from "../phaser";
+import { Text, BitmapText, Point, ITextStyle, Color, GeometryMask, Graphics } from "../phaser";
 import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
@@ -51,7 +51,7 @@ export class UITextField extends View {
     private _richTextField: BBCodeText;
     private _bitmapTextField: BitmapText;
 
-    private _text: string = "";
+    protected _text: string = "";
     private _rich: boolean = false;
 
     private _style: ITextStyle;
@@ -73,6 +73,8 @@ export class UITextField extends View {
     
     public static GUTTER_X: number = 2;
     public static GUTTER_Y: number = 2;
+
+    private _mask: GeometryMask;
 
     public constructor(scene: ViewScene, config?: ITextField | any) {
         super(scene, config);
@@ -132,6 +134,10 @@ export class UITextField extends View {
 
             this.render();
         }
+    }
+
+    protected getText(): string {
+        return this._text;
     }
 
     public get fontStyle(): string {
@@ -265,6 +271,13 @@ export class UITextField extends View {
         }
     }
 
+    private _updateHideMask(clear: boolean = false) {
+        let textfield = this.getTextField();
+        if(textfield) {
+            this.updateGraphicsMask(textfield, 0, 0, this.width, this.height, clear);
+        }
+    }
+
     private switchBitmapMode(val: boolean): void {
         if(val) {
             if(this._textField) {
@@ -305,9 +318,14 @@ export class UITextField extends View {
                 this._richTextField = this._scene.addExt.richText(0, 0, "");
                 this.setDisplayObject(this._richTextField);
             }
-        }
-
+        }        
+        
         this.render();
+    }
+
+    protected updateBorder() {
+        super.updateBorder();
+        this._updateHideMask();
     }
 
     protected render() {
@@ -344,7 +362,7 @@ export class UITextField extends View {
         return this.font.startsWith('ui://');
     }
 
-    public renderNow(updateBounds: boolean = true) {
+    protected renderNow(updateBounds: boolean = true) {
         this._requireRender = false;
         this._sizeDirty = false;
 
@@ -459,7 +477,8 @@ export class UITextField extends View {
         }
 
         this.layoutAlign();
-    } 
+        this._updateHideMask();
+    }
 
     private _getStyle(): ITextStyle {
         let style: any = {};
@@ -580,7 +599,7 @@ export class UITextField extends View {
 
         this.layoutAlign();
     }
-
+    
     public ensureSizeCorrect(): void {
         super.ensureSizeCorrect();
 

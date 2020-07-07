@@ -18,26 +18,15 @@ class UIScene extends ViewScene {
 
     create(): void {
         let textfield = this.addUI.textinput();
-        textfield.setSize(300, 40);        
+        textfield.setXY(300, 100);
+        textfield.setSize(300, 60);   
+        textfield.fontSize = 30;     
         textfield.text = 'abc';
+        // textfield.password = true;
         textfield.autoSize = EAutoSizeType.None;
         textfield.textAlign = EAlignType.Left;
-        textfield.verticalAlign = EVertAlignType.Top;
+        textfield.verticalAlign = EVertAlignType.Middle;
         textfield.horizontalAlign = EHorAlignType.Left;
-
-        let text = this.addExt.richText(100, 200, 'abc', {
-            color: 'yellow',
-            fontSize: '24px',
-            fixedWidth: 200,
-            // fixedHeight: 80,
-            backgroundColor: '#333333',
-        });
-        text.setOrigin(0.5)
-            .setInteractive();
-        let edit = (require('../libs/rex/behaviors/textedit/Edit.js').default);
-        text.on('pointerdown', ()=>{
-            edit(text);
-        }, this);
     }
 }
 

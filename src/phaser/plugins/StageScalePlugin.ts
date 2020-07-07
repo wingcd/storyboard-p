@@ -327,6 +327,25 @@ function __replaceScale() {
         this.gameSize.setSize(width * zoom, height * zoom);
         this.baseSize.setSize(width * pixelRatio, height * pixelRatio);
 
+        if(this.game.domContainer) {
+            let domStyle:any = this.game.domContainer.style;
+            domStyle.width = canvasWidth + 'px';
+            domStyle.height = canvasHeight + 'px';
+            domStyle.zIndex = 999;
+
+            domStyle.transformOrigin = 
+            domStyle.webkitTransformOrigin = 
+            domStyle.msTransformOrigin = 
+            domStyle.mozTransformOrigin = 
+            domStyle.oTransformOrigin = "0px 0px 0px";
+
+            domStyle.transform = 
+            domStyle.webkitTransform = 
+            domStyle.msTransform = 
+            domStyle.mozTransform = 
+            domStyle.oTransform = `matrix(${mat.a},${mat.b},${mat.c},${mat.d},${mat.tx},${mat.ty})`;             
+        }
+
         this.updateBounds();
         this.updateOrientation();
         

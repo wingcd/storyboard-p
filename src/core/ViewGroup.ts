@@ -414,24 +414,7 @@ export class ViewGroup extends View {
     }
 
     private _updateHideMask(clear: boolean = false) {
-        if(clear) {
-            this.setMask(this._container, null, true);
-        }
-        let mask = this._container.mask;
-        let target: Graphics;
-        if(!mask) {
-            target = this._scene.make.graphics({}, false);
-        }else{
-            target = (mask as GeometryMask).geometryMask;
-        }
-        let pos = this.localToGlobal(0, 0);
-        target.visible = false;
-        this._container.add(target);
-        target.clear();
-        target.setPosition(pos.x, pos.y);
-        target.fillRect(0, 0, this._width, this._height);
-        this.setMask(this._container, target.createGeometryMask(), true);
-        PoolManager.inst.put(pos);
+        this.updateGraphicsMask(this._container, 0, 0, this.width, this.height, clear);
     }
 
     protected updateBorder() {
