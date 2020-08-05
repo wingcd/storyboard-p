@@ -54,7 +54,7 @@ export class UITextField extends View {
     protected _text: string = "";
     private _rich: boolean = false;
 
-    private _style: ITextStyle;
+    protected _style: ITextStyle;
     private _verticalAlign: EVertAlignType = EVertAlignType.Top;
     private _horizontalAlign: EHorAlignType = EHorAlignType.Left;
     private _offset: Point = new Point();
@@ -113,7 +113,12 @@ export class UITextField extends View {
     }
 
     public get fontSize(): number {
-        return this._style.fontSize;
+        if(typeof(this._style.fontSize) === 'number') {
+            return this._style.fonstSize;
+        }else{
+            let size = this._style.fontSize as string || '';
+            return parseInt(size.replace('px', ''));
+        }
     }
 
     public set fontSize(val: number) {
@@ -502,6 +507,12 @@ export class UITextField extends View {
             style.resolution = this._scene.game.config.resolution;
         }
         return style;
+    }
+
+    public updateStyle() {
+        this.applyStyle(this._style);
+        this.applyRichStyle(this._style);
+        this.applyBitmapStyle(this._style);
     }
 
     protected applyStyle(style: ITextStyle) {

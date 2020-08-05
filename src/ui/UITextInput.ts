@@ -1,8 +1,9 @@
 import { UITextField, ITextField } from "./UITextField";
 import { ViewScene } from "../core/ViewScene";
-import { GameObject } from "../phaser";
+import { GameObject, Color } from "../phaser";
 import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent } from "../events";
+import { Browser } from "../utils/Browser";
 
 export const enum EInputType {
     TEXT = "text",
@@ -17,10 +18,13 @@ export interface ITextInput extends ITextField {
 
 }
 
-export class UITextInput extends UITextField {    
+export class UITextInput extends UITextField { 
     protected _editable:boolean;
     protected _editor: TextEdit = null;
     protected _inputType: EInputType;
+    protected _promptText: string;
+    protected _promptColor: number;
+    private _oldColor: number;
 
     /**@internal */
     _isTyping:boolean = false;
@@ -32,6 +36,19 @@ export class UITextInput extends UITextField {
         this.editable = true;  //init
         
         this.type = EInputType.TEXT;
+    }    
+
+    private _setPromptColor(): void {
+        let color  = Color.IntegerToRGB(this._promptColor || 0);
+        let cstr = Color.RGBToString(color.r, color.g, color.b, color.a);
+        Browser.setPromptColor(cstr);
+    }
+
+    private _setPrompt() {
+        if(this._editor) {    
+            let inputText = this._editor.inputText;        
+            inputText.setPlaceholder(this._promptText);
+        }
     }
 
     private _initEditor() {
@@ -45,9 +62,13 @@ export class UITextInput extends UITextField {
                 (textfield as any).style = {
                     backgroundColor: null,
                 };
-            }
+            }            
 
-            this._editor = new TextEdit(textfield); 
+            textfield.text = this._text;
+            this._style.color = this._oldColor || 0;
+            this.updateStyle();
+
+            this._editor = new TextEdit(textfield);
             let align = 'left';            
             let width = this.width - UITextField.GUTTER_X * 2;
             let paddingLeft = UITextField.GUTTER_X;
@@ -62,7 +83,7 @@ export class UITextInput extends UITextField {
                     break;                
             }           
             let paddingTop = 0;
-            let height = Math.min(this.fontSize, this.height - UITextField.GUTTER_Y * 2);
+            let height = Math.min(this.fontSize + UITextField.GUTTER_Y * 2, this.height);
             switch(this.verticalAlign) {
                 case EVertAlignType.Top:
                     paddingTop = UITextField.GUTTER_Y;
@@ -73,29 +94,38 @@ export class UITextInput extends UITextField {
                 case EVertAlignType.Bottom:
                     paddingTop = (this.height - height) - UITextField.GUTTER_Y;
                     break;
-            }            
-            let type = this.password ? "password" : "text";
+            }
+
             this._editor.open({
                 x:0 ,y:0,
                 width: width, height: height,
-                textAlign: align as any,
+                textAlign: align as any,                
                 onTextChanged: (textObj: any, text: string)=>{
                     textObj.text = text;
                     textfield.emit(TextEvent.Change, textfield);
                 },
                 onClose:(textObj: any)=>{
                     this.text = textObj.text;
+                    this.render();
+
                     textfield.emit(TextEvent.Changed, textfield);
 
                     textfield.emit(FocusEvent.CHANGED, "blur", textfield);
                     textfield.emit(TextEvent.FocusOut, textfield);
                 },
-                type: type as any,
+                type: this.multipleLine ? "textarea" : "text",
             });
-            this._editor.inputText.x = this.x + paddingLeft + 0.5;
+            this._editor.inputText.x = this.x + paddingLeft - 0.5;
             this._editor.inputText.y = this.y + paddingTop - 1.5;
             this._editor.inputText.setStyle('line-height', height + 'px');
-            this._editor.inputText.setText(this._text);            
+            this._editor.inputText.setText(this._text);
+            
+            this._setPrompt();
+            this._setPromptColor();
+
+            if(this.password) {  
+                (this._editor.inputText.node as any).type = "password";
+            }
 
             textfield.emit(FocusEvent.CHANGED, "focus", textfield);
             textfield.emit(TextEvent.FocusIn, textfield);
@@ -131,8 +161,27 @@ export class UITextInput extends UITextField {
         if(this.password) {
             this._text = this.changeToPassText(this._text);
         }
+        
+        let origColor = this._style.color;
+        if(this._promptColor == undefined) {
+            if(this._style.color) {
+                this._promptColor = this._style.color * 0.8;
+            }else{
+                this._promptColor = 0x6c6c6c;
+            }
+        }   
+        if(!this._text && this._promptText) {
+            this._style.color = this._promptColor;
+        }
+
+        if(!this._text && this._promptText) {
+            this._text = this._promptText;
+        }
+
         super.renderNow(updateBounds);
+
         this._text = origText;
+        this._style.color = origColor;
     }
 
     public get editable(): boolean {
@@ -173,6 +222,17 @@ export class UITextInput extends UITextField {
     public set type(value: EInputType) {
         if(this._inputType != value) {
             this._inputType = value;
+        }
+    }
+
+    public get promptText(): string {
+        return this._promptText;
+    }
+
+    public set promptText(v: string) {
+        if(this._promptText != v) {
+            this._promptText = v;    
+            this.render();        
         }
     }
 }

@@ -28,6 +28,7 @@ export class Browser {
     private static _window: Window;
     private static _document: Document;
 
+    private static _promptStyleDOM: HTMLElement;
     private static _pixelRatio: number = -1;
 
     /**@internal */
@@ -82,6 +83,23 @@ export class Browser {
 
     static get document(): any {
         return Browser._document;
+    }
+
+     // ::-webkit-input-placeholder { color:#f00; }
+    // ::-moz-placeholder { color:#f00; } /* firefox 19+ */
+    // :-ms-input-placeholder { color:#f00; } /* Internet Explorer 10+ */
+    // :-moz-placeholder { color:#f00; } /* firefox 14-18 */
+    public static setPromptColor(color: string): void {
+        // 创建style标签
+        Browser._promptStyleDOM = Browser.document.getElementById("promptStyle");
+        if (!Browser._promptStyleDOM) {
+            Browser._promptStyleDOM = Browser.document.createElement("style");
+            Browser._promptStyleDOM.setAttribute("id", "promptStyle");
+            Browser.document.head.appendChild(Browser._promptStyleDOM);
+        }
+
+        // 设置style标签
+        Browser._promptStyleDOM.innerText = `input::-webkit-input-placeholder,textarea::-webkit-input-placeholder {color: ${color}};input:-moz-placeholder, textarea:-moz-placeholder {color: ${color}};input::-moz-placeholder, textarea::-moz-placeholder {color: ${color}};input:-ms-input-placeholder, textarea:-ms-input-placeholder {color: ${color}};`;
     }
 }
 

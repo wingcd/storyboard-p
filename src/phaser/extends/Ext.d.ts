@@ -49,7 +49,7 @@ declare interface IInputText {
     y?: number;
     width?: number;
     height?: number;
-    type?: 'text' | 'textarea' | 'password';
+    type?: 'text' | 'textarea';
     textAlign?: 'left' | 'center' | 'right';
     paddingTop?: string,
     style?: any;    

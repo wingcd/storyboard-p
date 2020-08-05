@@ -384,6 +384,8 @@ export interface ITextStyle {
         // set mini height in vertical mode
         miniHeight?: number,
     };
+
+    [key:string]:any;
 }
 
 export class Text extends Phaser.GameObjects.Text {

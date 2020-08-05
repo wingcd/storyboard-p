@@ -26,7 +26,8 @@ class UIScene extends ViewScene {
         textfield.autoSize = EAutoSizeType.None;
         textfield.textAlign = EAlignType.Left;
         textfield.verticalAlign = EVertAlignType.Middle;
-        textfield.horizontalAlign = EHorAlignType.Left;
+        textfield.horizontalAlign = EHorAlignType.Center;
+        textfield.promptText = "请输入...";
     }
 }
 
