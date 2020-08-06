@@ -41,6 +41,7 @@ export * from './plugins/StageScalePlugin';
 require('./patches/TweenPatch');
 
 (window as any).BBCodeText = (require('../libs/rex/bbcodetext.js').default as any);
+(window as any).TagText = (require('../libs/rex/tagtext.js').default as any);
 (window as any).TextTyping = (require('../libs/rex/texttyping.js').default as any);
 (window as any).NinePatch = (require('../libs/rex/ninepatch.js').default as any);
 (window as any).TextEdit = (require('../libs/rex/textedit.js').default as any);

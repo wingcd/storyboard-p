@@ -53,6 +53,7 @@ export class UITextField extends View {
 
     protected _text: string = "";
     private _rich: boolean = false;
+    private _tagMode: boolean = false;
 
     protected _style: ITextStyle;
     private _verticalAlign: EVertAlignType = EVertAlignType.Top;
@@ -164,6 +165,18 @@ export class UITextField extends View {
     public set rich(val: boolean) {
         if(val != this._rich) {
             this._rich = val;
+
+            this.render();
+        }
+    }
+
+    public get tagMode(): boolean {
+        return this._tagMode;
+    }
+
+    public set tagMode(val: boolean) {
+        if(val != this._tagMode) {
+            this._tagMode = val;
 
             this.render();
         }
@@ -320,7 +333,7 @@ export class UITextField extends View {
                 this._textField = null;
             }
             if(!this._richTextField) {
-                this._richTextField = this._scene.addExt.richText(0, 0, "");
+                this._richTextField = this._scene.addExt.richText(0, 0, "", this._tagMode);
                 this.setDisplayObject(this._richTextField);
             }
         }        

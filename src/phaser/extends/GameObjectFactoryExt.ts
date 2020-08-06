@@ -28,8 +28,8 @@ export class GameObjectFactoryExt {
         return nText;
     }
 
-    richText(x:number, y:number, text: string, config?: any): BBCodeText {
-        if(this._scene.add.rexBBCodeText) {
+    richText(x:number, y:number, text: string, tagMode?: boolean, config?: any): BBCodeText | TagText {
+        if(this._scene.add.rexBBCodeText && !tagMode) {
             config = config || {};
             if(text && config.fontSize == null) {
                 let sizeRex = /size ?= ?(\d+)/ig;
@@ -44,7 +44,33 @@ export class GameObjectFactoryExt {
                 }
             }
 
-            let richText:BBCodeText = this._scene.add.rexBBCodeText(x, y, text, config);
+            let richText: BBCodeText = this._scene.add.rexBBCodeText(x, y, text, config);
+            richText.typing = this.addTyping(richText, config.typing);
+            return richText;
+        }else if(this._scene.add.rexTagText && tagMode) {
+            config = config || {};
+            let sizeRex = /size ?: ?(\d+)/ig;
+            let maxSize = 0;
+            if(text && config.fontSize == null) {
+                let match = [];
+                while((match = sizeRex.exec(text)) !== null) {
+                    maxSize = Math.max(maxSize, parseInt(match[1]));
+                }
+            }
+            if(config.tags) {
+                for(let i in config.tags) {
+                    let tag = config.tags[i];
+                    let size = tag.size || tag.fontSize;
+                    if(tag.size) {
+                        maxSize = Math.max(parseInt(size.toString().replace('px', '')), maxSize);
+                    }
+                }
+            }
+            if(maxSize > 0) {
+                config.fontSize = maxSize;
+            }
+
+            let richText: BBCodeText = this._scene.add.rexTagText(x, y, text, config);
             richText.typing = this.addTyping(richText, config.typing);
             return richText;
         }

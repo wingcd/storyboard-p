@@ -1,1 +1,1 @@
-require('./test/textinput')
+require('./test/raw_richtext')

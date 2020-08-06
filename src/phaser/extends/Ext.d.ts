@@ -1,5 +1,6 @@
 declare class BBCodeText extends Phaser.GameObjects.Text{
     typing: TextTyping;
+    lineSpacing: number;
     addImage(key: string, config?:{
         key?: string,
         frame?: string,
@@ -14,6 +15,29 @@ declare class BBCodeText extends Phaser.GameObjects.Text{
 
     setWrapWidth(width:number): BBCodeText;
 }
+
+declare class TagText extends Phaser.GameObjects.Text{
+    typing: TextTyping;
+    lineSpacing: number;
+    addImage(key: string, config?:{
+        key?: string,
+        frame?: string,
+        width?: number,
+        height?: number,
+        y?: number,
+        left?: number,
+        right?: number,
+    }): TagText;
+
+    setWrapMode(mode: 'none'|'word'|'char'|'character'): TagText;
+
+    setWrapWidth(width:number): TagText;
+
+    addTag(name:string, prop: any): TagText;
+
+    addTags(tags:any): TagText;
+}
+
 
 /**
  * 

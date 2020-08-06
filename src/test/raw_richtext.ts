@@ -23,13 +23,43 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color][size=12][img=smile] is a [color=yellow]fast[/color]', {
+        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color][size=12][img=smile] is a [color=yellow]fast[/color]', false, {
             color: '#ff0000',
             typing: {
                 speed: 333,
                 start: true,
             } 
         }).addImage('smile', {key:"smile", width:24, height: 24, left: 5});
+
+        var tags = {
+            cap: {
+              color: 'red',
+              fontStyle: 'bold italic',
+              size: 40,
+            },
+            marker: {
+              underline: {
+                color: 'blue',
+                thinkness: 20,
+                // offset: -10
+              }
+            },
+            tail: {
+              color: 'none',
+              stroke: {
+                color: 'yellow',
+                thinkness: 1
+              }
+            }
+          };
+        richText =  this.addExt.richText(0, 200, `<class='cap'>H</class><class='marker'>ell</class><class='tail'>o</class><style='color:red;size:30px'>W</style><style='size:40px'>o</style><style='size:40px'>r</style><style='u:green 10px 0px'>ld</style>`, true, {
+            color: '#ff0000',
+            tags,
+            typing: {
+                speed: 333,
+                start: true,
+            } 
+        });
        
         let obj = this.addUI.view();
         obj.setPivot(0.5, 0.5, true);
