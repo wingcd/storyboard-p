@@ -1,10 +1,13 @@
 import { ViewGroup } from "./ViewGroup";
 import { Scene, Game, Size, Scale, Container } from "../phaser";
+import { View } from "./View";
 import { ViewScene } from "./ViewScene";
+import { FocusEvent } from "../events";
 
 export class ViewRoot extends ViewGroup {
     private _game: Game;
-    private _uiRoot: Container;
+    private _uiRoot: Container;    
+    private _focusedObject: View;
 
     constructor(scene: ViewScene, config?: any) {
         super(scene, config);
@@ -44,5 +47,26 @@ export class ViewRoot extends ViewGroup {
         super.relayout();
                 
         this.applyOverflow();
+    }
+
+    public get focus(): View {
+        if (this._focusedObject && !this._focusedObject.onStage)
+            this._focusedObject = null;
+
+        return this._focusedObject;
+    }
+
+    public set focus(value: View) {
+        if (value && (!value.focusable || !value.onStage))
+            throw new Error("Invalid target to focus");
+
+        this.setFocus(value);
+    }
+
+    private setFocus(value: View) {
+        if (this._focusedObject != value) {
+            this._focusedObject = value;
+            this.emit(FocusEvent.CHANGED, this);
+        }
     }
 }

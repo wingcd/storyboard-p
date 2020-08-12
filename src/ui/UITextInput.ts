@@ -2,8 +2,10 @@ import { UITextField, ITextField } from "./UITextField";
 import { ViewScene } from "../core/ViewScene";
 import { GameObject, Color } from "../phaser";
 import { EHorAlignType, EVertAlignType } from "../core/Defines";
-import { TextEvent, FocusEvent } from "../events";
+import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
+import { ViewEvent } from "../events/ViewEvent";
+import { IViewGroup, ViewGroup } from "../core/ViewGroup";
 
 export const enum EInputType {
     TEXT = "text",
@@ -27,7 +29,7 @@ export class UITextInput extends UITextField {
     private _oldColor: number;
 
     /**@internal */
-    _isTyping:boolean = false;
+    public static isTyping:boolean = false;
 
     public constructor(scene: ViewScene, config?: ITextInput | any) {
         super(scene, config);
@@ -36,7 +38,24 @@ export class UITextInput extends UITextField {
         this.editable = true;  //init
         
         this.type = EInputType.TEXT;
+
+        this.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+        this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
     }    
+
+    private _onParentChanged(oldParent: ViewGroup, parent: ViewGroup) {
+        if(!parent && this._editor) {
+            this._editor.destroy();
+            this._editor = null;
+        }
+    }
+
+    private _onVisiableChanged(visiable: boolean) {
+        if(!visiable && this._editor) {
+            this._editor.destroy();
+            this._editor = null;
+        }
+    }
 
     private _setPromptColor(): void {
         let color  = Color.IntegerToRGB(this._promptColor || 0);
@@ -96,6 +115,7 @@ export class UITextInput extends UITextField {
                     break;
             }
 
+            UITextInput.isTyping = true;            
             this._editor.open({
                 x:0 ,y:0,
                 width: width, height: height,
@@ -105,6 +125,7 @@ export class UITextInput extends UITextField {
                     textfield.emit(TextEvent.Change, textfield);
                 },
                 onClose:(textObj: any)=>{
+                    UITextInput.isTyping = false;
                     this.text = textObj.text;
                     this.render();
 
@@ -233,6 +254,15 @@ export class UITextInput extends UITextField {
         if(this._promptText != v) {
             this._promptText = v;    
             this.render();        
+        }
+    }
+
+    public dispose() {
+        super.dispose();
+
+        if(this._editor) {
+            this._editor.destroy();
+            this._editor = null;
         }
     }
 }

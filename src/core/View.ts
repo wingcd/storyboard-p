@@ -285,6 +285,11 @@ export class View {
             }
 
             this.emit(Events.DisplayObjectEvent.VISIBLE_CHANGED, this._visible);
+
+            // when hide the focus view, set focus empty view
+            if(!val && this.focused) {
+                this.root.focus = null;
+            }
         }
     }
 
@@ -1467,6 +1472,20 @@ export class View {
 
     public set focusable(val: boolean) {
         this._focusable = val;
+    }
+
+    public get focused(): boolean {
+        return this.root.focus == this;
+    }
+
+    public requestFocus(): void {
+        let p: View = this;
+        while (p && !p._focusable) {
+            p = p.parent;
+        }
+        if (p != null) {
+            this.root.focus = p;
+        }
     }
 
     public get touchable(): boolean {
