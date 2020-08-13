@@ -31,8 +31,8 @@ export class UITextInput extends UITextField {
     /**@internal */
     public static isTyping:boolean = false;
 
-    public constructor(scene: ViewScene, config?: ITextInput | any) {
-        super(scene, config);
+    public constructor(scene: ViewScene) {
+        super(scene);
 
         this.focusable = true;
         this.editable = true;  //init
@@ -41,6 +41,8 @@ export class UITextInput extends UITextField {
 
         this.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
         this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
+
+        this.render();
     }    
 
     private _onParentChanged(oldParent: ViewGroup, parent: ViewGroup) {

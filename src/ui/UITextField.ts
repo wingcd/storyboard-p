@@ -77,8 +77,8 @@ export class UITextField extends View {
 
     private _mask: GeometryMask;
 
-    public constructor(scene: ViewScene, config?: ITextField | any) {
-        super(scene, config);
+    public constructor(scene: ViewScene) {
+        super(scene);
 
         this._style = {
             fontSize: 24,
@@ -95,7 +95,7 @@ export class UITextField extends View {
 
         this.touchable = false;  //base GTextField has no interaction
 
-        this.fromJSON(config);
+        this.render();
     }
 
     public get font(): string {
@@ -644,8 +644,32 @@ export class UITextField extends View {
         return this._textHeight;
     }
 
-    public fromJSON(config: ITextField | any) {
-        super.fromJSON(config);
-        this.render();
+    public get titleColor(): number {
+        return this._style.color || 0;
+    }
+
+    public set titleColor(value: number) {
+        if(this._style.color != value) {
+            this._style.color = value;
+            this.renderNow();
+        }
+    }
+
+    public get strokeColor(): number {
+        return this._style.stroke;
+    }
+
+    public set strokeColor(value: number) {
+        if (this._style.stroke != value) {
+            this._style.stroke = value;
+            this.renderNow();
+        }
+    }
+
+    public fromJSON(config: any, template?: any) {      
+        if(config) {  
+            super.fromJSON(config, template);
+            this.render();
+        }
     }
 }

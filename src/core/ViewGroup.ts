@@ -24,8 +24,8 @@ export class ViewGroup extends View {
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
 
-    constructor(scene: ViewScene, config?: IView & IViewGroup | any) {
-        super(scene, config);
+    constructor(scene: ViewScene) {
+        super(scene);
         this._type = 2;
     }
 

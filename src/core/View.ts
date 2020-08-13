@@ -18,6 +18,7 @@ import { PropertyManager } from "../tween/Property";
 import { TimelineManager } from "../tween/Timeline";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
+import { IColorable } from "../types/ViewTypes";
 
 export interface IView {
     data?:any;
@@ -44,7 +45,7 @@ export interface IView {
     backgroundColor?:number;
 }
 
-export class View {  
+export class View implements IColorable {  
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
@@ -70,7 +71,8 @@ export class View {
             {property: "draggable",importAs: "_draggable",default: false},
             {property: "opaque",importAs: "_opaque",default: false},
             {property: "enableBackground",importAs: "_enableBackground",default: false},
-            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff}
+            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
+            {property: "tint", importAs: "_tint", default: 0xffffff},
         );
         return fields;
     }
@@ -134,7 +136,9 @@ export class View {
     private _dragComponent: DragComponent;
     protected _opaque: boolean = false;
     protected _enableBackground: boolean = false;
-    protected _backgroundColor: number = 0xffffff;
+    protected _backgroundColor: number = 0xffffff;   
+    protected _tint: number = 0xffffff;
+    protected _alpha: number = 1;
     private _gBackground: Graphics = null;
     private _relations: Relations;
     private _propertyManager: PropertyManager;
@@ -162,13 +166,11 @@ export class View {
 
     private _components: IComponent[]; 
 
-    constructor(scene: ViewScene, config?: IView | any) {
+    constructor(scene: ViewScene) {
         this._id = `${View.sInstanceCounter++}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
-        
-        this.fromJSON(config);
     }
 
     /**@internal */
@@ -1128,7 +1130,7 @@ export class View {
                 this._rootContainer.addAt(this._gBackground, 0);
             }
             this._gBackground.clear();
-            this._gBackground.fillStyle(this._backgroundColor, 1);
+            this._gBackground.fillStyle(this._backgroundColor * this._tint, this._alpha);
             this._gBackground.fillRect(0, 0, this._width, this._height);
         }else if(this._gBackground){
             this._gBackground.destroy();
@@ -1455,9 +1457,9 @@ export class View {
         return Serialize(this);
     }
 
-    public fromJSON(config: any) {
-        if(config !== undefined) {
-            Deserialize(this, config);
+    public fromJSON(config: any, template?: any) {
+        if(config) {
+            Deserialize(this, config, template);
             this.relayout();
         }
     }
@@ -1557,6 +1559,28 @@ export class View {
             if(this._parent) {
                 this.parent.appendChildrenList();
             }
+        }
+    }
+
+    public get tint(): number {
+        return this._tint;
+    }
+
+    public set tint(value: number) {
+        if(this._tint != value) {
+            this._tint = value;
+            this.applyBackgroundChange();
+        }
+    }
+
+    public get alpha(): number {
+        return this._tint;
+    }
+
+    public set alpha(value: number) {
+        if(this._alpha != value) {
+            this._alpha = value;
+            this.applyBackgroundChange();
         }
     }
 }

@@ -9,8 +9,8 @@ export class ViewRoot extends ViewGroup {
     private _uiRoot: Container;    
     private _focusedObject: View;
 
-    constructor(scene: ViewScene, config?: any) {
-        super(scene, config);
+    constructor(scene: ViewScene) {
+        super(scene);
         this._root = this;
 
         this._attachTo(scene);

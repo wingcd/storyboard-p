@@ -64,7 +64,6 @@ export class UIImage extends View implements IUIImage{
             {property: "ninePatch", importAs: "_ninePatch", default: null},
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
-            {property: "tint", importAs: "_tint", default: 0xffffff},
             {property: "_fillMask", importAs: "_fillMask", alias: "fillMask", type:FillMask, default: null},
         );
         return fields;
@@ -79,14 +78,11 @@ export class UIImage extends View implements IUIImage{
     private _ninePatch?: INinePatchInfo;
     private _flipX: boolean = false;
     private _flipY: boolean = false;   
-    private _tint: number = 0xffffff;
     private _fillMask: FillMask;
 
-    constructor(scene: ViewScene, config?: IUIImage|any) {
+    constructor(scene: ViewScene) {
         super(scene);
         this._type = 3;
-
-        this.fromJSON(config);
     }
     
     public get textureKey(): string {
@@ -152,12 +148,15 @@ export class UIImage extends View implements IUIImage{
             this._updateInfo();
         }
     }
-    public get tint(): number {
-        return this._tint;
-    }
     public set tint(val:number) {
-        if(this._tint != val) {
-            this._tint = val;
+        if(this._tint != val) {            
+            super.tint = val;
+            this._updateInfo();
+        }
+    }
+    public set alpha(val: number) {
+        if(this._alpha != val) {
+            super.alpha = val;
             this._updateInfo();
         }
     }
@@ -207,6 +206,7 @@ export class UIImage extends View implements IUIImage{
         this._disp.flipX = this._flipX;
         this._disp.flipY = this._flipY;
         this._disp.tint = this._tint;
+        this._disp.alpha = this._alpha;
 
         if(this._fillMask) {
             this._fillMask.attach(this, this._disp);
@@ -275,11 +275,11 @@ export class UIImage extends View implements IUIImage{
         this._updateInfo();
     }
 
-    public fromJSON(config: any) {
+    public fromJSON(config: any, template?: any) {
         if(!config) {
             return;
         }
-        super.fromJSON(config);
+        super.fromJSON(config, template);
 
         this._updateTexture();
     }
