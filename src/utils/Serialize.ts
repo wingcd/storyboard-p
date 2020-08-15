@@ -32,29 +32,40 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
         if(typeof(source) === 'object') {
             if (target[sourceProp] != sourceData) {
                 if(source.constructor.SERIALIZABLE_FIELDS) {
-                    if (typeof(sourceData) === 'object') {
-                        if(!info.type) {
-                            target[targetProp] = Object.assign({}, sourceData);
-                        }else{                    
-                            let sdata = SerializeFactory.inst.serialize(sourceData);
-                            if(sdata) {
-                                target[targetProp] = sdata;
-                            }else {
-                                if(tpl) {
-                                    target[targetProp] = Serialize(sourceData, tpl);
-                                }else{
-                                    target[targetProp] = Serialize(sourceData);
-                                }
-                            }                    
-
-                            if(target[targetProp] && Object.getOwnPropertyNames(target[targetProp]).length == 0) {
-                                delete target[targetProp];
+                    if(Array.isArray(sourceData)) {
+                        // process array
+                        let rets = [];
+                        for(let i=0;i<sourceData.length;i++) {
+                            let t = null;
+                            if(Array.isArray(tpl) && tpl.length > i) {
+                                t = tpl[i];
                             }
+                            rets.push(Serialize(sourceData[i], t))
                         }
-                    }else{
+                        target[targetProp] = rets;
+                    } else{
                         target[targetProp] = sourceData;
                     }
-                }else{
+                } else if (typeof(sourceData) === 'object') {
+                    if(!info.type) {
+                        target[targetProp] = Object.assign({}, sourceData);
+                    }else{                    
+                        let sdata = SerializeFactory.inst.serialize(sourceData);
+                        if(sdata) {
+                            target[targetProp] = sdata;
+                        }else {
+                            if(tpl) {
+                                target[targetProp] = Serialize(sourceData, tpl);
+                            }else{
+                                target[targetProp] = Serialize(sourceData);
+                            }
+                        }                    
+
+                        if(target[targetProp] && Object.getOwnPropertyNames(target[targetProp]).length == 0) {
+                            delete target[targetProp];
+                        }
+                    }
+                } else{
                     target[targetProp] = sourceData;
                 }
             }
@@ -95,7 +106,22 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
     if(!done) {
         if(typeof(config) === 'object') {
-            if (target[targetProp] != cfgData) {
+            if(Array.isArray(cfgData) && info.type) {
+                // process array
+                if(target[targetProp] === undefined) {
+                    target[targetProp] = [];
+                }
+                for(let i=0;i<cfgData.length;i++) {
+                    let ritem = new info.type();
+                    let t = null;
+                    if(Array.isArray(tpl) && tpl.length > i) {
+                        t = tpl[i];
+                    }
+                    if(Deserialize(ritem, cfgData[i], t)) {
+                        target[targetProp].push(ritem);
+                    }
+                }
+            } else if (target[targetProp] != cfgData) {
                 if(typeof(cfgData) === "object" && info.type) {
                     if(target[targetProp] === undefined) {
                         target[targetProp] = new info.type();

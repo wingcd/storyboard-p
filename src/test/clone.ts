@@ -16,16 +16,21 @@ class UIScene extends ViewScene {
     }
 
     preload() {
+        let g = this.addUI.group();
+        g.setBackgroundColor(0x00ff00, true);
+        g.setXY(100, 50);
+        g.setSize(200, 40);
+
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
-        view.setXY(100, 50);
-        view.setSize(200, 40);
+
+        g.addChild(view);
         
-        let json = view.toJSON();
+        let json = g.toJSON();
         console.log(json);
         
         json.x = 400;
-        let v = this.addUI.view(json);
+        let v = this.addUI.group(json);
     }
 
     create(): void {

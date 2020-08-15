@@ -7,12 +7,21 @@ import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { IComponent } from "../components/IComponent";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 export interface IViewGroup extends IView {
     overflowType?: EOverflowType;
 }
 
 export class ViewGroup extends View {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields = View.SERIALIZABLE_FIELDS;
+        fields.push(
+            {property: "children",importAs: "_children",default: [], type: View},
+        );
+        return fields;
+    }
+
     protected _container: Container;
     protected _children: View[] = [];  
     protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
