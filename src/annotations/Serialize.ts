@@ -1,10 +1,13 @@
 export interface ISerializeInfo {
-    property: string,
-    importAs?: string,
-    alias?: string,
-    default?: any,
-    type?: any,
+    property: string;
+    importAs?: string;
+    alias?: string;
+    default?: any;
+    type?: any;
     raw?: boolean;
+    parms?: string[];
+    static?: boolean;
+    readonly?: boolean;
 }
 
 export function serializable_object(): ClassDecorator {

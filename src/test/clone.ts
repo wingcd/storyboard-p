@@ -6,6 +6,7 @@ import { BaseComponent } from "../components/BaseComponent";
 import { Deserialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
+import { ViewGroup } from "../core/ViewGroup";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -16,21 +17,34 @@ class UIScene extends ViewScene {
     }
 
     preload() {
+        let r = this.addUI.group();
+        r.setBackgroundColor(0x0000ff, true);
+        r.setSize(250,250);
+        r.setXY(50, 50);
+
         let g = this.addUI.group();
         g.setBackgroundColor(0x00ff00, true);
-        g.setXY(100, 50);
-        g.setSize(200, 40);
+        g.setSize(200,200);
+        g.setXY(-5, -5);
+        r.addChild(g);
 
         let view = this.addUI.view();
+        view.setSize(100, 100);
+        view.setXY(-10, -10);
         view.setBackgroundColor(0xff0000, true);
+        let state1 = view.propertyManager.add("state1");
+        state1.add("x", 100);
+        state1.add("y", 200);
 
         g.addChild(view);
         
-        let json = g.toJSON();
+        let json = r.toJSON();
         console.log(json);
         
         json.x = 400;
-        let v = this.addUI.group(json);
+        let v = this.addUI.create(json) as ViewGroup;
+        // v.propertyManager.store();
+        // (v.getChildAt(0) as ViewGroup).getChildAt(0).propertyManager.applyTo("state1");
     }
 
     create(): void {

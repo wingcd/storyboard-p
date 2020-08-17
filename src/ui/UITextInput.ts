@@ -37,7 +37,7 @@ export class UITextInput extends UITextField {
         this.focusable = true;
         this.editable = true;  //init
         
-        this.type = EInputType.TEXT;
+        this.inputType = EInputType.TEXT;
 
         this.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
         this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
@@ -231,18 +231,18 @@ export class UITextInput extends UITextField {
     }  
 
     public get password(): boolean {
-        return this.type == EInputType.PASSWORD;
+        return this.inputType == EInputType.PASSWORD;
     }
 
     public set password(v: boolean) {
-        this.type = EInputType.PASSWORD;
+        this.inputType = EInputType.PASSWORD;
     }
 
-    public get type(): EInputType {
+    public get inputType(): EInputType {
         return this._inputType;
     }
 
-    public set type(value: EInputType) {
+    public set inputType(value: EInputType) {
         if(this._inputType != value) {
             this._inputType = value;
         }

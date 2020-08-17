@@ -12,12 +12,21 @@ export interface IPrefab {
 }
 
 export class ViewFactory {
+    private static _TYPES: {[key: string]: Function} = {};
+
     private _scene: ViewScene;
     private _addToRoot: boolean;
 
     constructor(scene: ViewScene, addToRoot: boolean) {        
         this._scene = scene;
         this._addToRoot = addToRoot;
+
+        ViewFactory.regist(View);
+        ViewFactory.regist(ViewGroup);
+    }
+
+    public static regist(viewType: Function) {
+        ViewFactory._TYPES[(viewType as any).TYPE] = viewType;
     }
 
     private _add(cls: {new (scene:ViewScene):View}, config?:any, template?: any): View {
@@ -47,5 +56,18 @@ export class ViewFactory {
 
     public textinput(config?: ITextInput, template?: any): UITextInput {
         return this._add(UITextInput, config, template) as UITextInput;
+    }
+
+    public create(config?: any, template?: any): View {
+        if(!config || !config.type) {
+            throw new Error("must be with view type to create instance!");
+        }
+
+        let type: any = ViewFactory._TYPES[config.type];
+        if(!type) {
+            throw new Error(`not regist view type:${type}!`);
+        }
+
+        return this._add(type, config, template);
     }
 }

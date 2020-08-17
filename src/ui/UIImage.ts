@@ -54,6 +54,8 @@ export interface IUIImage {
 }
 
 export class UIImage extends View implements IUIImage{
+    public readonly TYPE = "image";
+
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
@@ -82,7 +84,6 @@ export class UIImage extends View implements IUIImage{
 
     constructor(scene: ViewScene) {
         super(scene);
-        this._type = 3;
     }
     
     public get textureKey(): string {

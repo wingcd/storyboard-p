@@ -19,6 +19,7 @@ import { TimelineManager } from "../tween/Timeline";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { IColorable } from "../types/ViewTypes";
+import { colorMultiply } from "../utils/Color";
 
 export interface IView {
     data?:any;
@@ -46,9 +47,12 @@ export interface IView {
 }
 
 export class View implements IColorable {  
+    static TYPE = "view";
+
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        let fields = [];
         fields.push(
+            {property: "TYPE", alias: "type", static: true, readonly: true},
             {property: "data",default: null},
             {property: "id",importAs: "_id",default: null},
             {property: "name",importAs: "_name",default: ""},
@@ -73,8 +77,16 @@ export class View implements IColorable {
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},
+            {property: "_propertyManager", alias: "properties", type: PropertyManager, default: null},
         );
         return fields;
+    }
+
+    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst:View, hasInit: boolean} {
+        return {
+            inst: target.scene.addUI.create(config, tpl),
+            hasInit: true
+        };
     }
 
     static DESERIALIZE_FIELD_START(config: any, target: View, configProp: string, targetProp: string, tpl: any): boolean {
@@ -90,16 +102,18 @@ export class View implements IColorable {
     }
 
     static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
-        
+        if(target instanceof View) {
+            target.reconstruct();
+        }
     }
 
     static sInstanceCounter: number = 0;
 
     public data: any;
 
-    private _id: string;
+    protected _rid: string;
+    protected _id: string;
     private _sourceId: string;
-    protected _type: number = 1;
 
     private _name: string = "";
     protected _root: ViewRoot = null;
@@ -165,9 +179,10 @@ export class View implements IColorable {
     _sourceHeight: number = 0;
 
     private _components: IComponent[]; 
+    private _dispComponents: IComponent[];
 
     constructor(scene: ViewScene) {
-        this._id = `${View.sInstanceCounter++}`;
+        this._rid = this._id = `${View.sInstanceCounter++}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
@@ -1127,10 +1142,9 @@ export class View implements IColorable {
         if(this._enableBackground) {
             if(!this._gBackground) {
                 this._gBackground = this._scene.make.graphics({}, false);
-                this._rootContainer.addAt(this._gBackground, 0);
-            }
+                this._rootContainer.addAt(this._gBackground, 0);            }
             this._gBackground.clear();
-            this._gBackground.fillStyle(this._backgroundColor * this._tint, this._alpha);
+            this._gBackground.fillStyle(colorMultiply(this._backgroundColor, this._tint), this._alpha);
             this._gBackground.fillRect(0, 0, this._width, this._height);
         }else if(this._gBackground){
             this._gBackground.destroy();
@@ -1262,6 +1276,10 @@ export class View implements IColorable {
     private _checkComponent() {
         if(!this._components) {
             this._components = [];
+        }
+
+        if(!this._dispComponents) {
+            this._dispComponents = [];
         }
     }
 
@@ -1451,6 +1469,10 @@ export class View implements IColorable {
         this.applyDraggable();
         this.checkDirty();
         this.ensureSizeCorrect();
+    }
+
+    protected reconstruct() {   
+        this.relayout();
     }
 
     public toJSON(): any {

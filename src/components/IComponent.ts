@@ -1,6 +1,6 @@
 import { View } from "../core/View";
 
-export interface IComponent {    
+export interface IComponent {
     owner: View;
     enable: boolean;
     regist(obj: View): void;

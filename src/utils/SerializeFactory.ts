@@ -1,4 +1,4 @@
-import { Rectangle } from "../phaser";
+import { Rectangle, Point } from "../phaser";
 
 interface SerializeItem {
     type: any;
@@ -63,3 +63,14 @@ SerializeFactory.inst.regist(Rectangle,
         inst.width = data.w;
         inst.height = data.h;
     });
+
+    SerializeFactory.inst.regist(Point, 
+        (inst:Point)=>{
+            return {
+                x: inst.x,
+                y: inst.y,
+            }
+        }, (inst:Point,data:any)=>{
+            inst.x = data.x;
+            inst.y = data.y;
+        });

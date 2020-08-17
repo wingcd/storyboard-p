@@ -8,18 +8,27 @@ import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { IComponent } from "../components/IComponent";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { Deserialize } from "../utils/Serialize";
 
 export interface IViewGroup extends IView {
     overflowType?: EOverflowType;
 }
 
 export class ViewGroup extends View {
+    static TYPE = "viewgroup";
+
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "children",importAs: "_children",default: [], type: View},
         );
         return fields;
+    }
+
+    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+        if(target instanceof ViewGroup) {
+            target.reconstruct();
+        }
     }
 
     protected _container: Container;
@@ -35,7 +44,6 @@ export class ViewGroup extends View {
 
     constructor(scene: ViewScene) {
         super(scene);
-        this._type = 2;
     }
 
     bind(scene: ViewScene) {
@@ -286,6 +294,26 @@ export class ViewGroup extends View {
         throw new Error("Invalid child index");
     }    
 
+    public get numChildren(): number {
+        return this._children.length;
+    }
+
+    public getChildAt(index: number = 0): View {
+        if (index >= 0 && index < this._children.length)
+            return this._children[index];
+        else
+            throw new Error("Invalid child index");
+    }
+
+    public getChild(name: string): View {
+        let cnt: number = this._children.length;
+        for (let i: number = 0; i < cnt; ++i) {
+            if (this._children[i].name == name)
+                return this._children[i];
+        }
+        return null;
+    }
+
     public getChildIndex(child: View): number {
         return this._children.indexOf(child);
     }
@@ -462,5 +490,20 @@ export class ViewGroup extends View {
             } 
         }
         return ret;
+    }
+
+    protected reconstruct() {        
+        for(let c of this._children) {
+            c.parent = this;
+        }        
+        this.appendChildrenList();
+        this.relayout();
+    }
+
+    public fromJSON(config: any, template?: any) {
+        if(config) {
+            Deserialize(this, config, template);
+            this.reconstruct();
+        }
     }
 }

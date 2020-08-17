@@ -1,10 +1,21 @@
 import { GetValue } from "../utils/Object";
+import { ISerializeInfo } from "../annotations/Serialize";
+import { View } from "../core/View";
 
 export class Property {
     _name: string = null;
     name: string = null;
     value: any = null;
     target: any = null;
+
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "name"},
+            {property: "value"},
+        );
+        return fields;
+    }
 }
 
 class PropertyGroup {
@@ -12,6 +23,32 @@ class PropertyGroup {
     private _properties:Property[] = [];
     private _name: string = null;
     private _store: any = {};
+
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "_name", default: null},
+            {property: "_properties", type: Property, default: []},
+        );
+        return fields;
+    }
+
+    static CREATE_INSTANCE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyGroup, hasInit:boolean} {
+        return { 
+            inst: new PropertyGroup(target.target, config.name), 
+            hasInit: false
+        };
+    }
+
+    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+        if(target instanceof PropertyGroup) {
+            let props: Property[] = target._properties.slice();
+            target._properties = [];
+            for(let p of props) {
+                target.add(p.name, p.value);
+            }
+        }
+    }
 
     constructor(target: any, name: string) {
         this._target = target;
@@ -121,12 +158,37 @@ class PropertyGroup {
 }
 
 export class PropertyManager {
+    static TYPE = "view";
+
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "_groups", type: PropertyGroup, default: []},
+        );
+        return fields;
+    }
+
+    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyManager,hasInit:boolean} {
+        return { 
+            inst: new PropertyManager(target), 
+            hasInit: false
+        };
+    }
+
     private _target: any;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
 
     constructor(target?: any) {
         this._target = target;
+    }
+
+    public get groups(): PropertyGroup[] {
+        return this._groups;
+    }
+
+    public get target(): any {
+        return this._target;
     }
 
     /**
