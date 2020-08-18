@@ -18,6 +18,9 @@ export class ComponentFactory {
     private _eventComponents: {
        [key: string] : any[]
     } = {};
+    private _serilableComponents: {
+        [key: string] : Function
+     } = {};
 
     public registEvents(type: string, compType: new()=>{}) {
         this._events[type] = compType;

@@ -1,31 +1,14 @@
 import { Graphics, Container, MaskType } from "../phaser";
 import { EDirectionType } from "../core/Defines";
 import { ISerializeInfo } from "../annotations/Serialize";
-import { View } from "../core/View";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { DisplayObjectEvent } from "../events";
-
-export const enum EFillType {
-    None,
-    Horizontal,
-    Vertical,
-    Rotate90,
-    Rotate180,
-    Rotate360,
-}
+import { EFillType, IFillMask } from "../types";
+import { View } from "../core/View";
 
 interface IMaskable {
     mask: MaskType;
-}
-
-export interface IFillMask {
-    fillType?: EFillType;
-    value?: number;
-    origin?: EDirectionType;
-    anticlockwise?: boolean;
-    outterRadius?: number;
-    innerRadius?: number;
 }
 
 export class FillMask {

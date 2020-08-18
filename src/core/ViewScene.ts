@@ -1,7 +1,7 @@
 import { Scene,GameObjectFactoryExt } from "../phaser"
 import { UIManager } from "./UIManager";
-import { ViewRoot } from "./ViewRoot";
 import { ViewFactory } from "./ViewFactory";
+import { ViewRoot } from "./ViewRoot";
 
 export class ViewScene extends Scene {    
     _uimgr: UIManager;
@@ -22,7 +22,7 @@ export class ViewScene extends Scene {
         this.scale.refresh();
     }
 
-    get addExt(): GameObjectFactoryExt {        
+    public get addExt(): GameObjectFactoryExt {        
         return this._addExt;
     }
 

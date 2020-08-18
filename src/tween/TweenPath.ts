@@ -1,8 +1,8 @@
 import { MathUtils } from '../utils/Math';
 import { View } from '../core/View';
 import { PoolManager } from '../utils/PoolManager';
-import { ITweenPlugin } from './TweenInfo';
-import { Graphics, Point, Tween } from '../phaser';
+import { Point, Tween } from '../phaser';
+import { ITweenPlugin } from '../types';
 
 export const enum ETweenPathRotation {
   None,

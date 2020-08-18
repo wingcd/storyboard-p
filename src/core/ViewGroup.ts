@@ -1,4 +1,3 @@
-import { View, IView } from "./View";
 import { Container, Scene, Rectangle, Graphics, GeometryMask } from "../phaser";
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
@@ -6,16 +5,13 @@ import { ViewRoot } from "./ViewRoot";
 import { ViewScene } from "./ViewScene";
 import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { IComponent } from "../components/IComponent";
+import { IComponent } from "../types/IComponent";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Deserialize } from "../utils/Serialize";
-
-export interface IViewGroup extends IView {
-    overflowType?: EOverflowType;
-}
+import { View } from "./View";
 
 export class ViewGroup extends View {
-    static TYPE = "viewgroup";
+    static TYPE = "group";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
@@ -46,7 +42,7 @@ export class ViewGroup extends View {
         super(scene);
     }
 
-    bind(scene: ViewScene) {
+    protected bind(scene: ViewScene): boolean {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
             this.setDisplayObject(this._container);
@@ -70,10 +66,11 @@ export class ViewGroup extends View {
         return this._bounds;
     }
 
-    public ensureBoundsCorrect(): void {
+    public ensureBoundsCorrect(): this {
         if (this.withDirty(EDirtyType.BoundsChanged)) {
             this.updateBounds();
         }
+        return this;
     }
 
     /**@internal */
@@ -180,9 +177,9 @@ export class ViewGroup extends View {
         return this._setChildIndex(child, oldIndex, index - (oldIndex < index ? 1 : 0));
     }
 
-    public childStateChanged(child: View) {
+    public childStateChanged(child: View): this {
         if(this._buildingDisplayList) {
-            return;
+            return this;
         }
 
         if(child.finalVisible) {
@@ -203,21 +200,26 @@ export class ViewGroup extends View {
         }else{
             this._container.remove(child.rootContainer);
         }
+
+        return this;
     }
 
-    setRoot(root: ViewRoot) {
+    setRoot(root: ViewRoot): this {
         super.setRoot(root);
 
         for(let c of this._children) {
             c.setRoot(root);
         }
+
+        return this;
     }
 
-    public addChild(child: View) {
+    public addChild(child: View): this {
         this.addChildAt(child, this.children.length);
+        return this;
     }
 
-    public addChildAt(child: View, index: number = 0) {
+    public addChildAt(child: View, index: number = 0): this {
         if (!child || child == this) {
             throw new Error("Invalid child");
         }
@@ -241,15 +243,19 @@ export class ViewGroup extends View {
         }else{
             throw new Error("Invalid child index");
         }
+
+        return this;
     }
 
-    public removeAllChildren(dispose?: boolean, toPool?: boolean) {
+    public removeAllChildren(dispose?: boolean, toPool?: boolean): this {
         let children = this._children.slice();
         for(let i=0;i<children.length;i++) {
             this.removeChild(children[i], dispose, toPool);
         }
         this._children = [];
         this.addDirty(EDirtyType.BoundsChanged); 
+
+        return this;
     }
 
     public removeChild(child: View, dispose?: boolean, toPool?: boolean): View {
@@ -500,10 +506,12 @@ export class ViewGroup extends View {
         this.relayout();
     }
 
-    public fromJSON(config: any, template?: any) {
+    public fromJSON(config: any, template?: any): this {
         if(config) {
             Deserialize(this, config, template);
             this.reconstruct();
         }
+
+        return this;
     }
 }

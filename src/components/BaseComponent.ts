@@ -1,13 +1,7 @@
-import { IComponent } from "./IComponent";
+import { IComponent } from "../types";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
-
-export type ComponentOptions = {
-    containsParentType?: boolean; 
-    containsChildType?: boolean;
-    containsSameParentType?: boolean;
-}
 
 export class BaseComponent implements IComponent {
     protected _owner: View;

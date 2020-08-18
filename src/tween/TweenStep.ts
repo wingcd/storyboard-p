@@ -1,8 +1,8 @@
 import { MathUtils } from '../utils/Math';
 import { View } from '../core/View';
-import { ITweenPlugin } from './TweenInfo';
 import { Tween } from '../phaser';
 import { KeyFrame } from './Timeline';
+import { ITweenPlugin } from '../types';
 
 export default class TweenStep implements ITweenPlugin {
   private _target: View;

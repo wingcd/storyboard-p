@@ -55,7 +55,7 @@ class PropertyGroup {
         this._name = name;
     }
 
-    public store() {
+    public store(): this {
         this._properties.forEach(p=>{
             this._store[p._name] = {
                 name: p.name,
@@ -63,13 +63,16 @@ class PropertyGroup {
                 value: p.target[p.name],
             }
         });
+        return this;
     }
 
-    public resotre() {
+    public resotre(): this {
         for(let name in this._store) {
             let p = this._store[name];
             p.target[p.name] = p.value;
         }
+
+        return this;
     }
 
     public get target(): any {
@@ -132,7 +135,7 @@ class PropertyGroup {
         return this;
     }
 
-    public getByName(name: string) {
+    public getByName(name: string): Property {
         return this._properties.find((item)=>{
             return item.name == name;
         });
@@ -249,10 +252,11 @@ export class PropertyManager {
     /**
      * when change group's properties value, please invoke this
      */
-    public store() {
+    public store(): this {
         this._groups.forEach(g=>{
             g.store();
         });
+        return this;
     }
 
     /**

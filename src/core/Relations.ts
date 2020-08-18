@@ -1,16 +1,9 @@
-import { View } from "./View";
 import * as Events from "../events";
 import { ViewEvent } from "../events/ViewEvent";
 import { ViewGroup } from "./ViewGroup";
+import { View } from "./View";
+import { ERelationPinType } from "../types";
 
-export const enum ERelationPinType {
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM,
-    CENTER,
-    MIDDLE,
-}
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
 
 class RelationPin {
@@ -69,7 +62,7 @@ class RelationPin {
         this._precent = val;
     }
 
-    public connect(relations: Relations, target: View, targetPinType: ERelationPinType) {
+    public connect(relations: Relations, target: View, targetPinType: ERelationPinType): this {
         if(this._to) {
             this.disconnect();
         }
@@ -82,14 +75,18 @@ class RelationPin {
         this._to.owner.on(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
         this._to.owner.on(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
         this.owner.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+
+        return this;
     }
 
-    public disconnect() {
+    public disconnect(): this {
         this._to.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
         this._to.owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
         this._to.owner.off(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
         this.owner.off(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
         this._to = null;
+
+        return this;
     }
 
     private _getX(pin: RelationPin): number {
@@ -228,7 +225,9 @@ export class Relations {
         [key: string]: RelationPin;
     } = {};    
 
-    public get pins() {
+    public get pins():{
+        [key: string]: RelationPin;
+    } {
         return this._pins;
     }
 
@@ -249,7 +248,7 @@ export class Relations {
         }
     }
 
-    public dispose() {
+    public dispose(): void {
         this._owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerChanged, this);
         this._owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._ownerChanged, this);
 
@@ -309,18 +308,21 @@ export class Relations {
         }
     }
 
-    public clear() {
+    public clear(): this {
         this.remove(ERelationPinType.LEFT);
         this.remove(ERelationPinType.RIGHT);
         this.remove(ERelationPinType.TOP);
         this.remove(ERelationPinType.BOTTOM);
         this.remove(ERelationPinType.MIDDLE);
         this.remove(ERelationPinType.CENTER);
+
+        return this;
     }
 
-    public remove(pinType: ERelationPinType) {
+    public remove(pinType: ERelationPinType): this {
         let pin = this.getPin(pinType);
         this._remove(pin);
+        return this;
     }
 
     public static checkCanConnect(sourcePinType: ERelationPinType, targetPinType: ERelationPinType): boolean {

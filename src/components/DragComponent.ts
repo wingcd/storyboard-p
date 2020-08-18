@@ -7,8 +7,8 @@ import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
 import { TOP_MOST_DEPTH, DEFAULT_DEPTH, EDragType } from "../core/Defines";
-import { ViewGroup } from "../core/ViewGroup";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { IViewGroup } from "../types";
 
 const enum EDragStatus {
    NONE,
@@ -29,7 +29,7 @@ export class DragComponent extends BaseComponent {
 
    private _lockXY: boolean = false;
    
-   private _parent: ViewGroup;
+   private _parent: IViewGroup;
    private _index: number;
    /**
     * @description clamp range in parent axis system 

@@ -4,8 +4,7 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EEaseType } from "../core/Defines";
 import { TimelineEvent } from "../events";
-import { ETextureScaleType } from "../ui/UIImage";
-import { EFillType } from "../ui/FillMask";
+import { EFillType } from "../types";
 
 class UIScene extends ViewScene {
     constructor() {

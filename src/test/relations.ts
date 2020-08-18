@@ -2,8 +2,8 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { ERelationPinType } from "../core/Relations";
 import { EDragType } from "../core/Defines";
+import { ERelationPinType } from "../types";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;

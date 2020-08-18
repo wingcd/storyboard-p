@@ -3,30 +3,10 @@ import { ViewScene } from "../core/ViewScene";
 import { Texture, Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
 import { ISerializeInfo } from "../annotations/Serialize";
-import { FillMask, IFillMask } from "./FillMask";
+import { FillMask } from "./FillMask";
+import { ViewFactory } from "../core/ViewFactory";
+import { ETextureScaleType, INinePatchInfo, ITileInfo } from "../types";
 
-export enum ETextureScaleType {
-    None,
-    Tile,
-    NinePatch,    
-}
-
-interface ITileInfo {
-    scaleX?: number;
-    scaleY?: number;
-}
-
-export interface INinePatchInfo {
-    left?: number;
-    right?: number;
-    top?: number;
-    bottom?: number;
-
-    stretchMode?: number | {
-        edge: number, // 'scale', or 1, 'repeat'
-        internal: number, // 'scale', or 1, 'repeat'
-    };
-}
 
 export class NinePatchInfo {
     public left?: number = 0;
@@ -40,20 +20,7 @@ export class NinePatchInfo {
     };
 }
 
-export interface IUIImage {
-    textureKey: string;
-    textureFrame?: string | number;
-    scaleType?: ETextureScaleType;
-    tile?: ITileInfo;
-    ninePatch?: INinePatchInfo;  
-
-    flipX?: boolean;
-    flipY?: boolean;
-    tint?: number;
-    fillMask?: IFillMask;
-}
-
-export class UIImage extends View implements IUIImage{
+export class UIImage extends View {
     public readonly TYPE = "image";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -276,12 +243,15 @@ export class UIImage extends View implements IUIImage{
         this._updateInfo();
     }
 
-    public fromJSON(config: any, template?: any) {
+    public fromJSON(config: any, template?: any): this {
         if(!config) {
             return;
         }
         super.fromJSON(config, template);
 
         this._updateTexture();
+
+        return this;
     }
 }
+ViewFactory.regist(UIImage);

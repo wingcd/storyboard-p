@@ -6,9 +6,8 @@ import { BaseComponent } from "../components/BaseComponent";
 import { Deserialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { ETextureScaleType } from "../ui/UIImage";
-import { EFillType } from "../ui/FillMask";
 import { EDirectionType } from "../core/Defines";
+import { ETextureScaleType } from "../types";
 
 class UIScene extends ViewScene {
     constructor() {

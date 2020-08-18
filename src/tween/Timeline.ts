@@ -4,10 +4,11 @@ import { EEaseType, ParseEaseType } from "../core/Defines";
 import * as Events from "../events";
 import { View } from "../core/View";
 import { PoolManager } from "../utils/PoolManager";
-import { ITweenInfo, installTweenPlugin } from "./TweenInfo";
+import { installTweenPlugin } from "./TweenInfo";
 import { MathUtils } from "../utils/Math";
 import { GetValue } from "../utils/Object";
 import TweenStep from "./TweenStep";
+import { ITweenInfo } from "../types";
 
 export class KeyFrame {
     tag: string = "";
@@ -46,12 +47,7 @@ class KeyFrameGroup {
         }
     }
 
-    public store() {
-        // this._keyframes.forEach(kf=>{
-        //     let p = kf.property;
-        //     this._store[p.name] = this._target[p.name];
-        // });
-
+    public store(): this {
         this._keyframes.forEach(kf=>{
             let p = kf.property;
             this._store[p._name] = {
@@ -60,17 +56,16 @@ class KeyFrameGroup {
                 value: p.target[p.name],
             }
         });
+        return this;
     }
 
-    public resotre() {
-        // for(let name in this._store) {
-        //     this._target[name] = this._store[name];
-        // }
-
+    public resotre(): this {
         for(let name in this._store) {
             let p = this._store[name];
             p.target[p.name] = p.value;
         }
+
+        return this;
     }
 
     public get propName(): string {
@@ -139,37 +134,42 @@ class KeyFrameGroup {
         });
     }
 
-    public removeAll() {
+    public removeAll(): this {
         this._keyframes.length = 0;
+        return this;
     }
 
-    public removeAt(time: number) {
+    public removeAt(time: number): boolean {
         let idx = this._keyframes.findIndex(kf=>{
             return kf.time == time;
         })
         if(idx >= 0) {
-            this._keyframes.splice(idx, 1);
+            this._keyframes.splice(idx, 1)[0];
         }
+        return idx >= 0;
     }
 
-    public removeByTag(tag: string) {
+    public removeByTag(tag: string): boolean {
         let idx = this._keyframes.findIndex(kf=>{
             return kf.tag == tag;
         })
         if(idx >= 0) {
             this._keyframes.splice(idx, 1);
         }
+        return idx >= 0;
     }
 
-    public remove(kf: KeyFrame) {
+    public remove(kf: KeyFrame): boolean {
         let index = this._keyframes.indexOf(kf);
         if(index >= 0) {
             this._keyframes.splice(index, 1);
         }
+        return index >= 0;
     }
 
-    public sort() {
+    public sort(): this {
         this._keyframes.sort(KeyFrame.sort);
+        return this;
     }
 
     private _createTween(index: number, reverse?: boolean, setStart?: boolean, totalDuration?: number, currentDuration?: number): Types.Tweens.TweenBuilderConfig {
@@ -240,9 +240,10 @@ class KeyFrameGroup {
         return tweenData;
     }
 
-    public addTweens(timeline: Timeline, reverse?: boolean, totalDuration?: number, currentDuration?: number) {
+    public addTweens(timeline: Timeline, reverse?: boolean, totalDuration?: number, currentDuration?: number): this {
         let tweens = this.getTweens(reverse, totalDuration, currentDuration);
         KeyFrameGroup.addTweensEx(timeline, tweens);
+        return this;
     }
 
     public static addTweensEx(timeline: Timeline, tweens: Types.Tweens.TweenBuilderConfig[]) {
@@ -381,70 +382,73 @@ export class TimelineManager extends EventEmitter {
     /**
      * when modify keyframe data, please invoke this to store data
      */
-    public store() {
+    public store(): this {
         this._groups.forEach(g=>{
             g.store();
         });
+        return this;
     }
 
     /**
      * after play done, and when you want to restore perperties value, invoke this
      */
-    public restore() {
+    public restore(): this {
         this._groups.forEach(g=>{
             g.resotre();
         });
+        return this;
     }
 
     /**
      * sort keyframes by time
      * after add keyframe, or change keyframe time, need invoke this 
      */
-    public sort() {
+    public sort(): this {
         this._groups.forEach(g=>{
             g.sort();
         });
+        return this;
     }
 
     /**
      * Value between 0 and 1. The amount of progress through the Timeline, _excluding loops_.
      */
-    public get progress() {
+    public get progress(): number {
         return this._timeline.progress;
     }
 
     /**
      * Value between 0 and 1. The amount through the entire Timeline, including looping.
      */
-    public get totalProgress() {
+    public get totalProgress(): number {
         return this._timeline.totalProgress;
     }
 
     /**
      * Elapsed time in ms/frames of this run through of the Timeline.
      */
-    public get elapsed() {
+    public get elapsed(): number {
         return this._timeline.elapsed;
     }
 
     /**
      * Total elapsed time in ms/frames of the entire Timeline, including looping.
      */
-    public get totalElapsed() {
+    public get totalElapsed(): number {
         return this._timeline.totalElapsed;
     }
 
     /**
      * get total duration of keyframe groups, maybe get Infinity
      */
-    public get duration() {
+    public get duration(): number {
         return this._timeline.duration;
     }
 
     /**
      * get total duration of keyframe groups include loops, maybe get Infinity
      */
-    public get totalDuration() {
+    public get totalDuration(): number {
         return this._timeline.totalDuration;
     }
 
@@ -479,7 +483,7 @@ export class TimelineManager extends EventEmitter {
     /**
      * after changed keyframe data, please invoke this
      */
-    public reset(reverse?:boolean) {  
+    public reset(reverse?:boolean): this {  
         this._reverse = reverse;
         if(this._timeline) {
             this._timeline.stop();
@@ -514,6 +518,8 @@ export class TimelineManager extends EventEmitter {
         this._timeline.on(Tweens.Events.TIMELINE_PAUSE, this._pause, this);
         this._timeline.on(Tweens.Events.TIMELINE_RESUME, this._resume, this);
         this._timeline.on(Tweens.Events.TIMELINE_COMPLETE, this._stop, this);
+
+        return this;
     }
 
     private _goto(time: number) {
@@ -563,7 +569,7 @@ export class TimelineManager extends EventEmitter {
      * @param reverse play animation use reverse mode
      * @param precent if use precent time mode, do not use when duration is Infinity
      */
-    public play(startTime?: number, endTime?: number, reverse?: boolean, precent?: boolean){
+    public play(startTime?: number, endTime?: number, reverse?: boolean, precent?: boolean): this{
         // if(!this._timeline || this._reverse != reverse) {
         //     this.reset(reverse);
         // }        
@@ -592,6 +598,8 @@ export class TimelineManager extends EventEmitter {
 
         this._playing = true; 
         this._emit(Events.TimelineEvent.START, this);
+
+        return this;
     }
 
     /**
@@ -599,7 +607,7 @@ export class TimelineManager extends EventEmitter {
      * @param time target time in duration,  range 0 to duration when precent is false, range 0 to 1 when precent is true
      * @param precent if use precent mode, do not use when duration is Infinity
      */
-    public gotoInDuration(time: number, precent?: boolean) {
+    public gotoInDuration(time: number, precent?: boolean): this {
         if(this._playing) {
             this.stop();
         }
@@ -621,6 +629,8 @@ export class TimelineManager extends EventEmitter {
                tween.stop();
             }
         });
+
+        return this;
     }
 
     /**
@@ -628,7 +638,7 @@ export class TimelineManager extends EventEmitter {
      * @param time target time in total duration,  range 0 to duration when precent is false, range 0 to 1 when precent is true
      * @param precent if use precent mode, do not use when duration is Infinity
      */
-    public gotoInTotalDuration(time: number, precent?: boolean) {
+    public gotoInTotalDuration(time: number, precent?: boolean): this {
         if(this._playing) {
             this.stop();
         }
@@ -642,6 +652,8 @@ export class TimelineManager extends EventEmitter {
         this._timeline.play();
         this._goto(time);
         this._timeline.stop();
+
+        return this;
     }
 
     private _update(timeline: Timeline) {
@@ -675,13 +687,15 @@ export class TimelineManager extends EventEmitter {
     /**
      * stop this animation
      */
-    public stop() {
+    public stop(): this {
         if(!this._playing){
             return;
         }
         this._timeline.stop();
 
         this._stop();
+
+        return this;
     }
 
     private _pause() {
@@ -692,7 +706,7 @@ export class TimelineManager extends EventEmitter {
     /**
      * pause this animation 
      */
-    public pause() {
+    public pause(): this {
         if(this._paused) {
             return;
         }
@@ -700,6 +714,8 @@ export class TimelineManager extends EventEmitter {
         this._timeline.pause();       
 
         this._pause();
+
+        return this;
     }
 
     private _resume() {
@@ -710,12 +726,14 @@ export class TimelineManager extends EventEmitter {
     /**
      * resume this animation when pausing
      */
-    public resume() {
+    public resume(): this {
         if(!this._paused) {
             return;
         }
 
         this._timeline.resume();
         this._resume();
+
+        return this;
     }
 }

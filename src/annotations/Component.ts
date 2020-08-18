@@ -1,5 +1,5 @@
 import { View } from "../core/View";
-import { ComponentOptions } from "../components/BaseComponent";
+import { ComponentOptions } from "../types";
 
 export function disallow_multiple_component(options?: ComponentOptions): ClassDecorator {
     return target => {

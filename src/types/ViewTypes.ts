@@ -1,6 +1,6 @@
 export interface IColorable {
-    tint: number;
-    alpha: number;
+    tint?: number;
+    alpha?: number;
 }
 
 export interface ITitle {

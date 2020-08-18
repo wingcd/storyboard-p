@@ -1,14 +1,13 @@
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
-import { ITitle, ISelectable } from "../types/ViewTypes";
-import { ViewGroup, IViewGroup } from "../core/ViewGroup";
+import { ViewGroup } from "../core/ViewGroup";
 
-export interface IUIButton extends IViewGroup {
-}
+export class UIButton extends ViewGroup {
+    public static TYPE = "button";
 
-export class UIButton extends ViewGroup implements IUIButton, ITitle, ISelectable{
     private _selected: boolean;
     private _title: string;
+    private _icon: string;
     private _titleColor: number;
 
     protected _titleObject: View;
@@ -19,6 +18,10 @@ export class UIButton extends ViewGroup implements IUIButton, ITitle, ISelectabl
         fields.push(
         );
         return fields;
+    }
+
+    public get icon(): string {
+        return this._icon;
     }
 
     public get title(): string {

@@ -2,14 +2,12 @@ import "reflect-metadata";
 
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2, GeometryMask, MaskType, BitmapMask } from "../phaser";
-import { ViewGroup } from "./ViewGroup";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
 import { ViewEvent } from "../events/ViewEvent";
-import { ViewRoot } from "./ViewRoot";
-import { IComponent } from "../components/IComponent";
-import { ComponentOptions, BaseComponent } from "../components/BaseComponent";
+import { IComponent, ComponentOptions } from "../types/IComponent";
+import { BaseComponent } from "../components/BaseComponent";
 import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
@@ -18,35 +16,11 @@ import { PropertyManager } from "../tween/Property";
 import { TimelineManager } from "../tween/Timeline";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
-import { IColorable } from "../types/ViewTypes";
 import { colorMultiply } from "../utils/Color";
+import { ViewGroup } from "./ViewGroup";
+import { ViewRoot } from "./ViewRoot";
 
-export interface IView {
-    data?:any;
-    name?:string;
-    visible?:boolean;
-    hiddenCollapsed?:boolean;
-    x?:number;
-    y?:number;
-    width?:number;
-    height?:number;
-    scaleX?:number;
-    scaleY?:number;
-    angle?:number;
-    pivotX?:number;
-    pivotY?:number;
-    pivotAsAnchor?:boolean;
-    useBorderAsFrame?:boolean;
-    focusable?:boolean;
-    touchable?:boolean,
-    touchEnableMoved?:boolean,
-    draggable?:boolean,
-    opaque?:boolean,
-    enableBackground?:boolean,
-    backgroundColor?:number;
-}
-
-export class View implements IColorable {  
+export class View {  
     static TYPE = "view";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -82,7 +56,7 @@ export class View implements IColorable {
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst:View, hasInit: boolean} {
+    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: View, hasInit: boolean} {
         return {
             inst: target.scene.addUI.create(config, tpl),
             hasInit: true
@@ -213,8 +187,9 @@ export class View implements IColorable {
     }
 
     /**@internal */
-    setRoot(root: ViewRoot) {
+    setRoot(root: ViewRoot): this {
         this._root = root;
+        return this;
     }
 
     public get root(): ViewRoot {
@@ -250,7 +225,7 @@ export class View implements IColorable {
     /**
      * @internal
      */
-    addDirty(dirty: EDirtyType) {
+    addDirty(dirty: EDirtyType): this {
         this._dirtyType |= dirty;
 
         if((dirty & EDirtyType.FrameChanged) == EDirtyType.FrameChanged) {
@@ -262,6 +237,8 @@ export class View implements IColorable {
         if((dirty & EDirtyType.BoundsChanged) == EDirtyType.BoundsChanged) {
             this._dirtyType |= EDirtyType.DebugBoundsChanged;
         }
+
+        return this;
     }    
 
     protected removeDirty(dirty: EDirtyType) {
@@ -330,7 +307,7 @@ export class View implements IColorable {
         return this._visible && this._internalVisible;
     }
 
-    public removeFromParent() {
+    public removeFromParent(): this {
         if(this._parent) {
             this._parent.removeChild(this);
             this._root = null;
@@ -339,6 +316,8 @@ export class View implements IColorable {
                 this._gFrame.parentContainer.remove(this._gFrame);
             }
         }
+
+        return this;
     }
     
     /**
@@ -359,7 +338,7 @@ export class View implements IColorable {
             let oldParent = this._parent;
             this._parent = parent;
             if(parent) {
-                this.setRoot(parent._root);
+                this.setRoot(parent.root);
             }
             this.emit(ViewEvent.PARENT_CHANGED, oldParent, parent);
         }
@@ -392,7 +371,7 @@ export class View implements IColorable {
         this._rootContainer.setPosition(xv + this._pivotOffset.x, yv + this._pivotOffset.y);
     }
 
-    public setXY(xv: number, yv:number) {
+    public setXY(xv: number, yv:number): this {
         if(this.x != xv || this.y != yv) {
             let oldX = this._x;
             let oldY = this._y;
@@ -410,6 +389,8 @@ export class View implements IColorable {
 
             this.emit(Events.DisplayObjectEvent.XY_CHANGED, oldX, oldY, xv, yv);
         }
+
+        return this;
     }
 
     public get scaleX(): number {
@@ -428,7 +409,7 @@ export class View implements IColorable {
         this.setScale(this._scaleX, val);
     }
 
-    public setScale(sx: number, sy: number) {
+    public setScale(sx: number, sy: number): this {
         if(this.scaleX != sx || this.scaleY != sy) {
             this._scaleX = sx;
             this._scaleY = sy;
@@ -441,9 +422,11 @@ export class View implements IColorable {
                 this._parent.addDirty(EDirtyType.BoundsChanged);
             }
         }
+
+        return this;
     }
 
-    public setSize(wv: number, hv: number, ignorePivot?: boolean) {
+    public setSize(wv: number, hv: number, ignorePivot?: boolean): this {
         if(this._rawWidth != wv || this._rawHeight != hv) {
             this._rawWidth = wv;
             this._rawHeight = hv;
@@ -480,6 +463,8 @@ export class View implements IColorable {
 
             this.emit(Events.DisplayObjectEvent.SIZE_CHANGED, oldWidth, oldHeight, this._width, this._height);
         }
+
+        return this;
     }
 
     protected updatePivotOffset() {
@@ -550,7 +535,7 @@ export class View implements IColorable {
     /**
      * rotate value in degree
      */
-    public get angle() {
+    public get angle(): number {
         return this._angle;
     }
 
@@ -600,7 +585,7 @@ export class View implements IColorable {
         }
     }
 
-    public setPivot(vx: number, vy:number, pivtoAsAnchor: boolean = false) {
+    public setPivot(vx: number, vy:number, pivtoAsAnchor: boolean = false): this {
         if(this._pivot.x != vx || this._pivot.y != vy || this._pivotAsAnchor != pivtoAsAnchor) {            
             this._pivot.setTo(vx, vy);
             this._pivotAsAnchor = pivtoAsAnchor;
@@ -613,6 +598,8 @@ export class View implements IColorable {
                 this._parent.addDirty(EDirtyType.BoundsChanged);
             }
         }
+
+        return this;
     }
 
     public get displayObject(): GameObject {
@@ -947,8 +934,10 @@ export class View implements IColorable {
         }
     }
 
-    public reset() {              
-        this._isDisposed = false;
+    public reset(): this {              
+        this._isDisposed = false;       
+
+        return this;
     }
 
     public dispose(toPool?: boolean) {
@@ -986,8 +975,9 @@ export class View implements IColorable {
         }
     }
 
-    public ensureSizeCorrect() {
-        
+    public ensureSizeCorrect(): this {        
+
+        return this;
     }
 
     public on(type: string, listener: Function, thisObject?: any): this {
@@ -1049,8 +1039,9 @@ export class View implements IColorable {
         return this._rootContainer.emit(event, ...args);
     }
 
-    public removeAllListeners(type?:string):void {
+    public removeAllListeners(type?:string): this {
         this._rootContainer.removeAllListeners(type);
+        return this;
     }
 
     public onClick(listener: Function, thisObj?: any): this {
@@ -1087,13 +1078,14 @@ export class View implements IColorable {
         this.setBackgroundColor(val, this._enableBackground);
     }
 
-    public setBackgroundColor(color: number, enable: boolean = true) {
+    public setBackgroundColor(color: number, enable: boolean = true): this {
         if(this._backgroundColor != color || this._enableBackground != enable) {
             this._enableBackground = enable;
             this._backgroundColor = color;
             this.applyBackgroundChange();
             this.applyOpaque();
         }
+        return this;
     }
 
     /**
@@ -1330,7 +1322,7 @@ export class View implements IColorable {
         return comp;
     }
 
-    public removeComponent(comp: IComponent) {
+    public removeComponent(comp: IComponent): this {
         if(!this._components || !comp) {
             return;
         }
@@ -1343,9 +1335,11 @@ export class View implements IColorable {
         comp.unRegist();
 
         this._components.splice(index, 1);
+
+        return this;
     }
 
-    public removeComponentByType(type: Function, all: boolean = true, options?: ComponentOptions) {
+    public removeComponentByType(type: Function, all: boolean = true, options?: ComponentOptions): this {
         if(!this._components || !type) {
             return;
         }
@@ -1359,6 +1353,7 @@ export class View implements IColorable {
                 }
             }
         });
+        return this;
     }
 
     private _compareComponent(item: IComponent, type: Function, options?: ComponentOptions) {
@@ -1479,11 +1474,13 @@ export class View implements IColorable {
         return Serialize(this);
     }
 
-    public fromJSON(config: any, template?: any) {
+    public fromJSON(config: any, template?: any): this {
         if(config) {
             Deserialize(this, config, template);
             this.relayout();
-        }
+        }        
+
+        return this;
     }
 
     public get dragComponent(): DragComponent {
@@ -1502,14 +1499,21 @@ export class View implements IColorable {
         return this.root.focus == this;
     }
 
-    public requestFocus(): void {
+    public requestFocus(): this {
         let p: View = this;
-        while (p && !p._focusable) {
+        while (p && !p.focusable) {
             p = p.parent;
         }
         if (p != null) {
             this.root.focus = p;
         }
+
+        return this;
+    }
+
+    public requestBlur(): this {
+        this._root.focus = null;
+        return this;
     }
 
     public get touchable(): boolean {
@@ -1527,7 +1531,7 @@ export class View implements IColorable {
         return this._draggable;
     }
 
-    private applyDraggable() {
+    private applyDraggable(): this {
         if(this._draggable) {                
             if(this._dragComponent) {
                 if(!this._dragComponent.owner) {
@@ -1542,6 +1546,7 @@ export class View implements IColorable {
         }else{
             this.removeComponent(this._dragComponent);
         }
+        return this;
     }
 
     public set draggable(val: boolean) {

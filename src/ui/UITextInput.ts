@@ -1,11 +1,11 @@
-import { UITextField, ITextField } from "./UITextField";
+import { UITextField } from "./UITextField";
 import { ViewScene } from "../core/ViewScene";
 import { GameObject, Color } from "../phaser";
 import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewEvent } from "../events/ViewEvent";
-import { IViewGroup, ViewGroup } from "../core/ViewGroup";
+import { ViewGroup } from "../core/ViewGroup";
 
 export const enum EInputType {
     TEXT = "text",
@@ -16,11 +16,9 @@ export const enum EInputType {
     URL = "url"
 };
 
-export interface ITextInput extends ITextField {
-
-}
-
 export class UITextInput extends UITextField { 
+    public static TYPE = "textinput";
+
     protected _editable:boolean;
     protected _editor: TextEdit = null;
     protected _inputType: EInputType;

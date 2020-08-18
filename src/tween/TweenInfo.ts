@@ -1,23 +1,6 @@
 import { EEaseType } from "../core/Defines";
-import { Tween, Types } from "../phaser";
-
-export interface ITweenPlugin {    
-    start?(tween: Tween): void;
-    update?(tween: Tween): void;
-    repeat?(tween: Tween): void;
-    yoyo?(tween: Tween): void;
-    complete?(tween: Tween): void;
-}
-
-export interface ITweenInfo {
-    type?: EEaseType;
-    duration?: number;
-    yoyo?: boolean;
-    repeat?: number;
-    delay?: number;
-    repeatDelay?: number;
-    plugin?: ITweenPlugin;
-}
+import { Types } from "../phaser";
+import { ITweenInfo, ITweenPlugin } from "../types";
 
 export class TweenInfo implements ITweenInfo {
     type?: EEaseType = EEaseType.Known;

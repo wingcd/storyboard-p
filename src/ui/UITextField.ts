@@ -1,4 +1,4 @@
-import { View, IView } from "../core/View";
+import { View } from "../core/View";
 import { Text, BitmapText, Point, ITextStyle, Color, GeometryMask, Graphics } from "../phaser";
 import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
@@ -42,11 +42,9 @@ export class LineInfo {
     }
 }
 
-export interface ITextField extends IView {
-
-}
-
 export class UITextField extends View {
+    public static TYPE = "textfield";
+
     private _textField: Text;
     private _richTextField: BBCodeText;
     private _bitmapTextField: BitmapText;
@@ -624,12 +622,14 @@ export class UITextField extends View {
         this.layoutAlign();
     }
     
-    public ensureSizeCorrect(): void {
+    public ensureSizeCorrect(): this {
         super.ensureSizeCorrect();
 
         if (this._sizeDirty && this._requireRender) {
             this.renderNow();
         }
+
+        return this;
     }
 
     public get textWidth(): number {
@@ -666,10 +666,12 @@ export class UITextField extends View {
         }
     }
 
-    public fromJSON(config: any, template?: any) {      
+    public fromJSON(config: any, template?: any): this {      
         if(config) {  
             super.fromJSON(config, template);
             this.render();
         }
+
+        return this;
     }
 }
