@@ -1,6 +1,7 @@
 import { GetValue } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
+import { Serialize, Deserialize } from "../utils/Serialize";
 
 export class Property {
     _name: string = null;
@@ -272,5 +273,17 @@ export class PropertyManager {
 
         pg.applyAll(this._lastGroup);
         this._lastGroup = pg;
+    }
+
+    public toJSON(): any {
+        return Serialize(this);
+    }
+
+    public fromJSON(config: any, template?: any): this {
+        if(config) {
+            Deserialize(this, config, template);
+        }        
+
+        return this;
     }
 }
