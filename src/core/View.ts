@@ -83,7 +83,9 @@ export class View {
             target.reconstruct();
 
             if(depth === 0) {
-                
+                if(target._propertyManager) {
+                    
+                }
             }
         }
     }
