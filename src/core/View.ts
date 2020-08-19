@@ -19,6 +19,9 @@ import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
+import { IMetadataInfo } from "../types/IMeta";
+import { DataDB } from "./DataDB";
+import { Data } from "phaser";
 
 export class View {  
     static TYPE = "view";
@@ -51,7 +54,7 @@ export class View {
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},
-            {property: "_propertyManager", alias: "properties", type: PropertyManager, default: null},
+            {property: "_propertyManager", alias: "properties", type: PropertyManager, default: null, priority: 999},
         );
         return fields;
     }
@@ -75,9 +78,13 @@ export class View {
         
     }
 
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any, depth: number) {
         if(target instanceof View) {
             target.reconstruct();
+
+            if(depth === 0) {
+                
+            }
         }
     }
 
@@ -128,9 +135,9 @@ export class View {
     protected _tint: number = 0xffffff;
     protected _alpha: number = 1;
     private _gBackground: Graphics = null;
-    private _relations: Relations;
-    private _propertyManager: PropertyManager;
-    private _timelineManager: TimelineManager;
+    protected _relations: Relations;
+    protected _propertyManager: PropertyManager;
+    protected _timelineManager: TimelineManager;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -157,9 +164,12 @@ export class View {
 
     constructor(scene: ViewScene) {
         this._rid = this._id = `${View.sInstanceCounter++}`;
+        this._name = `n${this._id}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
+
+        DataDB.put(this);
     }
 
     /**@internal */
@@ -251,6 +261,11 @@ export class View {
 
     public get id(): string {
         return this._id;
+    }
+
+    /**@internal */
+    get rid(): string {
+        return this._rid;
     }
 
     public get name(): string {
@@ -954,6 +969,8 @@ export class View {
         this._rootContainer = null;
             
         this._scene.tweens.killTweensOf(this);
+
+        DataDB.remove(this);
     }
 
     /**@internal */
@@ -1466,8 +1483,15 @@ export class View {
         this.ensureSizeCorrect();
     }
 
+    protected updateId() {
+        if(this._rid != this._id) {
+            DataDB.putTemp(this);
+        }
+    }
+
     protected reconstruct() {   
-        this.relayout();
+        this.updateId();
+        this.relayout();        
     }
 
     public toJSON(): any {
@@ -1609,5 +1633,12 @@ export class View {
             this._alpha = value;
             this.applyBackgroundChange();
         }
+    }
+
+    getMetadata(): IMetadataInfo {
+        return {
+            uniqueType: "view",
+            uid: this.id,
+        };
     }
 }

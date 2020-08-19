@@ -1,5 +1,5 @@
-import { IView } from "./IView";
 import { Property } from "../tween/Property";
+import { View } from "../core/View";
 
 export interface ComponentOptions {
     containsParentType?: boolean; 
@@ -8,9 +8,9 @@ export interface ComponentOptions {
 }
 
 export interface IComponent {
-    owner: IView;
+    owner: View;
     enable: boolean;
-    regist(obj: IView): void;
+    regist(obj: View): void;
     unRegist(): void;
     dispose(): void;
     toJSON(): any;

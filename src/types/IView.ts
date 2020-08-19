@@ -13,6 +13,7 @@ import { ISerialable } from "./ISerialable";
 import { TimelineManager } from "../tween/Timeline";
 import { PropertyManager } from "../tween/Property";
 import { Relations } from "../core/Relations";
+import { IMetadatable } from "./IMeta";
 
 export interface IViewConfig extends IColorable {
     name?:string;
@@ -39,7 +40,7 @@ export interface IViewConfig extends IColorable {
     backgroundColor?:number;
 }
 
-export interface IView extends IViewConfig, IComponentable, IEventable, ITransformable, IDraggable, IFocusable, ISerialable {
+export interface IView extends IViewConfig, IComponentable, IEventable, ITransformable, IDraggable, IFocusable, ISerialable, IMetadatable {
     id: string;
     root: IViewRoot;
     onStage: boolean;

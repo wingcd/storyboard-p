@@ -2,6 +2,7 @@ import { GetValue } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
+import { IMetadataInfo } from "../types/IMeta";
 
 export class Property {
     _name: string = null;
@@ -20,6 +21,8 @@ export class Property {
 }
 
 class PropertyGroup {
+    // for story target metadata
+    private _targetMetadata: IMetadataInfo;
     private _target: any;
     private _properties:Property[] = [];
     private _name: string = null;
@@ -29,7 +32,8 @@ class PropertyGroup {
         let fields:ISerializeInfo[] = [];
         fields.push(
             {property: "_name", default: null},
-            {property: "_properties", type: Property, default: []},
+            {property: "_properties", type: Property, default: []},            
+            {property: "_target", default: null},
         );
         return fields;
     }
@@ -39,6 +43,20 @@ class PropertyGroup {
             inst: new PropertyGroup(target.target, config.name), 
             hasInit: false
         };
+    }
+
+    static DESERIALIZE_FIELD_START(config: any, target: any, configProp: string, targetProp: string, tpl: any): boolean {
+        if(target instanceof PropertyGroup) {
+            
+        }
+        return true;
+    }
+
+    static DESERIALIZE_FIELD_END(config: any, target: any, configProp: string, targetProp: string, tpl: any) {
+        if(typeof(target.getMetadata) === "function") {
+            let metadata = target.getMatedata();
+
+        }
     }
 
     static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
@@ -54,6 +72,10 @@ class PropertyGroup {
     constructor(target: any, name: string) {
         this._target = target;
         this._name = name;
+    }
+
+    public targetMetadata(): IMetadataInfo {
+        return this._targetMetadata;
     }
 
     public store(): this {
@@ -275,15 +297,8 @@ export class PropertyManager {
         this._lastGroup = pg;
     }
 
-    public toJSON(): any {
-        return Serialize(this);
-    }
+    /**@internal */
+    searchTarget(): void {
 
-    public fromJSON(config: any, template?: any): this {
-        if(config) {
-            Deserialize(this, config, template);
-        }        
-
-        return this;
     }
 }

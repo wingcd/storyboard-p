@@ -1,3 +1,13 @@
+import { IView, IViewGroup } from "../types";
+
+export function GetPath(root: IViewGroup, target: IView) {
+    let paths = [];
+    let parent = target.parent;
+    while(!parent && parent != root) {
+        
+    }
+}
+
 export function SetValue(source: any, key: string, value: any, checkProp: boolean = false)
 {
     if (!source || typeof source === 'number')

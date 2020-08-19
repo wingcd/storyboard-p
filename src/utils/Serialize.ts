@@ -78,7 +78,9 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     }
 }
 
-function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:any = null) {
+function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:any = null, depth:number = 0) {
+    depth++;
+
     let raw = target;    
     // 静态变量
     if(info.static) {
@@ -140,7 +142,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         }
                         ritem = new info.type(...parms);
                     }
-                    if(!needInit || Deserialize(ritem, cfgData[i], t)) {
+                    if(!needInit || Deserialize(ritem, cfgData[i], t, depth)) {
                         target[targetProp].push(ritem);
                     }
                 }
@@ -165,7 +167,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         target[targetProp] = ritem;
                     }
                     if(needInit && !SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
-                        if(!Deserialize(target[targetProp], cfgData, tpl)) {
+                        if(!Deserialize(target[targetProp], cfgData, tpl, depth)) {
                             SetValue(target, targetProp, cfgData);
                         }
                     }
@@ -209,21 +211,27 @@ export function Serialize(source: any, tpl?: any) {
  * @param config 序列化后的数据
  * @param tpl 模板对象，当设置此参数后，需要将模板数据一起赋值
  */
-export function Deserialize(target: any, config: any, tpl?:any): boolean {
+export function Deserialize(target: any, config: any, tpl?:any, depth?:number): boolean {
     if(!target.constructor.SERIALIZABLE_FIELDS) {
         return false;
     }
+    depth = depth || 0;
 
     let pnames: ISerializeInfo[] = target.constructor.SERIALIZABLE_FIELDS || [];
+    pnames.sort((a, b)=>{
+        let ap = a.priority || 0;
+        let bp = b.priority || 0;
+        return ap - bp;
+    });
 
     for(let item of pnames) {
         if(!item.readonly) {
-            deserializeProperty(target, item, config, tpl);
+            deserializeProperty(target, item, config, tpl, depth);
         }
     }
 
     if(target.constructor.DESERIALIZE_COMPLETED) {
-        target.constructor.DESERIALIZE_COMPLETED(config, target, tpl);
+        target.constructor.DESERIALIZE_COMPLETED(config, target, tpl, depth);
     }
     return true;
 }

@@ -8,6 +8,7 @@ export interface ISerializeInfo {
     parms?: string[];
     static?: boolean;
     readonly?: boolean;
+    priority?: number;
 }
 
 export function serializable_object(): ClassDecorator {
