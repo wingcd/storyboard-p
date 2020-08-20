@@ -3,6 +3,7 @@ import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { IMetadataInfo } from "../types/IMeta";
+import { ViewGroup } from "../core/ViewGroup";
 
 export class Property {
     _name: string = null;
@@ -21,9 +22,9 @@ export class Property {
 }
 
 class PropertyGroup {
-    // for story target metadata
-    private _targetMetadata: IMetadataInfo;
-    private _target: any;
+    private _targetName: string;
+    private _target: View;
+    private _parent: PropertyManager;
     private _properties:Property[] = [];
     private _name: string = null;
     private _store: any = {};
@@ -33,14 +34,14 @@ class PropertyGroup {
         fields.push(
             {property: "_name", default: null},
             {property: "_properties", type: Property, default: []},            
-            {property: "_target", default: null},
+            {property: "_target", alias: "target", importAs: "_targetName", default: null},
         );
         return fields;
     }
 
     static CREATE_INSTANCE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyGroup, hasInit:boolean} {
         return { 
-            inst: new PropertyGroup(target.target, config.name), 
+            inst: new PropertyGroup(target, target.target, config.name), 
             hasInit: false
         };
     }
@@ -54,28 +55,24 @@ class PropertyGroup {
 
     static DESERIALIZE_FIELD_END(config: any, target: any, configProp: string, targetProp: string, tpl: any) {
         if(typeof(target.getMetadata) === "function") {
-            let metadata = target.getMatedata();
+            let metadata = target.getMetadata();
 
         }
     }
 
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
-        if(target instanceof PropertyGroup) {
-            let props: Property[] = target._properties.slice();
-            target._properties = [];
-            for(let p of props) {
-                target.add(p.name, p.value);
-            }
-        }
-    }
+    // static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
+    //     if(target instanceof PropertyGroup) {
+    //         let props: Property[] = target._properties.slice();
+    //         target._properties = [];
+    //         for(let p of props) {
+    //             target.add(p.name, p.value);
+    //         }
+    //     }
+    // }
 
-    constructor(target: any, name: string) {
+    constructor(parent: PropertyManager, target: View, name: string) {
         this._target = target;
         this._name = name;
-    }
-
-    public targetMetadata(): IMetadataInfo {
-        return this._targetMetadata;
     }
 
     public store(): this {
@@ -181,6 +178,26 @@ class PropertyGroup {
         }
         return this;
     }
+
+    /**@internal */
+    bindTarget(parentTarget: View): this {
+        let owner: View = parentTarget;
+        if(parentTarget instanceof ViewGroup) {
+            owner = parentTarget.getChild(this._targetName); 
+        }
+        this._target = owner;
+        
+        if(owner) {
+            let props = this._properties.slice();
+            this._properties.length = 0;
+
+            for(let p of props) {
+                this.add(p.name, p.value);
+            }
+        }
+
+        return this;
+    }
 }
 
 export class PropertyManager {
@@ -201,11 +218,11 @@ export class PropertyManager {
         };
     }
 
-    private _target: any;
+    private _target: View;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
 
-    constructor(target?: any) {
+    constructor(target: View) {
         this._target = target;
     }
 
@@ -213,7 +230,7 @@ export class PropertyManager {
         return this._groups;
     }
 
-    public get target(): any {
+    public get target(): View {
         return this._target;
     }
 
@@ -247,7 +264,7 @@ export class PropertyManager {
         }
         target = target || this._target;
 
-        let pg = new PropertyGroup(target, name);
+        let pg = new PropertyGroup(this, target, name);
         this._groups.push(pg);
 
         return pg;
@@ -298,7 +315,11 @@ export class PropertyManager {
     }
 
     /**@internal */
-    searchTarget(): void {
+    bindTarget(target: View): this {
+        this.groups.forEach(g=>{
+            g.bindTarget(target);
+        });
 
+        return this;
     }
 }

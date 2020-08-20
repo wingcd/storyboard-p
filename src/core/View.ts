@@ -54,6 +54,7 @@ export class View {
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},
+            {property: "_components", alias: "components", type: BaseComponent, default: null, priority: 999},
             {property: "_propertyManager", alias: "properties", type: PropertyManager, default: null, priority: 999},
         );
         return fields;
@@ -162,7 +163,6 @@ export class View {
     _sourceHeight: number = 0;
 
     private _components: IComponent[]; 
-    private _dispComponents: IComponent[];
 
     constructor(scene: ViewScene) {
         this._rid = this._id = `${View.sInstanceCounter++}`;
@@ -1287,10 +1287,6 @@ export class View {
     private _checkComponent() {
         if(!this._components) {
             this._components = [];
-        }
-
-        if(!this._dispComponents) {
-            this._dispComponents = [];
         }
     }
 

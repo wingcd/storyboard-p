@@ -45,9 +45,17 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                         if(Array.isArray(tpl) && tpl.length > i) {
                             t = tpl[i];
                         }
-                        rets.push(Serialize(sourceData[i], t))
+
+                        let item = Serialize(sourceData[i], t);
+                        // 不添加0属性对象
+                        if(item && Object.getOwnPropertyNames(item).length > 0) {                                
+                            rets.push(item);
+                        }
                     }
-                    target[targetProp] = rets;
+
+                    if(rets.length > 0) {
+                        target[targetProp] = rets;
+                    }
                 } else if (typeof(sourceData) === 'object') {
                     if(!info.type) {
                         target[targetProp] = Object.assign({}, sourceData);

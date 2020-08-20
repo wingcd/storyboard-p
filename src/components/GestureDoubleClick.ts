@@ -6,6 +6,8 @@ import { View } from "../core/View";
 
 @disallow_multiple_component()
 export class GestureDoubleClick extends BaseComponent {
+    public static TYPE = "double_click";
+
     protected _touchDownPoint: Point;
     protected _clickCount: number = 0;
     private _pointerId = -1;

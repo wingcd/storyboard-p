@@ -23,7 +23,10 @@ export class ViewFactory {
     }
 
     public static regist(viewType: Function) {
-        ViewFactory._TYPES[(viewType as any).TYPE] = viewType;
+        let tName = (viewType as any).TYPE;
+        if(tName) {
+            ViewFactory._TYPES[tName] = viewType;
+        }
     }
 
     private _add(cls: {new (scene:ViewScene):View}, config?:any, template?: any): View {

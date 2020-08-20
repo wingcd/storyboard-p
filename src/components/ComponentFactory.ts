@@ -1,8 +1,4 @@
-import * as Events from "../events";
-import { GestureClick } from "./GestureClick";
-import { GestureDoubleClick } from "./GestureDoubleClick";
-import { GestureLongTouch } from "./GestureLongTouch";
-import { DropComponent } from "./DropComponent";
+import { IComponent } from "../types";
 
 export class ComponentFactory {
     private static _inst: ComponentFactory;
@@ -18,9 +14,35 @@ export class ComponentFactory {
     private _eventComponents: {
        [key: string] : any[]
     } = {};
-    private _serilableComponents: {
+    private _components: {
         [key: string] : Function
      } = {};
+
+    public regist(compType: Function) {
+        let tName = (compType as any).TYPE;
+        if(tName) {
+            this._components[tName] = compType;
+        }
+    }
+
+    private _add(cls: {new (): IComponent}, config?:any): IComponent {
+        let comp = new cls();
+        comp.fromJSON(config);
+        return comp;
+    }
+
+    public create(config?: any): IComponent {
+        if(!config || !config.type) {
+            throw new Error("must be with component type to create instance!");
+        }
+
+        let type: any = this._components[config.type];
+        if(!type) {
+            throw new Error(`not regist component type:${type}!`);
+        }
+
+        return this._add(type, config);
+    }
 
     public registEvents(type: string, compType: new()=>{}) {
         this._events[type] = compType;
@@ -59,9 +81,3 @@ export class ComponentFactory {
         return events;
     }
 }
-
-ComponentFactory.inst.registEvents(Events.DragEvent.DROP, DropComponent);
-ComponentFactory.inst.registEvents(Events.GestureEvent.Click, GestureClick);
-ComponentFactory.inst.registEvents(Events.GestureEvent.DoubleClick, GestureDoubleClick);
-ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchStart, GestureLongTouch);
-ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchEnd, GestureLongTouch);

@@ -10,6 +10,7 @@ import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { ComponentFactory } from "./ComponentFactory";
 
 const enum EScrollStatus {
     NONE,
@@ -29,7 +30,8 @@ const enum EScrollStatus {
  }
 
  @disallow_multiple_component()
-export class ScrollPaneComponent extends BaseComponent {   
+export class ScrollPaneComponent extends BaseComponent {
+    public static TYPE = "scroll";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
@@ -550,3 +552,5 @@ export class ScrollPaneComponent extends BaseComponent {
         }
      }
 }
+
+ComponentFactory.inst.regist(ScrollPaneComponent);

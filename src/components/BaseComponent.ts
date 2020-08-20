@@ -2,13 +2,24 @@ import { IComponent } from "../types";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
+import { ComponentFactory } from "./ComponentFactory";
 
 export class BaseComponent implements IComponent {
     protected _owner: View;
     protected _enable: boolean = true;
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        return [{property: "enable",importAs: "_enable",default: true}];
+        return [
+            {property: "TYPE", alias: "type", static: true, readonly: true},
+            {property: "enable",importAs: "_enable",default: true}
+        ];
+    }
+
+    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: IComponent, hasInit: boolean} {
+        return {
+            inst: ComponentFactory.inst.create(config),
+            hasInit: true
+        };
     }
 
     constructor() {

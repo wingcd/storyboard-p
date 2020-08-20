@@ -7,6 +7,7 @@ import { Deserialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
+import { EOverflowType } from "../core/Defines";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -18,6 +19,15 @@ class UIScene extends ViewScene {
 
     preload() {
         let r = this.addUI.group();
+        r.overflowType = EOverflowType.Scroll;
+        r.scrollPane.scrollSpeed = 20;
+        let js = r.toJSON();
+        console.log(js);
+
+        let rr = this.addUI.create(js);
+        rr.x = 200;
+        return;
+
         r.setBackgroundColor(0x0000ff, true);
         r.setSize(250,250);
         r.setXY(50, 50);
