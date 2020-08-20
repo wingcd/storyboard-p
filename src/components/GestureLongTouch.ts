@@ -6,8 +6,6 @@ import { disallow_multiple_component } from "../annotations/Component";
 
 @disallow_multiple_component()
 export class GestureLongTouch extends BaseComponent {
-    public static TYPE = "long_touch";
-
     protected _touched: boolean = false;
     protected _longTouched: boolean = false;
     private _pointerId = -1;
