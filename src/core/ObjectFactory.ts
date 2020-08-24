@@ -2,14 +2,14 @@ import { IMetadatable, IMetadataInfo } from "../types/IMeta";
 import { Data } from "phaser";
 import { randomString } from "../utils/String";
 
-export class DataDB {
+export class ObjectFactory {
     private static _db: {[key:string]: any} = {};
     private static _tempDB: {[key:string]: any} = {};
 
     public static genKey(): string {
         let key = "";
         do{
-            key = randomString(4)
+            key = randomString(5)
         }
         while(this._db[key]);
         return key;
@@ -26,8 +26,8 @@ export class DataDB {
     public static put(obj: IMetadatable, replace?: boolean) {
         if(obj) {
             let metadata = obj.getMetadata();
-            let key = DataDB.getKey(metadata);
-            if(!replace && DataDB.getByKey(key)) {
+            let key = ObjectFactory.getKey(metadata);
+            if(!replace && ObjectFactory.getByKey(key)) {
                 console.error(`already has data with key:${key}!`);
                 return;
             }
@@ -36,15 +36,15 @@ export class DataDB {
     }
 
     public static get(metadata: IMetadataInfo): any {
-        let key = DataDB.getKey(metadata);
-        return DataDB.getByKey(key);
+        let key = ObjectFactory.getKey(metadata);
+        return ObjectFactory.getByKey(key);
     }
 
     public static remove(obj: IMetadatable): boolean {
         let metadata = obj.getMetadata();
-        let key = DataDB.getKey(metadata);
-        if(DataDB._db[key]) {
-            delete DataDB._db[key];
+        let key = ObjectFactory.getKey(metadata);
+        if(ObjectFactory._db[key]) {
+            delete ObjectFactory._db[key];
             return true;
         }
         return false;
@@ -53,22 +53,22 @@ export class DataDB {
     public static putTemp(obj: IMetadatable, replace?: boolean) {
         if(obj) {
             let metadata = obj.getMetadata();
-            let key = DataDB.getKey(metadata);
-            if(!replace && DataDB._tempDB[key]) {
+            let key = ObjectFactory.getKey(metadata);
+            if(!replace && ObjectFactory._tempDB[key]) {
                 console.error(`already has temp data with key:${key}!`);
                 return;
             }
-            DataDB._tempDB[key] = obj;
+            ObjectFactory._tempDB[key] = obj;
         }
     }
 
     public static removeTemp(obj: IMetadatable) {
         let metadata = obj.getMetadata();
-        let key = DataDB.getKey(metadata);
-        delete DataDB._tempDB[key];
+        let key = ObjectFactory.getKey(metadata);
+        delete ObjectFactory._tempDB[key];
     }
 
     public static clearTemp() {
-        DataDB._tempDB = {};
+        ObjectFactory._tempDB = {};
     }
 }

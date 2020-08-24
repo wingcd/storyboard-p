@@ -20,7 +20,7 @@ import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
 import { IMetadataInfo } from "../types/IMeta";
-import { DataDB } from "./DataDB";
+import { ObjectFactory } from "./ObjectFactory";
 import { Data } from "phaser";
 
 export class View {  
@@ -171,7 +171,7 @@ export class View {
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
 
-        DataDB.put(this);
+        ObjectFactory.put(this);
     }
 
     /**@internal */
@@ -633,7 +633,8 @@ export class View {
 
     public get propertyManager(): PropertyManager {
         if(!this._propertyManager) {
-            this._propertyManager = new PropertyManager(this);
+            this._propertyManager = new PropertyManager();
+            this._propertyManager.bindTarget(this);
         }
         return this._propertyManager;
     }
@@ -972,7 +973,7 @@ export class View {
             
         this._scene.tweens.killTweensOf(this);
 
-        DataDB.remove(this);
+        ObjectFactory.remove(this);
     }
 
     /**@internal */
@@ -1483,7 +1484,7 @@ export class View {
 
     protected updateId() {
         if(this._rid != this._id) {
-            DataDB.putTemp(this);
+            ObjectFactory.putTemp(this);
         }
     }
 

@@ -4,6 +4,7 @@ import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { IMetadataInfo } from "../types/IMeta";
 import { ViewGroup } from "../core/ViewGroup";
+import { ObjectFactory } from "../core/ObjectFactory";
 
 export class Property {
     _name: string = null;
@@ -41,7 +42,7 @@ class PropertyGroup {
 
     static CREATE_INSTANCE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyGroup, hasInit:boolean} {
         return { 
-            inst: new PropertyGroup(target, target.target, config.name), 
+            inst: new PropertyGroup(target, config.name), 
             hasInit: false
         };
     }
@@ -70,8 +71,8 @@ class PropertyGroup {
     //     }
     // }
 
-    constructor(parent: PropertyManager, target: View, name: string) {
-        this._target = target;
+    constructor(parent: PropertyManager, name: string) {
+        this._parent = parent;
         this._name = name;
     }
 
@@ -201,8 +202,10 @@ class PropertyGroup {
 }
 
 export class PropertyManager {
-    static TYPE = "view";
-
+    static sID = 1;
+    static TYPE = "property";
+    
+    private _id: string = '';
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
@@ -213,7 +216,7 @@ export class PropertyManager {
 
     static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyManager,hasInit:boolean} {
         return { 
-            inst: new PropertyManager(target), 
+            inst: (new PropertyManager().bindTarget(target)), 
             hasInit: false
         };
     }
@@ -222,8 +225,14 @@ export class PropertyManager {
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
 
-    constructor(target: View) {
-        this._target = target;
+    constructor() {
+        this._id = `${++PropertyManager.sID}`;        
+
+        ObjectFactory.put(this);
+    }
+
+    public destory() {
+        ObjectFactory.remove(this);
     }
 
     public get groups(): PropertyGroup[] {
@@ -264,7 +273,8 @@ export class PropertyManager {
         }
         target = target || this._target;
 
-        let pg = new PropertyGroup(this, target, name);
+        let pg = new PropertyGroup(this, name);
+        pg.bindTarget(pg.target);
         this._groups.push(pg);
 
         return pg;
@@ -314,12 +324,30 @@ export class PropertyManager {
         this._lastGroup = pg;
     }
 
-    /**@internal */
-    bindTarget(target: View): this {
+    public bindTarget(target: View): this {
         this.groups.forEach(g=>{
             g.bindTarget(target);
         });
 
         return this;
+    }
+
+    public toJSON(): any {
+        return Serialize(this);
+    }
+
+    public fromJSON(config: any, template?: any): this {
+        if(config) {
+            Deserialize(this, config, template);
+        }        
+
+        return this;
+    }
+
+    getMetadata(): IMetadataInfo {
+        return {
+            uniqueType: "property",
+            uid: this._id,
+        }
     }
 }
