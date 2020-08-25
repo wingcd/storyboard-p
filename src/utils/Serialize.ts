@@ -34,7 +34,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
         }
     }
 
-    if(!done) {
+    if(!done && sourceData != tpl) {
         if(typeof(source) === 'object') {
             if (target[sourceProp] != sourceData) {
                 if(Array.isArray(sourceData)) {
@@ -87,6 +87,10 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 }
 
 function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:any = null, depth:number = 0) {
+    if(!config && tpl) {
+        config = {};
+    }
+
     depth++;
 
     let raw = target;    
@@ -97,14 +101,18 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     let cfgProp = info.alias && config.hasOwnProperty(info.alias) ? info.alias : info.property;
     let targetProp = info.importAs || info.property;
 
-    let cfgData = config[cfgProp];  
-    if(cfgData === undefined) {
-        return;
-    }  
-
+    let cfgData = config[cfgProp];
     if(tpl) {
-        tpl = tpl[cfgProp] == undefined ?  tpl[cfgProp] : tpl[targetProp];
+        tpl = tpl[cfgProp] != undefined ?  tpl[cfgProp] : tpl[targetProp];
     }
+
+    if(cfgData == undefined) {
+        if(tpl === undefined) {
+            return;
+        }
+        cfgData = tpl;
+        tpl = null;
+    }  
 
     let onstart:Function = raw.constructor.DESERIALIZE_FIELD_START;
     let onend:Function = raw.constructor.DESERIALIZE_FIELD_END;
@@ -117,7 +125,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     
     if(!done) {
         if(cfgData === undefined || typeof(cfgData) === 'function') {
-            target[targetProp] = tpl != undefined ? tpl : info.default;
+            target[targetProp] = info.default;
             done = true;
         }
     }

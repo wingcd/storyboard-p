@@ -2,9 +2,10 @@ import { GetValue } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
-import { IMetadataInfo } from "../types/IMeta";
 import { ViewGroup } from "../core/ViewGroup";
-import { ObjectFactory } from "../core/ObjectFactory";
+import { ECategoryType } from "../core/Defines";
+import { ITemplatable } from "../types/ITemplatable";
+import { Package } from "../core/Package";
 
 export class Property {
     _name: string = null;
@@ -201,15 +202,17 @@ class PropertyGroup {
     }
 }
 
-export class PropertyManager {
-    static sID = 1;
-    static TYPE = "property";
+export class PropertyManager implements ITemplatable {
+    static CATEGORY = ECategoryType.Property;
     
-    private _id: string = '';
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
-            {property: "_groups", type: PropertyGroup, default: []},
+            {property: "CATEGORY", alias: "category", static: true, readonly: true},
+
+            {property: "resourceUrl", default: null},
+            {property: "id",importAs: "_id",default: null},
+            {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
         );
         return fields;
     }
@@ -224,15 +227,16 @@ export class PropertyManager {
     private _target: View;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
+    private _id: string;
 
+    public resourceUrl: string;
+    
     constructor() {
-        this._id = `${++PropertyManager.sID}`;        
-
-        ObjectFactory.put(this);
+        this._id = `${Package.getUniqueID()}`;
     }
 
-    public destory() {
-        ObjectFactory.remove(this);
+    public get id(): string {
+        return this._id;
     }
 
     public get groups(): PropertyGroup[] {
@@ -241,6 +245,10 @@ export class PropertyManager {
 
     public get target(): View {
         return this._target;
+    }
+
+    public destory() {
+        
     }
 
     /**
@@ -333,21 +341,18 @@ export class PropertyManager {
     }
 
     public toJSON(): any {
-        return Serialize(this);
+        let temp = null;
+        if(this.resourceUrl) {
+            temp = Package.getTemplateFromUrl(this.resourceUrl);
+        }
+        return Serialize(this, temp);
     }
 
     public fromJSON(config: any, template?: any): this {
-        if(config) {
+        if(config || template) {
             Deserialize(this, config, template);
         }        
 
         return this;
-    }
-
-    getMetadata(): IMetadataInfo {
-        return {
-            uniqueType: "property",
-            uid: this._id,
-        }
     }
 }

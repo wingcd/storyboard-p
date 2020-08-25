@@ -505,13 +505,4 @@ export class ViewGroup extends View {
         this.appendChildrenList();
         this.relayout();
     }
-
-    public fromJSON(config: any, template?: any): this {
-        if(config) {
-            Deserialize(this, config, template);
-            this.reconstruct();
-        }
-
-        return this;
-    }
 }

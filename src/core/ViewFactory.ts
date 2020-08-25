@@ -64,11 +64,12 @@ export class ViewFactory {
     }
 
     public create(config?: any, template?: any): View {
-        if(!config || !config.type) {
+        let viewType = (config ? config.type : null) || (template ? template.type : null);
+        if(!viewType) {
             throw new Error("must be with view type to create instance!");
         }
 
-        let type: any = ViewFactory._TYPES[config.type];
+        let type: any = ViewFactory._TYPES[viewType];
         if(!type) {
             throw new Error(`not regist view type:${type}!`);
         }

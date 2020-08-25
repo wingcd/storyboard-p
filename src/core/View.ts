@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-import { EDirtyType, EOverflowType } from "./Defines";
+import { EDirtyType, EOverflowType, ECategoryType } from "./Defines";
 import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2, GeometryMask, MaskType, BitmapMask } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
@@ -19,19 +19,20 @@ import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
-import { IMetadataInfo } from "../types/IMeta";
-import { ObjectFactory } from "./ObjectFactory";
-import { Data } from "phaser";
+import { Package } from "./Package";
 
 export class View {  
+    static CATEGORY = ECategoryType.View;
     static TYPE = "view";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = [];
         fields.push(
+            {property: "CATEGORY", alias: "category", static: true, readonly: true},
             {property: "TYPE", alias: "type", static: true, readonly: true},
             {property: "data",default: null},
-            {property: "id",importAs: "_id",default: null},
+            {property: "resourceUrl", default: null},
+            {property: "id",importAs: "_id",default: null, readonly: true},
             {property: "name",importAs: "_name",default: ""},
             {property: "visible",importAs: "_visible",default: true},
             {property: "hiddenCollapsed",importAs: "_hiddenCollapsed",default: true},
@@ -91,9 +92,8 @@ export class View {
         }
     }
 
-    static sInstanceCounter: number = 0;
-
-    public data: any;
+    public data: any;    
+    public resourceUrl: string;
 
     protected _rid: string;
     protected _id: string;
@@ -165,13 +165,11 @@ export class View {
     private _components: IComponent[]; 
 
     constructor(scene: ViewScene) {
-        this._rid = this._id = `${View.sInstanceCounter++}`;
+        this._rid = this._id = `${Package.getUniqueID()}`;
         this._name = `n${this._id}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
         this.bind(scene);
-
-        ObjectFactory.put(this);
     }
 
     /**@internal */
@@ -972,8 +970,6 @@ export class View {
         this._rootContainer = null;
             
         this._scene.tweens.killTweensOf(this);
-
-        ObjectFactory.remove(this);
     }
 
     /**@internal */
@@ -1484,7 +1480,7 @@ export class View {
 
     protected updateId() {
         if(this._rid != this._id) {
-            ObjectFactory.putTemp(this);
+
         }
     }
 
@@ -1494,13 +1490,17 @@ export class View {
     }
 
     public toJSON(): any {
-        return Serialize(this);
+        let temp = null;
+        if(this.resourceUrl) {
+            temp = Package.getTemplateFromUrl(this.resourceUrl);
+        }
+        return Serialize(this, temp);
     }
 
     public fromJSON(config: any, template?: any): this {
-        if(config) {
+        if(config || template) {
             Deserialize(this, config, template);
-            this.relayout();
+            this.reconstruct();
         }        
 
         return this;
@@ -1632,12 +1632,5 @@ export class View {
             this._alpha = value;
             this.applyBackgroundChange();
         }
-    }
-
-    getMetadata(): IMetadataInfo {
-        return {
-            uniqueType: "view",
-            uid: this.id,
-        };
     }
 }

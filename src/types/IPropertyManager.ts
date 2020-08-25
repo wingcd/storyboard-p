@@ -1,3 +1,5 @@
+import { ITemplatable } from "./ITemplatable";
+
 export interface IProperty {
     _name: string;
     name: string;
@@ -23,7 +25,7 @@ export interface IPropertyManagerConfig {
 
 }
 
-export interface IPropertyManager extends IPropertyManagerConfig {
+export interface IPropertyManager extends IPropertyManagerConfig,ITemplatable {
     target: any;
     groups: IPropertyGroup[];
 

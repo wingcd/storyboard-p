@@ -3,6 +3,22 @@ import { Easing } from "../phaser";
 export const TOP_MOST_DEPTH = 99999;
 export const DEFAULT_DEPTH = 0;
 
+export enum EResourceType { 
+    None,
+    Txt,
+    Json,
+    Image,
+    Audio,
+    Video,
+};
+
+export enum ECategoryType { 
+    None,
+    View,
+    Property,
+    Animation,    
+};
+
 export enum EDirectionType {
     None = 0,
     Left = 1,
