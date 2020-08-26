@@ -9,7 +9,7 @@ export class ObjectFactory {
     public static genKey(): string {
         let key = "";
         do{
-            key = randomString(5)
+            key = randomString(6, true, false, false);
         }
         while(this._db[key]);
         return key;

@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
+import { Templates } from "../core/Templates";
 
 function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: any = null) {
     let raw = source;    
@@ -35,49 +36,60 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     }
 
     if(!done && sourceData != tpl) {
-        if(typeof(source) === 'object') {
-            if (target[sourceProp] != sourceData) {
-                if(Array.isArray(sourceData)) {
-                    // 处理数组对象
-                    let rets = [];
-                    for(let i=0;i<sourceData.length;i++) {
-                        let t = null;
-                        if(Array.isArray(tpl) && tpl.length > i) {
-                            t = tpl[i];
+        if (target[sourceProp] != sourceData) {
+            if(typeof(sourceData) === 'object') {
+                let isarray = Array.isArray(sourceData);
+                if(!info.raw) {
+                    if(isarray || info.asarray) {
+                        // 处理数组对象
+                        let rets: any = isarray ? [] : {};
+                        for(let i in sourceData) {
+                            let t = null;
+                            if(tpl && tpl[i] != undefined) {
+                                t = tpl[i];
+                            }
+
+                            let item = Serialize(sourceData[i], t);
+                            // 不添加0属性对象
+                            if(item && Object.getOwnPropertyNames(item).length > 0) {    
+                                if(isarray) {
+                                    rets.push(item);
+                                }else{
+                                    rets[i] = item;
+                                }
+                            }
                         }
 
-                        let item = Serialize(sourceData[i], t);
-                        // 不添加0属性对象
-                        if(item && Object.getOwnPropertyNames(item).length > 0) {                                
-                            rets.push(item);
-                        }
-                    }
-
-                    if(rets.length > 0) {
                         target[targetProp] = rets;
-                    }
-                } else if (typeof(sourceData) === 'object') {
-                    if(!info.type) {
-                        target[targetProp] = Object.assign({}, sourceData);
-                    }else{                    
-                        let sdata = SerializeFactory.inst.serialize(sourceData);
-                        if(sdata) {
-                            target[targetProp] = sdata;
-                        }else {
-                            target[targetProp] = Serialize(sourceData, tpl);
-                        }                    
-
-                        // 刪除空属性对象
-                        if(target[targetProp] && Object.getOwnPropertyNames(target[targetProp]).length == 0) {
-                            delete target[targetProp];
+                    } else if (typeof(sourceData) === 'object') {
+                        if(info.raw) {
+                            target[targetProp] = Object.assign({}, sourceData);
+                        }else{                    
+                            let sdata = SerializeFactory.inst.serialize(sourceData);
+                            if(sdata) {
+                                target[targetProp] = sdata;
+                            }else {
+                                target[targetProp] = Serialize(sourceData, tpl);
+                            }  
                         }
-                    }
-                } else{
+                    }else{
+                        target[targetProp] = sourceData;
+                    } 
+                }else{
                     target[targetProp] = sourceData;
                 }
+            }else{
+                target[targetProp] = sourceData;
             }
-        }else{
-            target[targetProp] = sourceData;
+        }
+    }                      
+
+    // 刪除空属性对象
+    let result = target[targetProp];
+    if(result) {
+        if((Array.isArray(result) && result.length == 0)
+           || (typeof(result) === "object" && Object.getOwnPropertyNames(result).length == 0)) {
+            delete target[targetProp];
         }
     }
 
@@ -98,7 +110,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     if(info.static) {
         target = target.constructor;
     }
-    let cfgProp = info.alias && config.hasOwnProperty(info.alias) ? info.alias : info.property;
+    let cfgProp = info.alias && (config.hasOwnProperty(info.alias) || (tpl && tpl.hasOwnProperty(info.alias))) ? info.alias : info.property;
     let targetProp = info.importAs || info.property;
 
     let cfgData = config[cfgProp];
@@ -107,7 +119,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     }
 
     if(cfgData == undefined) {
-        if(tpl === undefined) {
+        if(tpl == undefined) {
             return;
         }
         cfgData = tpl;
@@ -132,46 +144,27 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
     if(!done) {
         if(typeof(config) === 'object') {
-            if(Array.isArray(cfgData) && info.type) {
-                // process array
-                if(target[targetProp] === undefined) {
-                    target[targetProp] = [];
-                }
-                for(let i=0;i<cfgData.length;i++) {
-                    let t = null;
-                    if(Array.isArray(tpl) && tpl.length > i) {
-                        t = tpl[i];
-                    }
+            let isarray = Array.isArray(cfgData);
+            if(!info.raw) {
+                if((isarray || info.asarray) && info.type) {
+                    // process array
+                    target[targetProp] = isarray ? [] : {};
 
-                    let ritem = null;
-                    let needInit = true;
-                    if(info.type.CREATE_INSTANCE) {
-                        let instRet = info.type.CREATE_INSTANCE(cfgData[i], target, cfgProp, targetProp, t, i);
-                        ritem = instRet.inst;
-                        needInit = !instRet.hasInit;
-                    }else{
-                        let parms = [];
-                        if(info.parms) {
-                            for(let p of info.parms) {
-                                parms.push(target[p]);
-                            }
+                    for(let i in cfgData) {
+                        let t = null;
+                        if(tpl && tpl[i] != undefined) {
+                            t = tpl[i];
                         }
-                        ritem = new info.type(...parms);
-                    }
-                    if(!needInit || Deserialize(ritem, cfgData[i], t, depth)) {
-                        target[targetProp].push(ritem);
-                    }
-                }
-            } else if (target[targetProp] != cfgData) {
-                if(typeof(cfgData) === "object" && info.type) {
-                    let needInit = true;
-                    if(target[targetProp] === undefined) {
+
                         let ritem = null;
+                        let needInit = true;
                         if(info.type.CREATE_INSTANCE) {
-                            let instRet = info.type.CREATE_INSTANCE(cfgData, target, cfgProp, targetProp, tpl);;
+                            let instRet = info.type.CREATE_INSTANCE(cfgData[i], target, cfgProp, targetProp, t, i);
                             ritem = instRet.inst;
                             needInit = !instRet.hasInit;
-                        }else{
+                        }
+                        
+                        if(needInit) {
                             let parms = [];
                             if(info.parms) {
                                 for(let p of info.parms) {
@@ -180,16 +173,62 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             }
                             ritem = new info.type(...parms);
                         }
-                        target[targetProp] = ritem;
-                    }
-                    if(needInit && !SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
-                        if(!Deserialize(target[targetProp], cfgData, tpl, depth)) {
-                            SetValue(target, targetProp, cfgData);
+
+                        let done = false;
+                        if(!SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
+                            if(Deserialize(ritem, cfgData[i], t, depth)) {
+                                done = true;
+                            }
+                        }else{
+                            done = true;
+                        }
+
+                        if(done) {
+                            if(isarray) {
+                                target[targetProp].push(ritem);
+                            }else{
+                                target[targetProp][i] = ritem;
+                            }
                         }
                     }
-                }else{      
-                    SetValue(target, targetProp, cfgData);
+                } else if (target[targetProp] != cfgData) {
+                    if(!info.type && cfgData.__category__) {
+                        info.type = Templates.get(cfgData.__category__);
+                    }
+
+                    if(!info.raw && typeof(cfgData) === "object" && info.type) {
+                        let needInit = true;
+                        if(target[targetProp] === undefined) {
+                            let ritem = null;
+                            if(info.type.CREATE_INSTANCE) {
+                                let instRet = info.type.CREATE_INSTANCE(cfgData, target, cfgProp, targetProp, tpl);;
+                                ritem = instRet.inst;
+                                needInit = !instRet.hasInit;
+                            }
+                            
+                            if(needInit){
+                                let parms = [];
+                                if(info.parms) {
+                                    for(let p of info.parms) {
+                                        parms.push(target[p]);
+                                    }
+                                }
+                                ritem = new info.type(...parms);
+                            }
+                            target[targetProp] = ritem;
+                        }
+
+                        if(!SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
+                            if(!Deserialize(target[targetProp], cfgData, tpl, depth)) {
+                                SetValue(target, targetProp, cfgData);
+                            }
+                        }
+                    }else{      
+                        SetValue(target, targetProp, cfgData);
+                    }
                 }
+            }else{
+                SetValue(target, targetProp, cfgData);
             }
         }else{
             SetValue(target, targetProp, cfgData);

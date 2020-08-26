@@ -6,6 +6,7 @@ import { ViewGroup } from "../core/ViewGroup";
 import { ECategoryType } from "../core/Defines";
 import { ITemplatable } from "../types/ITemplatable";
 import { Package } from "../core/Package";
+import { Templates } from "../core/Templates";
 
 export class Property {
     _name: string = null;
@@ -34,8 +35,8 @@ class PropertyGroup {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
-            {property: "_name", default: null},
-            {property: "_properties", type: Property, default: []},            
+            {property: "_name", alias: "name", default: null},
+            {property: "_properties", alias: "properties", type: Property, default: []},            
             {property: "_target", alias: "target", importAs: "_targetName", default: null},
         );
         return fields;
@@ -208,10 +209,10 @@ export class PropertyManager implements ITemplatable {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
-            {property: "CATEGORY", alias: "category", static: true, readonly: true},
+            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
 
             {property: "resourceUrl", default: null},
-            {property: "id",importAs: "_id",default: null},
+            {property: "_id", alias: "id", default: null},
             {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
         );
         return fields;
@@ -343,7 +344,7 @@ export class PropertyManager implements ITemplatable {
     public toJSON(): any {
         let temp = null;
         if(this.resourceUrl) {
-            temp = Package.getTemplateFromUrl(this.resourceUrl);
+            temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
         return Serialize(this, temp);
     }
@@ -356,3 +357,5 @@ export class PropertyManager implements ITemplatable {
         return this;
     }
 }
+
+Templates.regist(PropertyManager.CATEGORY, PropertyManager);

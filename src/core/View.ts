@@ -20,15 +20,16 @@ import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
 import { Package } from "./Package";
+import { Templates } from "./Templates";
 
 export class View {  
-    static CATEGORY = ECategoryType.View;
+    static CATEGORY = ECategoryType.UI;
     static TYPE = "view";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = [];
         fields.push(
-            {property: "CATEGORY", alias: "category", static: true, readonly: true},
+            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
             {property: "TYPE", alias: "type", static: true, readonly: true},
             {property: "data",default: null},
             {property: "resourceUrl", default: null},
@@ -1492,7 +1493,7 @@ export class View {
     public toJSON(): any {
         let temp = null;
         if(this.resourceUrl) {
-            temp = Package.getTemplateFromUrl(this.resourceUrl);
+            temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
         return Serialize(this, temp);
     }
@@ -1634,3 +1635,5 @@ export class View {
         }
     }
 }
+
+Templates.regist(View.CATEGORY, View);

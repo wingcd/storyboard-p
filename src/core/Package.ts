@@ -4,35 +4,61 @@ import { ITemplatable } from "../types/ITemplatable";
 import { ECategoryType } from "./Defines";
 import { ViewScene } from "./ViewScene";
 import { PropertyManager } from "../tween/Property";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 export class Package {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "_packages", alias: "packages", default: null, type: PackageItem},
+        );
+        return fields;
+    }
+
+    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any, depth: number) {
+        if(target instanceof Package) {
+            let packages = target._packages.slice();
+            target._packages.length = 0;
+            for(let t of packages) {
+                target.addPackage(t);
+            }
+        }
+    }
+
+    private static _inst: Package = new Package();
+    public static get inst(): Package {
+        return Package._inst;
+    }
+
     private static _sid = 0;
 
-    private static _packagesById: {[key:string]: PackageItem} = {};
-    private static _packagesByName: {[key:string]: PackageItem} = {};
+    private _packages: PackageItem[] = [];
+    private _packagesById: {[key:string]: PackageItem} = {};
+    private _packagesByName: {[key:string]: PackageItem} = {};
 
     public static getUniqueID() {
         return ++Package._sid;
     }
 
-    public static genPackageKey() {
+    public genPackageKey() {
         let key = "";
         do{
-            key = randomString(5)
+            key = randomString(6, true, false, false);
         }
-        while(Package._packagesById[key]);
+        while(this._packagesById[key]);
         return key;
     }
 
-    public static addPackage(pkg: PackageItem) {
+    public addPackage(pkg: PackageItem) {
         if(!this._packagesById[pkg.id]) {
             this._packagesById[pkg.id] = pkg;
             this._packagesByName[pkg.name] = pkg;
+            this._packages.push(pkg);
         }
     }    
 
-    public static getTemplateUrl(pkgName: string, tempName: string) {
-        let pkg = Package._packagesByName[pkgName];
+    public getTemplateUrl(pkgName: string, tempName: string) {
+        let pkg = this._packagesByName[pkgName];
         if(!pkg) {
             return null;
         }
@@ -45,18 +71,18 @@ export class Package {
         return `res://${pkg.id}/${item.id}`;
     }
 
-    public static getTemplateFromUrl(url: string): ITemplatable {
+    public getTemplateFromUrl(url: string): ITemplatable {
         if(!url.startsWith("res://")) {
             return null;
         }
 
         url = url.replace("res://", "");
         let strs = url.split("/");
-        return Package.getTemplate(strs[0], strs[1]);
+        return this.getTemplate(strs[0], strs[1]);
     }
 
-    public static getTemplate(pkgId: string, tempName: string): ITemplatable {
-        let pkg = Package._packagesById[pkgId];
+    public getTemplate(pkgId: string, tempName: string): ITemplatable {
+        let pkg = this._packagesById[pkgId];
         if(!pkg) {
             return null;
         }
@@ -64,19 +90,19 @@ export class Package {
         return pkg.getTemplate(tempName);
     }
 
-    public static createObjectFromUrl(scene:ViewScene, url: string): ITemplatable {
+    public createObjectFromUrl(scene:ViewScene, url: string): ITemplatable {
         if(!url) {
             return null;
         }
 
-        let data = Package.getTemplateFromUrl(url) as any;
+        let data = this.getTemplateFromUrl(url) as any;
         if(!data) {
             return null;
         }
 
         let result: any;
-        switch(data.category) {
-            case ECategoryType.View:
+        switch(data.__category__) {
+            case ECategoryType.UI:
                 result = scene.addUI.create(data);
                 break;
             case ECategoryType.Property:
@@ -90,26 +116,22 @@ export class Package {
         return result;
     } 
 
-    public static createObject(scene:ViewScene, data: any): ITemplatable {
-        if(!data.category && !data.resourceUrl) {
+    public createObject(scene:ViewScene, data: any): ITemplatable {
+        if(!data.__category__ && !data.resourceUrl) {
             return null;
         }
 
         let temp = data;
-        let cfg = null;
         if(data.resourceUrl) {
-            temp = Package.getTemplateFromUrl(data.resourceUrl);
-            if(temp) {
-                cfg = data;
-            }
+            temp = this.getTemplateFromUrl(data.resourceUrl);
         }
 
-        let category = data.category || temp ? temp.category : null;
+        let category = data.__category__ || temp ? temp.__category__ : null;
         switch(category) {
-            case ECategoryType.View:
+            case ECategoryType.UI:
                 return scene.addUI.create(data, temp);
             case ECategoryType.Property:
                 return new PropertyManager().fromJSON(data, temp);
         }
-    } 
+    }
 }

@@ -3,7 +3,7 @@ import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, ESta
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { BaseComponent } from "../components/BaseComponent";
-import { Deserialize } from "../utils/Serialize";
+import { Deserialize, Serialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
@@ -27,7 +27,7 @@ class UIScene extends ViewScene {
         r.scrollPane.scrollSpeed = 20;
 
         r.setBackgroundColor(0x0000ff, true);
-        r.setSize(50,60);
+        r.setSize(50,100);
         r.setXY(50, 50);
 
         let g = this.addUI.view();
@@ -38,22 +38,36 @@ class UIScene extends ViewScene {
 
         let json = r.toJSON();
         let pkgItem = new PackageItem();        
-        Package.addPackage(pkgItem);
+        Package.inst.addPackage(pkgItem);
         let temp = pkgItem.addTemplate(json);
 
         let prop = new PropertyManager();
         prop.add("state1").add("x", 100).add("y", 200);
         let propTemp = pkgItem.addTemplate(prop.toJSON());
 
-        let clone = Package.createObjectFromUrl(this, temp) as View;
+        let clone = Package.inst.createObjectFromUrl(this, temp) as View;
         clone.x = 200;
 
-        let clone1 = Package.createObjectFromUrl(this, propTemp) as PropertyManager;
+        let clone1 = Package.inst.createObjectFromUrl(this, propTemp) as PropertyManager;
         clone1.bindTarget(clone);
 
-        // let copyJson = clone.toJSON();
-        // let clone2 = Package.createObject(this, copyJson) as View;
-        // clone2.x = 300;
+        let copyJson = clone.toJSON();
+        console.log(JSON.stringify(copyJson));
+
+        let clone2 = Package.inst.createObject(this, copyJson) as View;
+        clone2.x = 300;
+
+        let itemJson = Serialize(pkgItem);
+
+        let pk = new PackageItem();
+        Deserialize(pk, itemJson);
+
+        let pkgJson = Serialize(Package.inst);
+
+        let pkg = new Package();
+        Deserialize(pkg, pkgJson);
+
+        console.log(JSON.stringify(pkgJson));
     }
 
     create(): void {

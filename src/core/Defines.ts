@@ -13,10 +13,10 @@ export enum EResourceType {
 };
 
 export enum ECategoryType { 
-    None,
-    View,
-    Property,
-    Animation,    
+    None = "none",
+    UI = "ui",
+    Property = "prop",
+    Animation = "ani",    
 };
 
 export enum EDirectionType {
