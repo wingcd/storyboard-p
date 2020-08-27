@@ -1,11 +1,65 @@
 import { IView, IViewGroup } from "../types";
 
-export function GetPath(root: IViewGroup, target: IView) {
-    let paths = [];
-    let parent = target.parent;
-    while(!parent && parent != root) {
-        
+export function IsViewChild(root: IView, target: IView) {
+    if(!root || !target) {
+        return false;
     }
+
+    if(root == target) {
+        return true;
+    }
+
+    let parent = target;
+    while(parent && parent != root) {
+        if(target == parent) {
+            return true;
+        }
+        parent = parent.parent;
+    }
+    
+    return false;
+}
+
+export function GetViewRelativePath(root: IView, target: IView) {
+    if(!root || !target) {
+        return "";
+    }
+
+    if(!IsViewChild(root, target)) {
+        console.error("target view is not child of root view!")
+        return "";
+    }
+
+    let paths = [];
+    while(target && target != root) {
+        paths.push(target.name);
+        target = target.parent;
+    }
+    return paths.reverse().join(".");
+}
+
+export function GetViewByRelativePath(root: IView, path: string): IView {
+    if(!root || !path) {
+        return root;
+    }
+
+    let child = root;
+    let paths = path.split(".");
+    for(let p of paths) {
+        if(!(child as any).getChild) {
+            console.error(`invalid path ${path} in ${p}:not group view!`);
+            return child;
+        }
+
+        let c = (child as any).getChild(p) as IViewGroup;
+
+        if(!c) {
+            console.error(`invalid path ${path} in ${p}:can not find child!`);
+            return c;
+        }
+        child = c;
+    }
+    return child;
 }
 
 export function SetValue(source: any, key: string, value: any, checkProp: boolean = false)

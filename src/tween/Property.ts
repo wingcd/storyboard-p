@@ -1,4 +1,4 @@
-import { GetValue } from "../utils/Object";
+import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
@@ -25,7 +25,7 @@ export class Property {
 }
 
 class PropertyGroup {
-    private _targetName: string;
+    private _targetPath: string;
     private _target: View;
     private _parent: PropertyManager;
     private _properties:Property[] = [];
@@ -37,7 +37,7 @@ class PropertyGroup {
         fields.push(
             {property: "_name", alias: "name", default: null},
             {property: "_properties", alias: "properties", type: Property, default: []},            
-            {property: "_target", alias: "target", importAs: "_targetName", default: null},
+            {property: "_targetPath", alias: "target", default: null},
         );
         return fields;
     }
@@ -49,17 +49,9 @@ class PropertyGroup {
         };
     }
 
-    static DESERIALIZE_FIELD_START(config: any, target: any, configProp: string, targetProp: string, tpl: any): boolean {
+    static DESERIALIZE_FIELD_END(config: any, target: any, configProp: string, targetProp: string, tpl: any) {
         if(target instanceof PropertyGroup) {
             
-        }
-        return true;
-    }
-
-    static DESERIALIZE_FIELD_END(config: any, target: any, configProp: string, targetProp: string, tpl: any) {
-        if(typeof(target.getMetadata) === "function") {
-            let metadata = target.getMetadata();
-
         }
     }
 
@@ -76,6 +68,11 @@ class PropertyGroup {
     constructor(parent: PropertyManager, name: string) {
         this._parent = parent;
         this._name = name;
+    }
+
+    setParent(parent: PropertyManager): this {
+        this._parent = parent;
+        return this;
     }
 
     public store(): this {
@@ -183,14 +180,34 @@ class PropertyGroup {
     }
 
     /**@internal */
-    bindTarget(parentTarget: View): this {
-        let owner: View = parentTarget;
-        if(parentTarget instanceof ViewGroup) {
-            owner = parentTarget.getChild(this._targetName); 
-        }
+    bindTarget(target: View): this {
+        let owner: View = target;
         this._target = owner;
-        
-        if(owner) {
+
+        this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+        if(this._target) {
+            let props = this._properties.slice();
+            this._properties.length = 0;
+
+            for(let p of props) {
+                this.add(p.name, p.value);
+            }
+        }
+
+        return this;
+    }
+
+    /**@internal */
+    onParentTargetChanged(): this {
+        let root = this._parent.target;
+        if(this._targetPath) {
+            this._target = GetViewByRelativePath(root, this._targetPath) as View;
+        }else{
+            this._target = IsViewChild(this._parent.target, this._target) ? this._target : this._parent.target;            
+            this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+        }
+
+        if(this._target) {
             let props = this._properties.slice();
             this._properties.length = 0;
 
@@ -334,8 +351,10 @@ export class PropertyManager implements ITemplatable {
     }
 
     public bindTarget(target: View): this {
+        this._target = target;
         this.groups.forEach(g=>{
-            g.bindTarget(target);
+            g.setParent(this);
+            g.onParentTargetChanged();
         });
 
         return this;

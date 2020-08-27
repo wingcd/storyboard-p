@@ -12,6 +12,7 @@ import { Package } from "../core/Package";
 import { PackageItem } from "../core/PackageItem";
 import { View } from "../core/View";
 import { PropertyManager } from "../tween/Property";
+import { GetViewRelativePath, GetViewByRelativePath } from "../utils/Object";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -29,12 +30,17 @@ class UIScene extends ViewScene {
         r.setBackgroundColor(0x0000ff, true);
         r.setSize(50,100);
         r.setXY(50, 50);
-
+        
         let g = this.addUI.view();
         g.setBackgroundColor(0x00ff00, true);
         g.setSize(50,40);
         g.setXY(-5, -5);
         r.addChild(g);
+
+        let path = GetViewRelativePath(r, g);
+        console.log(path);
+        let g1 = GetViewByRelativePath(r, path);
+        console.log(g1);
 
         let json = r.toJSON();
         let pkgItem = new PackageItem();        
@@ -42,8 +48,11 @@ class UIScene extends ViewScene {
         let temp = pkgItem.addTemplate(json);
 
         let prop = new PropertyManager();
-        prop.add("state1").add("x", 100).add("y", 200);
-        let propTemp = pkgItem.addTemplate(prop.toJSON());
+        prop.add("state1").add("x", 100).add("y", 200).bindTarget(g);
+        prop.bindTarget(r);
+        let propJson = prop.toJSON();
+        console.log(JSON.stringify(propJson));
+        let propTemp = pkgItem.addTemplate(propJson);
 
         let clone = Package.inst.createObjectFromUrl(this, temp) as View;
         clone.x = 200;
