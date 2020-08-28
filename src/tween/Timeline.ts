@@ -74,7 +74,7 @@ export class KeyFrameGroup {
 
     /**@internal */
     init(): this {
-        this._propName = this._propPath;
+        this._propName = this._propPath || "";
         this._keyName = this._propName.replace('.', '$');
         if(this._propName.indexOf('.') >= 0) {
             let names = this._propName.split('.'); 
