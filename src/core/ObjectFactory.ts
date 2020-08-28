@@ -1,74 +1,37 @@
-import { IMetadatable, IMetadataInfo } from "../types/IMeta";
-import { Data } from "phaser";
-import { randomString } from "../utils/String";
+type FUNCTYPE = Function;
 
 export class ObjectFactory {
-    private static _db: {[key:string]: any} = {};
-    private static _tempDB: {[key:string]: any} = {};
+    private static _types: {[key: string] : FUNCTYPE} = {};
 
-    public static genKey(): string {
-        let key = "";
-        do{
-            key = randomString(6, true, false, false);
+    private static getKey(category: string, type: string): string {
+        if(!type) {
+            return category;
         }
-        while(this._db[key]);
-        return key;
+        return `${category}_${type}`;
     }
 
-    public static getKey(metadata: IMetadataInfo): string {        
-        return `${metadata.uniqueType}:${metadata.uid}`;
+    public static regist(category: string, type: string, cls: FUNCTYPE) {
+        let key = ObjectFactory.getKey(category, type);
+        ObjectFactory._types[key] = cls;
     }
 
-    public static getByKey(key: string): any {
-        return this._db[key];
+    public static get(category: string, type: string): FUNCTYPE {
+        let key = ObjectFactory.getKey(category, type);
+        return ObjectFactory._types[key];
     }
-    
-    public static put(obj: IMetadatable, replace?: boolean) {
-        if(obj) {
-            let metadata = obj.getMetadata();
-            let key = ObjectFactory.getKey(metadata);
-            if(!replace && ObjectFactory.getByKey(key)) {
-                console.error(`already has data with key:${key}!`);
-                return;
-            }
-            this._db[key] = obj;
+
+    public static create(category: string, config?: any): any {
+        if(!config || !config.type) {
+            throw new Error("must be with class type to create instance!");
         }
-    }
 
-    public static get(metadata: IMetadataInfo): any {
-        let key = ObjectFactory.getKey(metadata);
-        return ObjectFactory.getByKey(key);
-    }
+        let key = ObjectFactory.getKey(category, config.type);
 
-    public static remove(obj: IMetadatable): boolean {
-        let metadata = obj.getMetadata();
-        let key = ObjectFactory.getKey(metadata);
-        if(ObjectFactory._db[key]) {
-            delete ObjectFactory._db[key];
-            return true;
+        let cls: any = ObjectFactory._types[key];
+        if(!cls) {
+            throw new Error(`not regist class type:${config.type}!`);
         }
-        return false;
-    }    
 
-    public static putTemp(obj: IMetadatable, replace?: boolean) {
-        if(obj) {
-            let metadata = obj.getMetadata();
-            let key = ObjectFactory.getKey(metadata);
-            if(!replace && ObjectFactory._tempDB[key]) {
-                console.error(`already has temp data with key:${key}!`);
-                return;
-            }
-            ObjectFactory._tempDB[key] = obj;
-        }
-    }
-
-    public static removeTemp(obj: IMetadatable) {
-        let metadata = obj.getMetadata();
-        let key = ObjectFactory.getKey(metadata);
-        delete ObjectFactory._tempDB[key];
-    }
-
-    public static clearTemp() {
-        ObjectFactory._tempDB = {};
+        return new cls();
     }
 }

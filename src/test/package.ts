@@ -13,6 +13,7 @@ import { PackageItem } from "../core/PackageItem";
 import { View } from "../core/View";
 import { PropertyManager } from "../tween/Property";
 import { GetViewRelativePath, GetViewByRelativePath } from "../utils/Object";
+import { TimelineManager, KeyFrameGroup } from "../tween/Timeline";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -77,6 +78,19 @@ class UIScene extends ViewScene {
         Deserialize(pkg, pkgJson);
 
         console.log(JSON.stringify(pkgJson));
+
+        let timeline = new TimelineManager();
+        let tg1 = timeline.add("x");
+        tg1.add(100, 20).add(1000, 100);
+        let tg2 = timeline.add("y");
+        tg2.add(200, 0).add(2000, 200);
+        
+        let tg1Json = Serialize(timeline);
+        console.log(JSON.stringify(tg1Json));
+        let tg1Clone = new TimelineManager();
+        Deserialize(tg1Clone,  tg1Json);
+        
+        console.log(1);
     }
 
     create(): void {

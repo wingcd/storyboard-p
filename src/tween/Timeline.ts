@@ -1,50 +1,130 @@
 import { Property } from "./Property";
 import { Tweens, Tween, EventEmitter, Timeline, Scene, Types, Time, Easing } from "../phaser";
-import { EEaseType, ParseEaseType } from "../core/Defines";
+import { EEaseType, ParseEaseType, ECategoryType } from "../core/Defines";
 import * as Events from "../events";
 import { View } from "../core/View";
 import { PoolManager } from "../utils/PoolManager";
 import { installTweenPlugin } from "./TweenInfo";
 import { MathUtils } from "../utils/Math";
-import { GetValue } from "../utils/Object";
+import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild } from "../utils/Object";
 import TweenStep from "./TweenStep";
 import { ITweenInfo } from "../types";
+import { ISerializeInfo } from "../annotations/Serialize";
+import { Package } from "../core/Package";
+import { ITemplatable } from "../types/ITemplatable";
+import { Templates } from "../core/Templates";
 
 export class KeyFrame {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "tag", default: ""},
+            {property: "time", default: 0},            
+            {property: "property", alias: "prop", type: Property, default: null},
+            {property: "tweenInfo", alias: "tween", default: null, raw: true},
+        );
+        return fields;
+    }
+    
     tag: string = "";
     time: number = 0;
     property: Property = null;
     tweenInfo?: ITweenInfo = null;
 
     static sort(k1: KeyFrame, k2: KeyFrame): number {
-        if(k1.time < k2.time) {
-            return -1;
-        }else if(k1.time > k2.time) {
-            return 1;
-        }
-        return 0;
+        return k1.time - k2.time;
     }
 }
 
-class KeyFrameGroup {
-    private _keyName: string;
-    private _propName: string;
-    private _target: any;
-    private _keyframes: KeyFrame[] = [];
-    private _store: any = {};
-    private _scene: Scene;
+export class KeyFrameGroup {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "_propPath", alias: "prop"},
+            {property: "_targetPath", alias: "path"},
+            {property: "_keyframes", alias: "frames", type: KeyFrame},
+        );
+        return fields;
+    }
 
-    constructor(scene: Scene, target: any, propName: string) {
-        this._scene = scene;
-        this._target = target;
-        this._propName = propName;
+    static CREATE_INSTANCE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: KeyFrameGroup, hasInit:boolean} {
+        return { 
+            inst: new KeyFrameGroup(target, config.name),
+            hasInit: false
+        };
+    }
+
+    private _parent: TimelineManager;
+    private _keyName: string;
+    private _propName: string;    
+    private _propPath: string;
+    private _targetPath: string;
+    private _target: View;
+    private _realTarget: any;
+    private _store: any = {};
+
+    private _keyframes: KeyFrame[] = [];
+
+    constructor(parent: TimelineManager, propPath: string) {
+        this._parent = parent;
+        this._propPath = this._propName = propPath;
         
+        this.init();
+    }
+
+    /**@internal */
+    init(): this {
+        this._propName = this._propPath;
         this._keyName = this._propName.replace('.', '$');
         if(this._propName.indexOf('.') >= 0) {
-            this._target = GetValue(target, propName, undefined, true);
             let names = this._propName.split('.'); 
             this._propName = names[names.length - 1];
         }
+        return this;
+    }
+
+    /**@internal */
+    bindTarget(target: View): this {
+        let owner: View = target;             
+        this._realTarget = this._target = owner;
+        this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+
+        if(this._target) {
+            if(this._propPath) {
+                this._realTarget = GetValue(target, this._propPath, owner, true);
+            }
+
+            let kfs = this._keyframes.slice();
+            this._keyframes.length = 0;
+
+            for(let k of kfs) {
+                this.add(k.time, k.property.value, k.tweenInfo, k.tag);
+            }
+        }
+
+        return this;
+    }
+
+    /**@internal */
+    onParentTargetChanged(): this {
+        let root = this._parent.target;
+        if(this._targetPath) {
+            this._target = GetViewByRelativePath(root, this._targetPath) as View;
+        }else{
+            this._target = IsViewChild(this._parent.target, this._target) ? this._target : this._parent.target;            
+            this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+        }
+
+        if(this._target) {
+            let kfs = this._keyframes.slice();
+            this._keyframes.length = 0;
+
+            for(let k of kfs) {
+                this.add(k.time, k.property.value, k.tweenInfo, k.tag);
+            }
+        }
+
+        return this;
     }
 
     public store(): this {
@@ -101,7 +181,7 @@ class KeyFrameGroup {
             kf.property = new Property();
             kf.property.name = this._propName;
             kf.property._name = this._keyName;
-            kf.property.target = this._target;
+            kf.property.target = this._realTarget;
 
             this._keyframes.push(kf);
         }
@@ -310,11 +390,41 @@ class KeyFrameGroup {
         
         return this._createTween(index, false, true);
     }
+
+    setParent(parent: TimelineManager): this {
+        if(this._parent != parent) {
+            this._parent = parent;
+            this.onParentTargetChanged();
+        }
+        return this;
+    }
 }
 
-export class TimelineManager extends EventEmitter {
+export class TimelineManager extends EventEmitter implements ITemplatable {
+    static CATEGORY = ECategoryType.Timeline;
+    
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
+
+            {property: "resourceUrl", default: null},
+            {property: "_id", alias: "id", default: null},
+            {property: "_groups", alias: "groups", type: KeyFrameGroup, default: []},
+        );
+        return fields;
+    }
+
+    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: TimelineManager,hasInit:boolean} {
+        return { 
+            inst: (new TimelineManager().bindTarget(target.scene, target)),
+            hasInit: false
+        };
+    }
+
+    private _id: string;
     private _scene: Scene;
-    private _target: any;
+    private _target: View;
     private _groups: KeyFrameGroup[] = [];
     private _playing: boolean = false;
     private _timeline: Timeline;
@@ -324,11 +434,27 @@ export class TimelineManager extends EventEmitter {
     private _startTime: number = -1;
     private _endTime: number = -1;
 
-    constructor(scene: Scene, target?: any) {
-        super();
+    public resourceUrl: string;
 
-        this._scene = scene;
-        this._target = target;
+    constructor() {
+        super();
+        this._id = `${Package.getUniqueID()}`;
+    }
+
+    public get target(): View {
+        return this._target;
+    }
+
+    public get scene(): Scene {
+        return this._scene;
+    }
+
+    public get id(): string {
+        return this._id;
+    }
+
+    public get groups(): KeyFrameGroup[] {
+        return this._groups;
     }
 
     public getAll(): KeyFrameGroup[] {
@@ -349,14 +475,16 @@ export class TimelineManager extends EventEmitter {
      * add property's group
      * @param name property name
      * @param target target object
+     * @returns new group when name is not exist, or old group by name
      */
     public add(name: string, target?: any): KeyFrameGroup {
         if(this.get(name)) {
             return null;
         }
+        
         target = target || this._target;
-
-        let pg = new KeyFrameGroup(this._scene, target, name);
+        let pg = new KeyFrameGroup(this, name);
+        pg.bindTarget(target);
         this._groups.push(pg);
 
         return pg;
@@ -736,4 +864,16 @@ export class TimelineManager extends EventEmitter {
 
         return this;
     }
+
+    public bindTarget(scene: Scene, target: View): this {
+        this._scene = scene;
+        this._target = target;
+        this._groups.forEach(g=>{
+            g.setParent(this);
+        });
+
+        return this;
+    }
 }
+
+Templates.regist(TimelineManager.CATEGORY, TimelineManager);

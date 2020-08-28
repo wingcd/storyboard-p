@@ -7,6 +7,7 @@ import { ECategoryType } from "../core/Defines";
 import { ITemplatable } from "../types/ITemplatable";
 import { Package } from "../core/Package";
 import { Templates } from "../core/Templates";
+import { SerializeFactory } from "../utils/SerializeFactory";
 
 export class Property {
     _name: string = null;
@@ -23,6 +24,12 @@ export class Property {
         return fields;
     }
 }
+SerializeFactory.inst.regist(Property, (item:Property)=>{
+    return [item.name, item.value];
+}, (item: Property, data: any)=>{
+    item.name = data[0];
+    item.value = data[1];
+}, true);
 
 class PropertyGroup {
     private _targetPath: string;
@@ -49,29 +56,16 @@ class PropertyGroup {
         };
     }
 
-    static DESERIALIZE_FIELD_END(config: any, target: any, configProp: string, targetProp: string, tpl: any) {
-        if(target instanceof PropertyGroup) {
-            
-        }
-    }
-
-    // static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
-    //     if(target instanceof PropertyGroup) {
-    //         let props: Property[] = target._properties.slice();
-    //         target._properties = [];
-    //         for(let p of props) {
-    //             target.add(p.name, p.value);
-    //         }
-    //     }
-    // }
-
     constructor(parent: PropertyManager, name: string) {
         this._parent = parent;
         this._name = name;
     }
 
     setParent(parent: PropertyManager): this {
-        this._parent = parent;
+        if(this._parent != parent) {
+            this._parent = parent;
+            this.onParentTargetChanged();
+        }
         return this;
     }
 
@@ -142,7 +136,7 @@ class PropertyGroup {
 
             if(propName.indexOf('.') >= 0) {
                 prop._name = propName.replace('.', '$');
-                prop.target = GetValue(prop.target, propName, undefined, true);
+                prop.target = GetValue(prop.target, propName, this._target, true);
                 let names = propName.split('.');            
                 prop.name = names[names.length - 1];
             }
@@ -237,7 +231,7 @@ export class PropertyManager implements ITemplatable {
 
     static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyManager,hasInit:boolean} {
         return { 
-            inst: (new PropertyManager().bindTarget(target)), 
+            inst: (new PropertyManager().bindTarget(target)),
             hasInit: false
         };
     }
@@ -292,7 +286,7 @@ export class PropertyManager implements ITemplatable {
      * @param target target object
      * @returns new group when name is not exist, or old group by name
      */
-    public add(name: string, target?: any): PropertyGroup {
+    public add(name: string, target?: View): PropertyGroup {
         let oldPG = this.get(name);
         if(oldPG) {
             return oldPG;
@@ -300,7 +294,7 @@ export class PropertyManager implements ITemplatable {
         target = target || this._target;
 
         let pg = new PropertyGroup(this, name);
-        pg.bindTarget(pg.target);
+        pg.bindTarget(target);
         this._groups.push(pg);
 
         return pg;
@@ -354,7 +348,6 @@ export class PropertyManager implements ITemplatable {
         this._target = target;
         this.groups.forEach(g=>{
             g.setParent(this);
-            g.onParentTargetChanged();
         });
 
         return this;

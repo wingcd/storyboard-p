@@ -4,6 +4,31 @@ import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
 
+function store(source: any, info: ISerializeInfo, tpl: any): any {
+    let item = null;
+    if(info.raw) {
+        item = Object.assign({}, source);
+    }else{                    
+        item = SerializeFactory.inst.serialize(source);
+        if(!item) {
+            item = Serialize(source, tpl);
+        }  
+    } 
+    return item;
+}
+
+function restore(target: any, targetProp: string, data: any, tpl: any, info: ISerializeInfo, depth: number) {
+    if(!target) {
+        return target;
+    }
+    
+    if(!SerializeFactory.inst.deserialize(target, data)) {
+        if(!Deserialize(target, data, tpl, depth)) {
+            SetValue(target, targetProp, data);
+        }
+    }
+}
+
 function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: any = null) {
     let raw = source;    
     // 静态变量
@@ -30,14 +55,14 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 
     let sourceData = source[sourceProp];
     if(!done) {
-        if(typeof(sourceData) === 'function' || !sourceData || sourceData == info.default) {
+        if(typeof(sourceData) == 'function' || !sourceData || sourceData == info.default) {
             done = true;
         }
     }
 
     if(!done && sourceData != tpl) {
         if (target[sourceProp] != sourceData) {
-            if(typeof(sourceData) === 'object') {
+            if(typeof(sourceData) == 'object') {
                 let isarray = Array.isArray(sourceData);
                 if(!info.raw) {
                     if(isarray || info.asarray) {
@@ -49,9 +74,14 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                                 t = tpl[i];
                             }
 
-                            let item = Serialize(sourceData[i], t);
+                            let item = store(sourceData[i], info, t);
+
                             // 不添加0属性对象
                             if(item && Object.getOwnPropertyNames(item).length > 0) {    
+                                if(raw.constructor.CATEGORY != undefined && raw.constructor.CATEGORY == sourceData[i].constructor.CATEGORY) {
+                                    delete item.__category__;
+                                }
+
                                 if(isarray) {
                                     rets.push(item);
                                 }else{
@@ -61,17 +91,8 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                         }
 
                         target[targetProp] = rets;
-                    } else if (typeof(sourceData) === 'object') {
-                        if(info.raw) {
-                            target[targetProp] = Object.assign({}, sourceData);
-                        }else{                    
-                            let sdata = SerializeFactory.inst.serialize(sourceData);
-                            if(sdata) {
-                                target[targetProp] = sdata;
-                            }else {
-                                target[targetProp] = Serialize(sourceData, tpl);
-                            }  
-                        }
+                    } else if (typeof(sourceData) == 'object') {
+                        target[targetProp] = store(sourceData, info, tpl);
                     }else{
                         target[targetProp] = sourceData;
                     } 
@@ -88,7 +109,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     let result = target[targetProp];
     if(result) {
         if((Array.isArray(result) && result.length == 0)
-           || (typeof(result) === "object" && Object.getOwnPropertyNames(result).length == 0)) {
+           || (typeof(result) == "object" && Object.getOwnPropertyNames(result).length == 0)) {
             delete target[targetProp];
         }
     }
@@ -136,17 +157,17 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     }
     
     if(!done) {
-        if(cfgData === undefined || typeof(cfgData) === 'function') {
+        if(cfgData == undefined || typeof(cfgData) == 'function') {
             target[targetProp] = info.default;
             done = true;
         }
     }
 
     if(!done) {
-        if(typeof(config) === 'object') {
+        if(typeof(config) == 'object') {
             let isarray = Array.isArray(cfgData);
             if(!info.raw) {
-                if((isarray || info.asarray) && info.type) {
+                if((isarray || info.asarray) && info.type && !SerializeFactory.inst.toarray(info.type)) {
                     // process array
                     target[targetProp] = isarray ? [] : {};
 
@@ -173,22 +194,12 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             }
                             ritem = new info.type(...parms);
                         }
+                        restore(ritem, i, cfgData[i], t, info, depth);
 
-                        let done = false;
-                        if(!SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
-                            if(Deserialize(ritem, cfgData[i], t, depth)) {
-                                done = true;
-                            }
+                        if(isarray) {
+                            target[targetProp].push(ritem);
                         }else{
-                            done = true;
-                        }
-
-                        if(done) {
-                            if(isarray) {
-                                target[targetProp].push(ritem);
-                            }else{
-                                target[targetProp][i] = ritem;
-                            }
+                            target[targetProp][i] = ritem;
                         }
                     }
                 } else if (target[targetProp] != cfgData) {
@@ -196,12 +207,12 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         info.type = Templates.get(cfgData.__category__);
                     }
 
-                    if(!info.raw && typeof(cfgData) === "object" && info.type) {
+                    if(!info.raw && typeof(cfgData) == "object" && info.type) {
                         let needInit = true;
-                        if(target[targetProp] === undefined) {
-                            let ritem = null;
+                        let ritem = target[targetProp];
+                        if(ritem == undefined) {
                             if(info.type.CREATE_INSTANCE) {
-                                let instRet = info.type.CREATE_INSTANCE(cfgData, target, cfgProp, targetProp, tpl);;
+                                let instRet = info.type.CREATE_INSTANCE(cfgData, target, cfgProp, targetProp, tpl);
                                 ritem = instRet.inst;
                                 needInit = !instRet.hasInit;
                             }
@@ -215,14 +226,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                                 }
                                 ritem = new info.type(...parms);
                             }
-                            target[targetProp] = ritem;
                         }
 
-                        if(!SerializeFactory.inst.deserialize(target[targetProp], cfgData)) {
-                            if(!Deserialize(target[targetProp], cfgData, tpl, depth)) {
-                                SetValue(target, targetProp, cfgData);
-                            }
-                        }
+                        restore(ritem, targetProp, cfgData, tpl, info, depth);
+                        target[targetProp] = ritem;
                     }else{      
                         SetValue(target, targetProp, cfgData);
                     }

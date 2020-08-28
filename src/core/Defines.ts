@@ -16,7 +16,10 @@ export enum ECategoryType {
     None = "none",
     UI = "ui",
     Property = "prop",
-    Animation = "ani",    
+    Animation = "ani",
+    Component = "comp",
+    Timeline = "timeline",
+    TweenPlugin = "tweenplugin",  
 };
 
 export enum EDirectionType {

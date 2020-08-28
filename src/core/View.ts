@@ -640,7 +640,7 @@ export class View {
 
     public get timelineManager(): TimelineManager {
         if(!this._timelineManager) {
-            this._timelineManager = new TimelineManager(this._scene, this);
+            this._timelineManager = new TimelineManager().bindTarget(this._scene, this);
         }
         
         return this._timelineManager;

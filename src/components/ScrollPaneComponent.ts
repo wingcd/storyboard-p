@@ -1,7 +1,7 @@
 import { BaseComponent } from "./BaseComponent";
 import * as Events from "../events";
 import { Point, Tween, Input, EventData, Pointer, GameObject, Easing } from "../phaser";
-import { EOverflowType, EScrollType } from "../core/Defines";
+import { EOverflowType, EScrollType, ECategoryType } from "../core/Defines";
 import { MathUtils } from "../utils/Math";
 import { DisplayObjectEvent, GestureEvent } from "../events";
 import { Settings } from "../core/Setting";
@@ -11,6 +11,7 @@ import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
+import { ObjectFactory } from "../core/ObjectFactory";
 
 const enum EScrollStatus {
     NONE,
@@ -31,6 +32,7 @@ const enum EScrollStatus {
 
  @disallow_multiple_component()
 export class ScrollPaneComponent extends BaseComponent {
+    public static CATEGORY = ECategoryType.Component;
     public static TYPE = "scroll";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -553,4 +555,4 @@ export class ScrollPaneComponent extends BaseComponent {
      }
 }
 
-ComponentFactory.inst.regist(ScrollPaneComponent);
+ComponentFactory.regist(ScrollPaneComponent);

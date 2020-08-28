@@ -4,6 +4,7 @@ interface SerializeItem {
     type: any;
     serializeFun: Function;
     deserializeFun: Function;
+    toarray?: boolean;
 }
 
 export class SerializeFactory {
@@ -20,13 +21,21 @@ export class SerializeFactory {
         [key:string]:SerializeItem
     } = {};
 
+    public toarray(type: Function): boolean {
+        let item = this._types[type.name];
+        if(item) {
+            return item.toarray === true;
+        }
+        return false;
+    }
 
-    public regist(type: Function, serializeFun: Function, deserializeFun: Function) {
+    public regist(type: Function, serializeFun: Function, deserializeFun: Function, toarray?: boolean) {
         if(!this._types[type.name]) {
             this._types[type.name] = {
                 type,
                 serializeFun,
                 deserializeFun,
+                toarray: toarray,
             };
         }
     }

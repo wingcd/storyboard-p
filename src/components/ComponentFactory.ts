@@ -1,4 +1,6 @@
 import { IComponent } from "../types";
+import { ObjectFactory } from "../core/ObjectFactory";
+import { ECategoryType } from "../core/Defines";
 
 export class ComponentFactory {
     private static _inst: ComponentFactory;
@@ -14,34 +16,16 @@ export class ComponentFactory {
     private _eventComponents: {
        [key: string] : any[]
     } = {};
-    private _components: {
-        [key: string] : Function
-     } = {};
-
-    public regist(compType: Function) {
-        let tName = (compType as any).TYPE;
-        if(tName) {
-            this._components[tName] = compType;
-        }
-    }
-
-    private _add(cls: {new (): IComponent}, config?:any): IComponent {
-        let comp = new cls();
-        comp.fromJSON(config);
-        return comp;
-    }
 
     public create(config?: any): IComponent {
-        if(!config || !config.type) {
-            throw new Error("must be with component type to create instance!");
-        }
+        return ObjectFactory.create(ECategoryType.Component, config);
+    }
 
-        let type: any = this._components[config.type];
-        if(!type) {
-            throw new Error(`not regist component type:${type}!`);
+    public static regist(viewType: Function) {
+        let tName = (viewType as any).TYPE;
+        if(tName) {
+            ObjectFactory.regist(ECategoryType.Component, tName, viewType);
         }
-
-        return this._add(type, config);
     }
 
     public registEvents(type: string, compType: new()=>{}) {

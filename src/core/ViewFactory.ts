@@ -5,6 +5,8 @@ import { ViewGroup } from "./ViewGroup";
 import { UIImage } from "../ui/UIImage";
 import { UITextInput } from "../ui/UITextInput";
 import { UITextField } from "../ui/UITextField";
+import { ObjectFactory } from "./ObjectFactory";
+import { ECategoryType } from "./Defines";
 
 export interface IPrefab {
     id: number;
@@ -12,7 +14,7 @@ export interface IPrefab {
 }
 
 export class ViewFactory {
-    private static _TYPES: {[key: string]: Function} = {};
+    // private static getType: {[key: string]: Function} = {};
 
     private _scene: ViewScene;
     private _addToRoot: boolean;
@@ -22,10 +24,14 @@ export class ViewFactory {
         this._addToRoot = addToRoot;
     }
 
+    public static getType(typeName: string): Function {
+       return ObjectFactory.get(ECategoryType.UI, typeName);
+    }
+
     public static regist(viewType: Function) {
         let tName = (viewType as any).TYPE;
         if(tName) {
-            ViewFactory._TYPES[tName] = viewType;
+            ObjectFactory.regist(ECategoryType.UI, tName, viewType);
         }
     }
 
@@ -39,27 +45,27 @@ export class ViewFactory {
     }
 
     public view(config?:IViewConfig, template?: any): View {
-        let type: any = ViewFactory._TYPES["view"];
+        let type: any = ViewFactory.getType("view");
         return this._add(type, config, template);
     }
 
     public group(config?:IViewGroupConfig, template?: any): ViewGroup {
-        let type: any = ViewFactory._TYPES["group"];
+        let type: any = ViewFactory.getType("group");
         return this._add(type, config, template) as ViewGroup;
     }
 
     public image(config?: IUIImageConfig, template?: any): UIImage {
-        let type: any = ViewFactory._TYPES["image"];
+        let type: any = ViewFactory.getType("image");
         return this._add(type, config, template) as UIImage;
     }
 
     public textfield(config?: IUITextFieldConfig, template?: any): UITextField {
-        let type: any = ViewFactory._TYPES["textfield"];
+        let type: any = ViewFactory.getType("textfield");
         return this._add(type, config, template) as UITextField;
     }
 
     public textinput(config?: IUITextInputConfig, template?: any): UITextInput {
-        let type: any = ViewFactory._TYPES["textinput"];
+        let type: any = ViewFactory.getType("textinput");
         return this._add(type, config, template) as UITextInput;
     }
 
@@ -69,7 +75,7 @@ export class ViewFactory {
             throw new Error("must be with view type to create instance!");
         }
 
-        let type: any = ViewFactory._TYPES[viewType];
+        let type: any = ViewFactory.getType(viewType);
         if(!type) {
             throw new Error(`not regist view type:${type}!`);
         }
