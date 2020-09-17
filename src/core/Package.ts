@@ -116,7 +116,7 @@ export class Package {
         return result;
     } 
 
-    public createObject(scene:ViewScene, data: any): ITemplatable {
+    public createObjectFromData(scene:ViewScene, data: any): ITemplatable {
         if(!data.__category__ && !data.resourceUrl) {
             return null;
         }
@@ -132,6 +132,14 @@ export class Package {
                 return scene.addUI.create(data, temp);
             case ECategoryType.Property:
                 return new PropertyManager().fromJSON(data, temp);
+        }
+    }
+
+    public createObject(scene:ViewScene, data: string|object): ITemplatable {
+        if(typeof(data) === 'string') {
+            return this.createObjectFromUrl(scene, data);
+        }else{
+            return this.createObjectFromData(scene, data);
         }
     }
 }

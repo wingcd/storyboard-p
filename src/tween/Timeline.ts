@@ -49,8 +49,8 @@ export class KeyFrameGroup {
 
     static CREATE_INSTANCE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: KeyFrameGroup, hasInit:boolean} {
         return { 
-            inst: new KeyFrameGroup(target, config.name),
-            hasInit: false
+            inst: new KeyFrameGroup(target, config.prop),
+            hasInit: true
         };
     }
 
@@ -392,10 +392,8 @@ export class KeyFrameGroup {
     }
 
     setParent(parent: TimelineManager): this {
-        if(this._parent != parent) {
-            this._parent = parent;
-            this.onParentTargetChanged();
-        }
+        this._parent = parent;
+        this.onParentTargetChanged();
         return this;
     }
 }
@@ -416,9 +414,9 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
     }
 
     static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: TimelineManager,hasInit:boolean} {
-        return { 
+        return {
             inst: (new TimelineManager().bindTarget(target.scene, target)),
-            hasInit: false
+            hasInit: true
         };
     }
 

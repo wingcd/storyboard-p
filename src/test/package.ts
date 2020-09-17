@@ -7,7 +7,7 @@ import { Deserialize, Serialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
-import { EOverflowType } from "../core/Defines";
+import { EEaseType, EOverflowType } from "../core/Defines";
 import { Package } from "../core/Package";
 import { PackageItem } from "../core/PackageItem";
 import { View } from "../core/View";
@@ -64,7 +64,7 @@ class UIScene extends ViewScene {
         let copyJson = clone.toJSON();
         console.log(JSON.stringify(copyJson));
 
-        let clone2 = Package.inst.createObject(this, copyJson) as View;
+        let clone2 = Package.inst.createObjectFromData(this, copyJson) as View;
         clone2.x = 300;
 
         let itemJson = Serialize(pkgItem);
@@ -81,14 +81,20 @@ class UIScene extends ViewScene {
 
         let timeline = new TimelineManager();
         let tg1 = timeline.add("x");
-        tg1.add(100, 20).add(1000, 100);
-        let tg2 = timeline.add("y");
-        tg2.add(200, 0).add(2000, 200);
+        tg1.add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
+        // let tg2 = timeline.add("y");
+        // tg2.add(200, 0).add(2000, 200);
         
         let tg1Json = Serialize(timeline);
         console.log(JSON.stringify(tg1Json));
         let tg1Clone = new TimelineManager();
         Deserialize(tg1Clone,  tg1Json);
+
+        // clone2.timelineManager.add("x").add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
+        // clone2.timelineManager.play();
+        
+        tg1Clone.bindTarget(this, clone2);
+        tg1Clone.play();
         
         console.log(1);
     }

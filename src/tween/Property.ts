@@ -29,6 +29,9 @@ SerializeFactory.inst.regist(Property, (item:Property)=>{
 }, (item: Property, data: any)=>{
     item.name = data[0];
     item.value = data[1];
+    if(item.name) {
+        item._name = item.name.replace('.', '$');
+    }
 }, true);
 
 class PropertyGroup {
@@ -52,7 +55,7 @@ class PropertyGroup {
     static CREATE_INSTANCE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyGroup, hasInit:boolean} {
         return { 
             inst: new PropertyGroup(target, config.name), 
-            hasInit: false
+            hasInit: true
         };
     }
 
@@ -232,7 +235,7 @@ export class PropertyManager implements ITemplatable {
     static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyManager,hasInit:boolean} {
         return { 
             inst: (new PropertyManager().bindTarget(target)),
-            hasInit: false
+            hasInit: true
         };
     }
 
