@@ -4,6 +4,7 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { TimelineEvent } from "../events";
 import TweenPath, { ETweenPathRotation } from "../tween/TweenPath";
+import { TimelineManager } from "../tween/Timeline";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -74,18 +75,20 @@ class UIScene extends ViewScene {
             
         let g = this.add.graphics();
         path.draw(g);
-        obj.timelineManager.add("p___path___", {})
+        let timeline = new TimelineManager();
+        timeline.bindTarget(this, obj);
+        timeline.add("p___path___", {})
             .add(0, 0, {
                 yoyo: true,
                 plugin: path,
             })
             .add(5000, 1);
 
-        obj.timelineManager.store();
-        obj.timelineManager.on(TimelineEvent.UPDATE, ()=>{
+        timeline.store();
+        timeline.on(TimelineEvent.UPDATE, ()=>{
             console.log(obj.name);
         });
-        obj.timelineManager.play();
+        timeline.play();
     }
 }
 

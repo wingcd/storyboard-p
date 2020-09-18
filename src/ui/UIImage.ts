@@ -7,7 +7,6 @@ import { FillMask } from "./FillMask";
 import { ViewFactory } from "../core/ViewFactory";
 import { ETextureScaleType, INinePatchInfo, ITileInfo } from "../types";
 
-
 export class NinePatchInfo {
     public left?: number = 0;
     public right?: number = 1;
@@ -21,7 +20,7 @@ export class NinePatchInfo {
 }
 
 export class UIImage extends View {
-    public readonly TYPE = "image";
+    static TYPE = "image";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
@@ -254,4 +253,3 @@ export class UIImage extends View {
         return this;
     }
 }
-ViewFactory.regist(UIImage);

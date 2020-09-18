@@ -43,7 +43,7 @@ export class LineInfo {
 }
 
 export class UITextField extends View {
-    public static TYPE = "textfield";
+    static TYPE = "textfield";
 
     private _textField: Text;
     private _richTextField: BBCodeText;

@@ -3,7 +3,7 @@ import { ISerializeInfo } from "../annotations/Serialize";
 import { ViewGroup } from "../core/ViewGroup";
 
 export class UIButton extends ViewGroup {
-    public static TYPE = "button";
+    static TYPE = "button";
 
     private _selected: boolean;
     private _title: string;

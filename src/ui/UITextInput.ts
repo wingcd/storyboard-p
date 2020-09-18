@@ -17,7 +17,7 @@ export const enum EInputType {
 };
 
 export class UITextInput extends UITextField { 
-    public static TYPE = "textinput";
+    static TYPE = "textinput";
 
     protected _editable:boolean;
     protected _editor: TextEdit = null;

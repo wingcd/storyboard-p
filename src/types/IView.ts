@@ -57,7 +57,6 @@ export interface IView extends IViewConfig, IComponentable, IEventable, ITransfo
     inContainer: boolean;
     relations: Relations;
     propertyManager: PropertyManager;
-    timelineManager: TimelineManager;
     mask: MaskType;
     rootContainer: Container;
 

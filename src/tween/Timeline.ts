@@ -84,14 +84,13 @@ export class KeyFrameGroup {
     }
 
     /**@internal */
-    bindTarget(target: View): this {
-        let owner: View = target;             
-        this._realTarget = this._target = owner;
+    bindTarget(target: View): this {         
+        this._realTarget = this._target = target;
         this._targetPath = GetViewRelativePath(this._parent.target, this._target);
 
         if(this._target) {
             if(this._propPath) {
-                this._realTarget = GetValue(target, this._propPath, owner, true);
+                this._realTarget = GetValue(target, this._propPath, target, true);
             }
 
             let kfs = this._keyframes.slice();
@@ -111,13 +110,18 @@ export class KeyFrameGroup {
         if(this._targetPath) {
             this._target = GetViewByRelativePath(root, this._targetPath) as View;
         }else{
-            this._target = IsViewChild(this._parent.target, this._target) ? this._target : this._parent.target;            
-            this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+            this._target = IsViewChild(root, this._target) ? this._target : this._parent.target;            
+            this._targetPath = GetViewRelativePath(root, this._target);
         }
 
+        this._realTarget = this._target;
         if(this._target) {
             let kfs = this._keyframes.slice();
             this._keyframes.length = 0;
+
+            if(this._propPath) {
+                this._realTarget = GetValue(this.target, this._propPath, this.target, true);
+            }
 
             for(let k of kfs) {
                 this.add(k.time, k.property.value, k.tweenInfo, k.tag);
@@ -160,7 +164,7 @@ export class KeyFrameGroup {
         return this._target;
     }
 
-    public getAll(): KeyFrame[] {
+    public get frames(): KeyFrame[] {
         return this._keyframes;
     }
 
@@ -261,7 +265,7 @@ export class KeyFrameGroup {
         let nextKF = this._keyframes[index + 1];
 
         let tweenData:Types.Tweens.TweenBuilderConfig = {
-            targets:this._target,
+            targets: this._realTarget,
             ease: (t: number)=>{
                 return t < 1 ? 0 : 1;
             },
@@ -322,7 +326,15 @@ export class KeyFrameGroup {
 
     public addTweens(timeline: Timeline, reverse?: boolean, totalDuration?: number, currentDuration?: number): this {
         let tweens = this.getTweens(reverse, totalDuration, currentDuration);
-        KeyFrameGroup.addTweensEx(timeline, tweens);
+        KeyFrameGroup.addTweensEx(timeline, tweens);       
+                
+        // set value to last frame
+        let frames = this.frames;
+        if(frames.length > 0) {
+            let prop = frames[frames.length - 1].property;
+            prop.target[prop.name] = prop.value;
+        }
+        
         return this;
     }
 
@@ -452,10 +464,6 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
     }
 
     public get groups(): KeyFrameGroup[] {
-        return this._groups;
-    }
-
-    public getAll(): KeyFrameGroup[] {
         return this._groups;
     }
 
@@ -636,7 +644,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
             });   
             gtweens.forEach(item=>{
                 item.group.addTweens(this._timeline, reverse, duration, this._getDuration(item.tweenDatas));
-            });
+            });            
             this._timeline.init();  
         }
         

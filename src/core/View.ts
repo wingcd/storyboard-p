@@ -141,7 +141,6 @@ export class View {
     private _gBackground: Graphics = null;
     protected _relations: Relations;
     protected _propertyManager: PropertyManager;
-    protected _timelineManager: TimelineManager;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -636,14 +635,6 @@ export class View {
             this._propertyManager.bindTarget(this);
         }
         return this._propertyManager;
-    }
-
-    public get timelineManager(): TimelineManager {
-        if(!this._timelineManager) {
-            this._timelineManager = new TimelineManager().bindTarget(this._scene, this);
-        }
-        
-        return this._timelineManager;
     }
 
     public get mask(): MaskType {

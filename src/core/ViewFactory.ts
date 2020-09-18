@@ -86,7 +86,7 @@ export class ViewFactory {
 
 ViewFactory.regist(View);
 ViewFactory.regist(ViewGroup);
-ViewFactory.regist(Image);
+ViewFactory.regist(UIImage);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UITextInput);

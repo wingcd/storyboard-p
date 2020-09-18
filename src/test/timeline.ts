@@ -5,6 +5,9 @@ import { ViewScene } from "../core/ViewScene";
 import { EEaseType } from "../core/Defines";
 import { TimelineEvent } from "../events";
 import { EFillType } from "../types";
+import { TimelineManager } from "../tween/Timeline";
+import { UIImage } from "../ui/UIImage";
+require("../components");
 
 class UIScene extends ViewScene {
     constructor() {
@@ -21,14 +24,15 @@ class UIScene extends ViewScene {
         });
         target.setBackgroundColor(0xc0c0c0, true);
         target.setXY(200, 200);
-        target.timelineManager.add('x').
+        let timeline = new TimelineManager().bindTarget(this, target);
+        timeline.add('x').
             add(0, 100, {type: EEaseType.Linear}).
             add(2000, 200, {type: EEaseType.Linear}).
             add(4000, 400, {type: EEaseType.Linear}).
             add(5000, 600);   
 
         target.fillMask.fillType = EFillType.Rotate360;
-        target.timelineManager.add("fillMask.value").
+        timeline.add("fillMask.value").
             add(0, 0, {type: EEaseType.Linear, repeat: 2}).
             add(2000, 1);
 
@@ -37,7 +41,7 @@ class UIScene extends ViewScene {
         //     add(4000, false);
 
         // target.timelineManager.add('y').add(0, 100, {type: EEaseType.Linear}).add(2000, 200, {type: EEaseType.Linear}).add(3000, 300);        
-        target.timelineManager.store();
+        timeline.store();
         let start = Date.now();
         // target.on(TimelineEvent.UPDATE, (sender: any)=>{
         //     console.log(`x${target.x},y:${target.y}:${target.data}`);
@@ -50,7 +54,7 @@ class UIScene extends ViewScene {
         state1.setSize(100, 40);
         state1.rootContainer.add(this.add.text(20, 10, '0-1', {color: '#000000'}));
         state1.onClick(()=>{
-            target.timelineManager.play();
+            timeline.play();
         })
 
         let state2 = this.addUI.view();
@@ -60,7 +64,7 @@ class UIScene extends ViewScene {
         state2.rootContainer.add(this.add.text(20, 10, '1-0', {color: '#000000'}));
         state2.onClick(()=>{
             start = Date.now();
-            target.timelineManager.play(null, null, true);
+            timeline.play(null, null, true);
         })
 
         let state3 = this.addUI.view();
@@ -70,7 +74,7 @@ class UIScene extends ViewScene {
         state3.rootContainer.add(this.add.text(20, 10, '3000-5000', {color: '#000000'}));
         state3.onClick(()=>{
             console.log(`x from 300 to 600`);
-            target.timelineManager.play(3000, 5000);
+            timeline.play(3000, 5000);
         })
         
         let state4 = this.addUI.view();
@@ -80,7 +84,7 @@ class UIScene extends ViewScene {
         state4.rootContainer.add(this.add.text(20, 10, '3000-1000', {color: '#000000'}));
         state4.onClick(()=>{        
             console.log(`x from 400 to 200`);
-            target.timelineManager.play(1000, 3000, true);
+            timeline.play(1000, 3000, true);
         })
 
         let state5 = this.addUI.view();
@@ -89,7 +93,7 @@ class UIScene extends ViewScene {
         state5.setSize(100, 40);
         state5.rootContainer.add(this.add.text(20, 10, '0.8-1', {color: '#000000'}));
         state5.onClick(()=>{
-            target.timelineManager.play(0.8, 1, false, true);
+            timeline.play(0.8, 1, false, true);
         })
 
         let state6 = this.addUI.view();
@@ -98,7 +102,7 @@ class UIScene extends ViewScene {
         state6.setSize(100, 40);
         state6.rootContainer.add(this.add.text(20, 10, 'to:4000', {color: '#000000'}));
         state6.onClick(()=>{
-            target.timelineManager.gotoInDuration(5000);
+            timeline.gotoInDuration(5000);
         })
     }
 }
