@@ -488,14 +488,10 @@ export class ViewGroup extends View {
         }
     }
 
-    protected onBeforeCloneComponent(comp: IComponent): boolean {
-        let ret = super.onBeforeCloneComponent(comp);
-        if(ret) {
-            if(comp instanceof ScrollPaneComponent) {
-                ret = false;
-            } 
-        }
-        return ret;
+    protected updateComponents() {
+        super.updateComponents();
+
+        this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
     }
 
     protected reconstruct() {        
@@ -503,6 +499,7 @@ export class ViewGroup extends View {
             c.parent = this;
         }        
         this.appendChildrenList();
+        this.updateComponents();
         this.relayout();
     }
 }

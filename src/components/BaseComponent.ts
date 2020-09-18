@@ -15,11 +15,8 @@ export class BaseComponent implements IComponent {
         ];
     }
 
-    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: IComponent, hasInit: boolean} {
-        return {
-            inst: ComponentFactory.inst.create(config),
-            hasInit: true
-        };
+    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return ComponentFactory.inst.create(config);
     }
 
     constructor() {

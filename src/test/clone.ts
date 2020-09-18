@@ -3,11 +3,17 @@ import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, ESta
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { BaseComponent } from "../components/BaseComponent";
-import { Deserialize } from "../utils/Serialize";
+import { Deserialize, Serialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
-import { EOverflowType } from "../core/Defines";
+import { EEaseType, EOverflowType } from "../core/Defines";
+import { PropertyManager } from "../tween/Property";
+import { PropertyComponent } from "../components/PropertyComponent";
+import { AnimationComponent } from "../components/AnimationComponent";
+import { TimelineManager } from "../tween/Timeline";
+import { Package } from "../core/Package";
+import { View } from "../core/View";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -24,37 +30,45 @@ class UIScene extends ViewScene {
         let js = r.toJSON();
         console.log(js);
 
-        let rr = this.addUI.create(js);
-        rr.x = 200;
-        return;
-
         r.setBackgroundColor(0x0000ff, true);
         r.setSize(250,250);
         r.setXY(50, 50);
-
-        let g = this.addUI.group();
-        g.setBackgroundColor(0x00ff00, true);
-        g.setSize(200,200);
-        g.setXY(-5, -5);
-        r.addChild(g);
 
         let view = this.addUI.view();
         view.setSize(100, 100);
         view.setXY(-10, -10);
         view.setBackgroundColor(0xff0000, true);
-        let state1 = view.propertyManager.add("state1");
+        let propComp = new PropertyComponent();
+        propComp.propertyManger = new PropertyManager();
+        view.addComponent(propComp);
+        let state1 = propComp.propertyManger.add("state1");
         state1.add("x", 100);
         state1.add("y", 200);
+        propComp.propertyManger.store();
 
-        g.addChild(view);
-        
-        let json = r.toJSON();
-        console.log(json);
-        
-        json.x = 400;
-        let v = this.addUI.create(json) as ViewGroup;
-        // v.propertyManager.store();
-        // (v.getChildAt(0) as ViewGroup).getChildAt(0).propertyManager.applyTo("state1");
+        let timeline = new TimelineManager();
+        let tg1 = timeline.add("x");
+        tg1.add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
+        let animComp = new AnimationComponent();
+        animComp.playOnEnable = true;
+        animComp.timeline = timeline;
+        view.addComponent(animComp);
+        timeline.store();
+
+        js = view.toJSON();
+        let rr = view.clone();
+        rr.x = 300;
+        this.time.addEvent({
+            delay: 2100,
+            callback: ()=>{
+                propComp.propertyManger.applyTo('state1');
+
+                let pm = (rr.getComponent(PropertyComponent) as PropertyComponent).propertyManger;
+                pm.applyTo('state1');
+            }
+        })        
+
+        console.log(1);
     }
 
     create(): void {

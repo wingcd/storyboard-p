@@ -3,6 +3,8 @@ import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, ESta
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EFillType } from "../types";
+import { PropertyManager } from "../tween/Property";
+require("../components");
 
 class UIScene extends ViewScene {
     constructor() {
@@ -20,17 +22,19 @@ class UIScene extends ViewScene {
 
         target.setBackgroundColor(0xc0c0c0, true);
         target.setXY(200, 200);
-        target.propertyManager.add("s1");
-        target.propertyManager.add("s2")
+        let propertyManager = new PropertyManager();
+        propertyManager.bindTarget(target);
+        propertyManager.add("s1");
+        propertyManager.add("s2")
             .add('width', 200)
             .add('angle', 45);
-        target.propertyManager.add("s3")
+        propertyManager.add("s3")
             .add('width', 100)
             .add('tint', 0xff0000)   
             .add('fillMask.fillType', EFillType.Horizontal)      
             .add('fillMask.value', 0.5);
 
-        target.propertyManager.store();
+            propertyManager.store();
 
         let state1 = this.addUI.view();
         state1.setBackgroundColor(0xc0c0c0, true);
@@ -38,7 +42,7 @@ class UIScene extends ViewScene {
         state1.setSize(100, 40);
         state1.rootContainer.add(this.add.text(20, 10, 'state A', {color: '#000000'}));
         state1.onClick(()=>{
-            target.propertyManager.applyTo('s1');
+            propertyManager.applyTo('s1');
         })
 
         let state2 = this.addUI.view();
@@ -47,7 +51,7 @@ class UIScene extends ViewScene {
         state2.setSize(100, 40);
         state2.rootContainer.add(this.add.text(20, 10, 'state B', {color: '#000000'}));
         state2.onClick(()=>{
-            target.propertyManager.applyTo('s2');
+            propertyManager.applyTo('s2');
         })
 
         let state3 = this.addUI.view();
@@ -56,7 +60,7 @@ class UIScene extends ViewScene {
         state3.setSize(100, 40);
         state3.rootContainer.add(this.add.text(20, 10, 'state C', {color: '#000000'}));
         state3.onClick(()=>{
-            target.propertyManager.applyTo('s3');
+            propertyManager.applyTo('s3');
         })
         
     }

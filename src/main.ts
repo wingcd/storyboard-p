@@ -1,1 +1,1 @@
-require('./test/package')
+require('./test/clone')

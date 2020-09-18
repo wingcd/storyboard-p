@@ -21,6 +21,8 @@ import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
 import { Package } from "./Package";
 import { Templates } from "./Templates";
+import { ObjectFactory } from "./ObjectFactory";
+import { ViewFactory } from "./ViewFactory";
 
 export class View {  
     static CATEGORY = ECategoryType.UI;
@@ -57,16 +59,12 @@ export class View {
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},
             {property: "_components", alias: "components", type: BaseComponent, default: null, priority: 999},
-            {property: "_propertyManager", alias: "properties", type: PropertyManager, default: null, priority: 999},
         );
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: View, hasInit: boolean} {
-        return {
-            inst: target.scene.addUI.create(config, tpl),
-            hasInit: true
-        };
+    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return target.scene.addUI.create(config, tpl);
     }
 
     static DESERIALIZE_FIELD_START(config: any, target: View, configProp: string, targetProp: string, tpl: any): boolean {
@@ -86,9 +84,7 @@ export class View {
             target.reconstruct();
 
             if(depth === 0) {
-                if(target._propertyManager) {
-                    
-                }
+                
             }
         }
     }
@@ -140,7 +136,6 @@ export class View {
     protected _alpha: number = 1;
     private _gBackground: Graphics = null;
     protected _relations: Relations;
-    protected _propertyManager: PropertyManager;
 
     protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
     protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
@@ -627,14 +622,6 @@ export class View {
 
     public get relations(): Relations {
         return this._relations;
-    }
-
-    public get propertyManager(): PropertyManager {
-        if(!this._propertyManager) {
-            this._propertyManager = new PropertyManager();
-            this._propertyManager.bindTarget(this);
-        }
-        return this._propertyManager;
     }
 
     public get mask(): MaskType {
@@ -1424,34 +1411,10 @@ export class View {
         return comps;
     }
 
-    /**
-     * 
-     * @param comp 
-     * @returns if continue to clone this component
-     */
-    protected onBeforeCloneComponent(comp: IComponent): boolean {
-        if(comp instanceof DragComponent) {
-               return false;
-        } 
-
-        return true;
+    public clone(): View {
+        let json = this.toJSON();
+        return this.scene.addUI.create(json);
     }
-
-    // public clone(): View {
-    //     let obj = Clone(this) as View;
-
-    //     if(this._components) {
-    //         this._components.forEach(comp=>{
-    //             if(obj.onBeforeCloneComponent(comp)) {
-    //                 let p = comp.clone();
-    //                 obj.addComponent(p);
-    //             }
-    //         });
-    //     }
-    
-    //     // obj._relayout();
-    //     return obj;
-    // }
 
     protected applayProperties() {
         this._rootContainer.angle = this._angle;
@@ -1470,15 +1433,19 @@ export class View {
         this.ensureSizeCorrect();
     }
 
-    protected updateId() {
-        if(this._rid != this._id) {
-
+    protected updateComponents() {
+        if(this._components) {
+            let comps = this._components.concat();
+            this._components.length = 0;
+            comps.forEach(comp => {
+                this.addComponent(comp);
+            });
         }
     }
 
     protected reconstruct() {   
-        this.updateId();
-        this.relayout();        
+        this.relayout();     
+        this.updateComponents();
     }
 
     public toJSON(): any {

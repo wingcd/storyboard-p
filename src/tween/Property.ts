@@ -23,16 +23,18 @@ export class Property {
         );
         return fields;
     }
-}
-SerializeFactory.inst.regist(Property, (item:Property)=>{
-    return [item.name, item.value];
-}, (item: Property, data: any)=>{
-    item.name = data[0];
-    item.value = data[1];
-    if(item.name) {
-        item._name = item.name.replace('.', '$');
+
+    static SERIALIZE(source: any, tpl?: any): any {
+        return [source.name, source.value];
     }
-}, true);
+
+    static DESERIALIZE(source: any, target: any, configProp: string, targetProp: string, tpl: any) {
+        let item = new Property();
+        item.name = source[0];
+        item.value = source[1];
+        return item;
+    }
+}
 
 class PropertyGroup {
     private _targetPath: string;
@@ -52,11 +54,8 @@ class PropertyGroup {
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyGroup, hasInit:boolean} {
-        return { 
-            inst: new PropertyGroup(target, config.name), 
-            hasInit: true
-        };
+    static DESERIALIZE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return new PropertyGroup(target, config.name);
     }
 
     constructor(parent: PropertyManager, name: string) {
@@ -65,10 +64,8 @@ class PropertyGroup {
     }
 
     setParent(parent: PropertyManager): this {
-        if(this._parent != parent) {
-            this._parent = parent;
-            this.onParentTargetChanged();
-        }
+        this._parent = parent;
+        this.onParentTargetChanged();
         return this;
     }
 
@@ -232,11 +229,8 @@ export class PropertyManager implements ITemplatable {
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: PropertyManager,hasInit:boolean} {
-        return { 
-            inst: (new PropertyManager().bindTarget(target)),
-            hasInit: true
-        };
+    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return new PropertyManager();
     }
 
     private _target: View;

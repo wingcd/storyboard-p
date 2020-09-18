@@ -5,9 +5,10 @@ import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 import { TimelineManager } from "../tween/Timeline";
+import { SerializableComponent } from "./SerializableComponent";
 
  @disallow_multiple_component()
-export class AnimationComponent extends BaseComponent {
+export class AnimationComponent extends SerializableComponent {
     public static CATEGORY = ECategoryType.Component;
     public static TYPE = "animation";
 
@@ -16,7 +17,7 @@ export class AnimationComponent extends BaseComponent {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "_timeline", alias: "timeline"},
+            {property: "_timeline", alias: "timeline", type: TimelineManager},
             {property: "_playOnEnable", alias: "playOnEnable", default: false},
         );
         return fields;
@@ -24,6 +25,15 @@ export class AnimationComponent extends BaseComponent {
 
     public get timeline(): TimelineManager {
         return this._timeline;
+    }
+
+    public set timeline(val: TimelineManager) {
+        if(val != this._timeline) {
+            this._timeline = val;
+            if(this.owner) {
+                this._timeline.bindTarget(this.owner.scene, this.owner);
+            }
+        }
     }
 
     public get playOnEnable(): boolean {
@@ -35,11 +45,10 @@ export class AnimationComponent extends BaseComponent {
     }
     
     public regist(view: View) {
-        super.regist(view);
-
         if(this._timeline) {
             this._timeline.bindTarget(view.scene, view);
         }
+        super.regist(view);
     }
     
     public unRegist() {

@@ -12,6 +12,7 @@ import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 import { ObjectFactory } from "../core/ObjectFactory";
+import { SerializableComponent } from "./SerializableComponent";
 
 const enum EScrollStatus {
     NONE,
@@ -31,8 +32,7 @@ const enum EScrollStatus {
  }
 
  @disallow_multiple_component()
-export class ScrollPaneComponent extends BaseComponent {
-    public static CATEGORY = ECategoryType.Component;
+export class ScrollPaneComponent extends SerializableComponent {
     public static TYPE = "scroll";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {

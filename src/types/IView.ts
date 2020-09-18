@@ -56,7 +56,6 @@ export interface IView extends IViewConfig, IComponentable, IEventable, ITransfo
     displayObject: GameObject;
     inContainer: boolean;
     relations: Relations;
-    propertyManager: PropertyManager;
     mask: MaskType;
     rootContainer: Container;
 

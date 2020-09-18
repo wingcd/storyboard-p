@@ -14,6 +14,7 @@ import { View } from "../core/View";
 import { PropertyManager } from "../tween/Property";
 import { GetViewRelativePath, GetViewByRelativePath } from "../utils/Object";
 import { TimelineManager, KeyFrameGroup } from "../tween/Timeline";
+import { AnimationComponent } from "../components/AnimationComponent";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -78,23 +79,6 @@ class UIScene extends ViewScene {
         Deserialize(pkg, pkgJson);
 
         console.log(JSON.stringify(pkgJson));
-
-        let timeline = new TimelineManager();
-        let tg1 = timeline.add("x");
-        tg1.add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
-        // let tg2 = timeline.add("y");
-        // tg2.add(200, 0).add(2000, 200);
-        
-        let tg1Json = Serialize(timeline);
-        console.log(JSON.stringify(tg1Json));
-        let tg1Clone = new TimelineManager();
-        Deserialize(tg1Clone,  tg1Json);
-
-        // clone2.timelineManager.add("x").add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
-        // clone2.timelineManager.play();
-        
-        tg1Clone.bindTarget(this, clone2);
-        tg1Clone.play();
         
         console.log(1);
     }

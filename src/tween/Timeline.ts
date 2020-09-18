@@ -47,11 +47,8 @@ export class KeyFrameGroup {
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number): {inst: KeyFrameGroup, hasInit:boolean} {
-        return { 
-            inst: new KeyFrameGroup(target, config.prop),
-            hasInit: true
-        };
+    static DESERIALIZE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return new KeyFrameGroup(target, config.prop);
     }
 
     private _parent: TimelineManager;
@@ -425,12 +422,12 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         return fields;
     }
 
-    static CREATE_INSTANCE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: TimelineManager,hasInit:boolean} {
-        return {
-            inst: (new TimelineManager().bindTarget(target.scene, target)),
-            hasInit: true
-        };
-    }
+    // static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: TimelineManager,created:boolean} {
+    //     return {
+    //         inst: new TimelineManager(),
+    //         created: true
+    //     };
+    // }
 
     private _id: string;
     private _scene: Scene;
@@ -707,7 +704,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         // if(!this._timeline || this._reverse != reverse) {
         //     this.reset(reverse);
         // }        
-        if(this._playing){
+        if(this._playing || !this._scene || !this._target){
             return;
         }
         this.reset(reverse);

@@ -8,11 +8,17 @@ function store(source: any, info: ISerializeInfo, tpl: any): any {
     let item = null;
     if(info.raw) {
         item = Object.assign({}, source);
-    }else{                    
-        item = SerializeFactory.inst.serialize(source);
+    }else{    
+        if(info.type.SERIALIZE) {
+            item = info.type.SERIALIZE(source, tpl);
+        }
+        
         if(!item) {
-            item = Serialize(source, tpl);
-        }  
+            item = SerializeFactory.inst.serialize(source);
+            if(!item) {
+                item = Serialize(source, tpl);
+            }  
+        }
     } 
     return item;
 }
@@ -63,6 +69,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     if(!done && sourceData != tpl) {
         if (target[sourceProp] != sourceData) {
             if(typeof(sourceData) == 'object') {
+                // 判断是否有自带序列化函数
                 let isarray = Array.isArray(sourceData);
                 if(!info.raw) {
                     if(isarray || info.asarray) {
@@ -178,14 +185,9 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         }
 
                         let ritem = null;
-                        let needInit = true;
-                        if(info.type.CREATE_INSTANCE) {
-                            let instRet = info.type.CREATE_INSTANCE(cfgData[i], target, cfgProp, targetProp, t, i);
-                            ritem = instRet.inst;
-                            needInit = !instRet.hasInit;
-                        }
-                        
-                        if(needInit) {
+                        if(info.type.DESERIALIZE) {
+                            ritem = info.type.DESERIALIZE(cfgData[i], target, cfgProp, targetProp, t, i);
+                        }else{                        
                             let parms = [];
                             if(info.parms) {
                                 for(let p of info.parms) {
@@ -194,7 +196,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             }
                             ritem = new info.type(...parms);
                         }
-                        restore(ritem, i, cfgData[i], t, info, depth);
+
+                        if(!Array.isArray(cfgData[i])) {
+                            restore(ritem, i, cfgData[i], t, info, depth);
+                        }
 
                         if(isarray) {
                             target[targetProp].push(ritem);
@@ -208,16 +213,11 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                     }
 
                     if(!info.raw && typeof(cfgData) == "object" && info.type) {
-                        let needInit = true;
                         let ritem = target[targetProp];
-                        if(ritem == undefined) {
-                            if(info.type.CREATE_INSTANCE) {
-                                let instRet = info.type.CREATE_INSTANCE(cfgData, target, cfgProp, targetProp, tpl);
-                                ritem = instRet.inst;
-                                needInit = !instRet.hasInit;
-                            }
-                            
-                            if(needInit){
+                        if(info.type.DESERIALIZE) {
+                            ritem = info.type.DESERIALIZE(cfgData, target, cfgProp, targetProp, tpl);
+                        }else{                            
+                            if(ritem == undefined) {
                                 let parms = [];
                                 if(info.parms) {
                                     for(let p of info.parms) {
@@ -229,6 +229,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         }
 
                         restore(ritem, targetProp, cfgData, tpl, info, depth);
+
                         target[targetProp] = ritem;
                     }else{      
                         SetValue(target, targetProp, cfgData);
