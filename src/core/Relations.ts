@@ -3,15 +3,29 @@ import { ViewEvent } from "../events/ViewEvent";
 import { ViewGroup } from "./ViewGroup";
 import { View } from "./View";
 import { ERelationPinType } from "../types";
+import { GetViewByRelativePath, GetViewRelativePath, IsViewChild } from "../utils/Object";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
 
 class RelationPin {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields: ISerializeInfo[] = [];
+        fields.push(
+            {property: "_ownerName", alias: "owner", default: null},
+            {property: "_precent", alias: "precent", default: false},            
+            {property: "_pinType", alias: "pinType", default: ERelationPinType.LEFT},                             
+            {property: "_to", alias: "to", type: RelationPin, default: null},
+        );
+        return fields;
+    }
+    
+    private _ownerName: string = null;
     private _owner: View = null;
     private _relations: Relations = null;
     private _pinType: ERelationPinType;
-    private _to: RelationPin = null;
     private _precent: boolean = false;
+    private _to: RelationPin = null;
     
     private _targetX: number = 0;
     private _targetY: number = 0;
@@ -20,8 +34,9 @@ class RelationPin {
     private _targetWidth: number = 0;
     private _targetHeight: number = 0;
 
-    public constructor(owner: View, pinType?: ERelationPinType) {
-        this._owner = owner;
+    private _locked = false;
+
+    public constructor(pinType?: ERelationPinType) {
         this._pinType = pinType;
     }
 
@@ -66,9 +81,10 @@ class RelationPin {
         if(this._to) {
             this.disconnect();
         }
+        targetPinType = targetPinType || ERelationPinType.LEFT;
 
         this._relations = relations;
-        this._to = new RelationPin(target, targetPinType);
+        this._to = new RelationPin(targetPinType).setParent(relations).setOwner(target);
 
         this._calcIntrinsic();
         this._to.owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
@@ -79,13 +95,21 @@ class RelationPin {
         return this;
     }
 
-    public disconnect(): this {
-        this._to.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
-        this._to.owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
-        this._to.owner.off(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
-        this.owner.off(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
-        this._to = null;
+    private _offEvents() {
+        if(this._to && this._to.owner) {
+            this._to.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
+            this._to.owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
+            this._to.owner.off(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
+        }
+        
+        if(this.owner) {
+            this.owner.off(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+        }
+    }
 
+    public disconnect(): this {
+        this._offEvents();
+        this._to = null;
         return this;
     }
 
@@ -122,7 +146,12 @@ class RelationPin {
         }
     }
 
-    private _onTargetChanged() {        
+    private _onTargetChanged() {      
+        if(this._locked) {
+            return;
+        }
+        this._locked = true;
+        
         let targetX: number = this._getX(this._to);
         let targetY: number = this._getY(this._to);        
         let ownerX: number = this._getX(this);
@@ -197,6 +226,8 @@ class RelationPin {
         this._relations._locked = true;
         this.owner.setXY(newX, newY);
         this.owner.setSize(newWidth, newHeight, true);
+
+        this._locked = false;
         this._relations._locked = false;
     }  
     
@@ -213,9 +244,61 @@ class RelationPin {
             this._relations.remove(this._pinType);
         }
     }
+
+    /**@internal */
+    setOwner(owner: View): this {
+        if(owner != this.owner) {
+            this._offEvents();
+                
+            this._owner = owner;
+            let parent = this._relations.owner.parent;
+            this._ownerName = GetViewRelativePath(parent, this._owner);
+            if(this._owner && this._to) {
+                let target = GetViewByRelativePath(parent, this._to._ownerName) as View;
+                this.connect(this._relations, target, this._to.pinType);
+            }
+        }
+
+        return this;
+    }
+
+    /**@internal */
+    onParentTargetChanged(): this {        
+        let parent = this._relations.owner.parent;    
+        this._offEvents();
+
+        if(this._ownerName) {
+            this._owner = GetViewByRelativePath(parent, this._ownerName) as View;
+        }else{
+            this._owner = IsViewChild(parent, this._owner) ? this._owner : this._relations.owner;            
+            this._ownerName = GetViewRelativePath(parent, this._owner);
+        }
+
+        if(this._owner && this._to) {
+            let target = GetViewByRelativePath(parent, this._to._ownerName) as View;
+            this.connect(this._relations, target, this._to.pinType);
+        }
+
+        return this;
+    }
+
+    /**@internal */
+    setParent(parent: Relations): this {
+        this._relations = parent;
+        this.onParentTargetChanged();
+        return this;
+    }
 }
 
 export class Relations {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields: ISerializeInfo[] = [];
+        fields.push(                               
+            {property: "_pins", alias: "pins", type: RelationPin, default: {}, asarray: true},
+        );
+        return fields;
+    }
+
     private _owner: View;    
     
     /**@internal */
@@ -231,13 +314,39 @@ export class Relations {
         return this._pins;
     }
 
-    constructor(owner: View) {
-        this._owner = owner;        
-        owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerChanged, this);
-        owner.on(Events.DisplayObjectEvent.XY_CHANGED, this._ownerChanged, this);
+    constructor() {
+        
     }
 
-    private _ownerChanged() {
+    focusUpdateOwner(owner: View) {
+        if(this._owner) {
+            this._owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerStateChanged, this);
+            this._owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._ownerStateChanged, this);
+        }
+
+        this._owner = owner;    
+        if(owner) {    
+            owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerStateChanged, this);
+            owner.on(Events.DisplayObjectEvent.XY_CHANGED, this._ownerStateChanged, this);
+        }
+
+        for(let key in this._pins) {
+            let pin = this._pins[key];
+            if(pin) {
+                pin.setParent(this);
+            }
+        }
+    }
+
+    public setOwner(owner: View): this {
+        if(this._owner != owner) {
+            this.focusUpdateOwner(owner);
+        }
+
+        return this;
+    }
+
+    private _ownerStateChanged() {
         if(!this._locked) {
             for(let key in this._pins) {
                 let pin = this._pins[key];
@@ -248,9 +357,15 @@ export class Relations {
         }
     }
 
+    public get owner(): View {
+        return this._owner;
+    }
+
     public dispose(): void {
-        this._owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerChanged, this);
-        this._owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._ownerChanged, this);
+        if(this._owner) {
+            this._owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._ownerStateChanged, this);
+            this._owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._ownerStateChanged, this);
+        }
 
         for(let key in this._pins) {
             let pin = this._pins[key];
@@ -263,26 +378,36 @@ export class Relations {
     public getPin(pinType: ERelationPinType): RelationPin {
         return this._pins[pinType];
     }
-    
-    public set(pinType: ERelationPinType, target: View, targetPinType?: ERelationPinType): RelationPin {
+
+    public canConnect(pinType: ERelationPinType, target: View, targetPinType?: ERelationPinType) {
+        let error = "";
         if(target == this._owner) {
-            throw new Error("can not to connect self");
+            error = "can not to connect self";
         }
 
         if(this._owner.parent != target && this._owner.parent != target.parent) {
-            throw new Error("just only support connect to parent or same parent object");
+            error = "just only support connect to parent or same parent object";
         }
 
         if(this._owner.parent == target && pinType != ERelationPinType.CENTER && pinType != ERelationPinType.MIDDLE) {
            let opType = Relations.getOppositeType(pinType);
            if(targetPinType == opType) {
-            throw new Error(`can not connect ${relationPinTypes[pinType]} to ${relationPinTypes[targetPinType]} in nest`);
+            error = `can not connect ${relationPinTypes[pinType]} to ${relationPinTypes[targetPinType]} in nest`;
            }
         }
 
-        targetPinType = targetPinType || pinType;
         if(!Relations.checkCanConnect(pinType, targetPinType)) {
-            throw new Error(`can not connect ${relationPinTypes[pinType]} to ${relationPinTypes[targetPinType]}`);
+            error = `can not connect ${relationPinTypes[pinType]} to ${relationPinTypes[targetPinType]}`;
+        }
+
+        return error;
+    }
+    
+    public set(pinType: ERelationPinType, target: View, targetPinType?: ERelationPinType): RelationPin {
+        targetPinType = targetPinType || pinType;
+        let error = this.canConnect(pinType, target, targetPinType);
+        if(error) {
+            throw new Error(error);
         }
 
         let pin = this.getPin(pinType);
@@ -294,7 +419,7 @@ export class Relations {
             }
         }
 
-        pin = new RelationPin(this._owner, pinType);
+        pin = new RelationPin(pinType).setParent(this).setOwner(this._owner);
         this._pins[pinType] = pin;
         pin.connect(this, target, targetPinType);
 
@@ -303,7 +428,7 @@ export class Relations {
 
     private _remove(pin: RelationPin) {
         if(pin) {
-            this._pins[pin.pinType] = null;
+            delete this._pins[pin.pinType];
             pin.disconnect();
         }
     }
@@ -346,6 +471,19 @@ export class Relations {
                 return ERelationPinType.TOP;
             default:
                 return pinType;
+        }
+    }
+
+    public static getSameDirectionType(pinType: ERelationPinType): ERelationPinType[]{
+        switch(pinType) {
+            case ERelationPinType.LEFT:
+            case ERelationPinType.RIGHT:            
+            case ERelationPinType.CENTER:        
+                return [ERelationPinType.LEFT, ERelationPinType.RIGHT, ERelationPinType.CENTER];
+            case ERelationPinType.TOP:
+            case ERelationPinType.BOTTOM:
+            case ERelationPinType.MIDDLE:
+                return [ERelationPinType.TOP, ERelationPinType.BOTTOM, ERelationPinType.MIDDLE];
         }
     }
 

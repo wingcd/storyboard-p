@@ -498,8 +498,14 @@ export class ViewGroup extends View {
         for(let c of this._children) {
             c.parent = this;
         }        
+
+        this.setDefaultValues();
         this.appendChildrenList();
-        this.updateComponents();
         this.relayout();
+        this.updateComponents();
+
+        for(let c of this._children) {
+            c.relations.focusUpdateOwner(c);
+        }   
     }
 }

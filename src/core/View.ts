@@ -58,7 +58,8 @@ export class View {
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},
-            {property: "_components", alias: "components", type: BaseComponent, default: null, priority: 999},
+            {property: "_components", alias: "components", type: BaseComponent, priority: 999},          
+            {property: "_relations", alias: "relations", type: Relations, priority: 999},
         );
         return fields;
     }
@@ -175,7 +176,7 @@ export class View {
             this._rootContainer = scene.make.container({}, false);
             (this._rootContainer as any).owner = this;
  
-            this._relations = new Relations(this);
+            this._relations = new Relations().setOwner(this);
             return true;
         }
         return false;
@@ -1441,10 +1442,17 @@ export class View {
                 this.addComponent(comp);
             });
         }
+        this._dragComponent = this.getComponent(DragComponent) as DragComponent;
+    }
+
+    protected setDefaultValues() {
+        this._rawWidth = this._width;
+        this._rawHeight = this._height;
     }
 
     protected reconstruct() {   
-        this.relayout();     
+        this.setDefaultValues();
+        this.relayout();
         this.updateComponents();
     }
 

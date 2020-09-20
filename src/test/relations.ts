@@ -4,6 +4,8 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EDragType } from "../core/Defines";
 import { ERelationPinType } from "../types";
+import { Package } from "../core/Package";
+import { View } from "../core/View";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -14,14 +16,18 @@ class UIScene extends ViewScene {
     }
 
     preload() {
+        let group = this.addUI.group();
+
         let left = this.addUI.view();
+        group.addChild(left);
         left.setBackgroundColor(0xff0000, true);
         left.setXY(150, 250);
         left.setSize(50, 100);
         left.draggable = true;
         left.dragComponent.dragType = EDragType.Horizontal;
 
-        let right = this.addUI.view();
+        let right = this.addUI.view();        
+        group.addChild(right);
         right.setBackgroundColor(0xff0000, true);
         right.setXY(400, 250);
         right.setSize(50, 100);
@@ -29,6 +35,7 @@ class UIScene extends ViewScene {
         right.dragComponent.dragType = EDragType.Horizontal;
         
         let top = this.addUI.view();
+        group.addChild(top);
         top.setBackgroundColor(0xff0000, true);
         top.setXY(250, 150);
         top.height = 50;
@@ -36,6 +43,7 @@ class UIScene extends ViewScene {
         top.dragComponent.dragType = EDragType.Vertical;
 
         let bottom = this.addUI.view();
+        group.addChild(bottom);
         bottom.setBackgroundColor(0xff0000, true);
         bottom.setXY(250, 400);
         bottom.height = 50;
@@ -43,6 +51,7 @@ class UIScene extends ViewScene {
         bottom.dragComponent.dragType = EDragType.Vertical;
 
         let center = this.addUI.group();
+        group.addChild(center);
         center.setBackgroundColor(0xffff00, true);
         center.setXY(200, 200);
         center.setSize(200, 200);
@@ -50,6 +59,8 @@ class UIScene extends ViewScene {
         center.relations.set(ERelationPinType.RIGHT, right, ERelationPinType.RIGHT);
         center.relations.set(ERelationPinType.TOP, top, ERelationPinType.TOP);
         center.relations.set(ERelationPinType.BOTTOM, bottom, ERelationPinType.BOTTOM);
+
+        top.relations.set(ERelationPinType.BOTTOM, center);
 
         let innerLT = this.makeUI.view();
         innerLT.setSize(20, 20);
@@ -127,6 +138,7 @@ class UIScene extends ViewScene {
         innerRB.relations.set(ERelationPinType.BOTTOM, center);
 
         let outterLT = this.addUI.view();
+        group.addChild(outterLT);
         outterLT.setSize(20, 20);
         outterLT.setBackgroundColor(0xff00ff, true);
         outterLT.setXY(180, 180);
@@ -134,6 +146,7 @@ class UIScene extends ViewScene {
         outterLT.relations.set(ERelationPinType.LEFT, center);
 
         let outterLM = this.addUI.view();
+        group.addChild(outterLM);
         outterLM.setSize(20, 20);
         outterLM.setBackgroundColor(0xff00ff, true);
         outterLM.setXY(180, 280);
@@ -141,6 +154,7 @@ class UIScene extends ViewScene {
         outterLM.relations.set(ERelationPinType.LEFT, center);
 
         let outterLB = this.addUI.view();
+        group.addChild(outterLB);
         outterLB.setSize(20, 20);
         outterLB.setBackgroundColor(0xff00ff, true);
         outterLB.setXY(180, 400);
@@ -148,6 +162,7 @@ class UIScene extends ViewScene {
         outterLB.relations.set(ERelationPinType.LEFT, center);
 
         let outterCT = this.addUI.view();
+        group.addChild(outterCT);
         outterCT.setSize(20, 20);
         outterCT.setBackgroundColor(0xff00ff, true);
         outterCT.setXY(280, 180);
@@ -155,6 +170,7 @@ class UIScene extends ViewScene {
         outterCT.relations.set(ERelationPinType.CENTER, center);
 
         let outterCM = this.addUI.view();
+        group.addChild(outterCM);
         outterCM.setSize(20, 20);
         outterCM.setBackgroundColor(0xff00ff, true);
         outterCM.setXY(280, 280);
@@ -162,14 +178,15 @@ class UIScene extends ViewScene {
         outterCM.relations.set(ERelationPinType.CENTER, center);
 
         let outterCB = this.addUI.view();
+        group.addChild(outterCB);
         outterCB.setSize(20, 20);
         outterCB.setBackgroundColor(0xff00ff, true);
         outterCB.setXY(280, 400);
         outterCB.relations.set(ERelationPinType.BOTTOM, center);
         outterCB.relations.set(ERelationPinType.CENTER, center);
-
         
         let outterRT = this.addUI.view();
+        group.addChild(outterRT);
         outterRT.setSize(20, 20);
         outterRT.setBackgroundColor(0xff00ff, true);
         outterRT.setXY(400, 180);
@@ -177,6 +194,7 @@ class UIScene extends ViewScene {
         outterRT.relations.set(ERelationPinType.RIGHT, center);
 
         let outterRM = this.addUI.view();
+        group.addChild(outterRM);
         outterRM.setSize(20, 20);
         outterRM.setBackgroundColor(0xff00ff, true);
         outterRM.setXY(400, 280);
@@ -184,11 +202,18 @@ class UIScene extends ViewScene {
         outterRM.relations.set(ERelationPinType.RIGHT, center);
 
         let outterRB = this.addUI.view();
+        group.addChild(outterRB);
         outterRB.setSize(20, 20);
         outterRB.setBackgroundColor(0xff00ff, true);
         outterRB.setXY(400, 400);
         outterRB.relations.set(ERelationPinType.BOTTOM, center);
         outterRB.relations.set(ERelationPinType.RIGHT, center);
+
+        let js = group.toJSON();
+        console.log(js);        
+
+        let clone = Package.inst.createObject(this, js) as View;
+        clone.x = 400;
     }
 
     create(): void {

@@ -121,17 +121,17 @@ export class Package {
             return null;
         }
 
-        let temp = data;
+        let tpl: any = null;
         if(data.resourceUrl) {
-            temp = this.getTemplateFromUrl(data.resourceUrl);
+            tpl = this.getTemplateFromUrl(data.resourceUrl);
         }
 
-        let category = data.__category__ || temp ? temp.__category__ : null;
+        let category = data.__category__ || (tpl ? tpl.__category__ : null);
         switch(category) {
             case ECategoryType.UI:
-                return scene.addUI.create(data, temp);
+                return scene.addUI.create(data, tpl);
             case ECategoryType.Property:
-                return new PropertyManager().fromJSON(data, temp);
+                return new PropertyManager().fromJSON(data, tpl);
         }
     }
 

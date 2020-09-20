@@ -422,13 +422,6 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         return fields;
     }
 
-    // static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number): {inst: TimelineManager,created:boolean} {
-    //     return {
-    //         inst: new TimelineManager(),
-    //         created: true
-    //     };
-    // }
-
     private _id: string;
     private _scene: Scene;
     private _target: View;

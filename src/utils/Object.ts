@@ -10,11 +10,11 @@ export function IsViewChild(root: IView, target: IView) {
     }
 
     let parent = target;
-    while(parent && parent != root) {
-        if(target == parent) {
+    while(parent) {
+        parent = parent.parent;
+        if(root == parent) {
             return true;
         }
-        parent = parent.parent;
     }
     
     return false;
@@ -35,7 +35,7 @@ export function GetViewRelativePath(root: IView, target: IView) {
         paths.push(target.name);
         target = target.parent;
     }
-    return paths.reverse().join(".");
+    return paths.reverse().join("/");
 }
 
 export function GetViewByRelativePath(root: IView, path: string): IView {
@@ -44,7 +44,7 @@ export function GetViewByRelativePath(root: IView, path: string): IView {
     }
 
     let child = root;
-    let paths = path.split(".");
+    let paths = path.split("/");
     for(let p of paths) {
         if(!(child as any).getChild) {
             console.error(`invalid path ${path} in ${p}:not group view!`);

@@ -4,7 +4,20 @@ import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
 
+function clone(source: any): any {
+    if(source == null || typeof(source) !== 'object') {
+        return source;
+    }
+
+    let json = JSON.stringify(source);
+    return JSON.parse(json);
+}
+
 function store(source: any, info: ISerializeInfo, tpl: any): any {
+    if(source == undefined) {
+        return null;
+    }
+
     let item = null;
     if(info.raw) {
         item = Object.assign({}, source);
@@ -61,7 +74,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 
     let sourceData = source[sourceProp];
     if(!done) {
-        if(typeof(sourceData) == 'function' || !sourceData || sourceData == info.default) {
+        if(typeof(sourceData) == 'function' || sourceData == undefined || sourceData == info.default) {
             done = true;
         }
     }
@@ -126,6 +139,10 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     }
 }
 
+function getConfigPropName(info: ISerializeInfo, config: any, tpl:any = null) {
+    return info.alias && (config.hasOwnProperty(info.alias) || (tpl && tpl.hasOwnProperty(info.alias))) ? info.alias : info.property;;
+}
+
 function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:any = null, depth:number = 0) {
     if(!config && tpl) {
         config = {};
@@ -138,7 +155,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     if(info.static) {
         target = target.constructor;
     }
-    let cfgProp = info.alias && (config.hasOwnProperty(info.alias) || (tpl && tpl.hasOwnProperty(info.alias))) ? info.alias : info.property;
+    let cfgProp = getConfigPropName(info, config, tpl);
     let targetProp = info.importAs || info.property;
 
     let cfgData = config[cfgProp];
@@ -147,7 +164,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     }
 
     if(cfgData == undefined) {
-        if(tpl == undefined) {
+        if(tpl == undefined) {   
+            if(target[targetProp] == undefined) {         
+                target[targetProp] = clone(info.default);
+            }
             return;
         }
         cfgData = tpl;
@@ -253,12 +273,30 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
  * @param source 被序列化的对象 
  * @param tpl 模板对象，当设置此参数后，只序列化差异化数据
  */
-export function Serialize(source: any, tpl?: any) {
+export function Serialize(source: any, tpl?: any) { 
     let result:any = {};
     let pnames: ISerializeInfo[] = source.constructor.SERIALIZABLE_FIELDS || [];
 
+    let shoudproc = true;
     for(let item of pnames) {
-        serializeProperty(result, item, source, tpl);
+        if(item.must) {
+            let cfgProp = getConfigPropName(item, source, tpl);
+            if(item.static) {
+                if(source.constructor && source.constructor[cfgProp] == null) {
+                    shoudproc = false;
+                }
+            }else{
+                if(source[cfgProp] == null){
+                    shoudproc = false;
+                }
+            }
+        }
+    }
+
+    if(shoudproc) {
+        for(let item of pnames) {
+            serializeProperty(result, item, source, tpl);
+        }
     }
 
     if(source.constructor.SERIALIZE_COMPLETED) {

@@ -10,7 +10,7 @@ export class BaseComponent implements IComponent {
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         return [
-            {property: "TYPE", alias: "type", static: true, readonly: true},
+            {property: "TYPE", alias: "type", static: true, readonly: true, must: true},
             {property: "enable",importAs: "_enable",default: true}
         ];
     }

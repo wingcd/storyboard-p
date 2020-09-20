@@ -229,10 +229,6 @@ export class PropertyManager implements ITemplatable {
         return fields;
     }
 
-    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
-        return new PropertyManager();
-    }
-
     private _target: View;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;

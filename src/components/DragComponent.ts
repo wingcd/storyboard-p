@@ -9,6 +9,8 @@ import { PoolManager } from "../utils/PoolManager";
 import { TOP_MOST_DEPTH, DEFAULT_DEPTH, EDragType } from "../core/Defines";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { IViewGroup } from "../types";
+import { SerializableComponent } from "./SerializableComponent";
+import { ComponentFactory } from "./ComponentFactory";
 
 const enum EDragStatus {
    NONE,
@@ -21,7 +23,9 @@ const enum EDragStatus {
 }
 
 @disallow_multiple_component()
-export class DragComponent extends BaseComponent {
+export class DragComponent extends SerializableComponent {
+   public static TYPE = "drag";
+
    protected static sGlobalDragStart: Point = new Point();
    protected static sStartXY: Point = new Point();
    private   static _sDragBeginCancelled: boolean;
@@ -252,3 +256,5 @@ export class DragComponent extends BaseComponent {
      }
    }
 }
+
+ComponentFactory.regist(DragComponent);
