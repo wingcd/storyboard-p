@@ -120,6 +120,7 @@ export class DragComponent extends SerializableComponent {
 
       this.owner.scene.input.on(Input.Events.POINTER_MOVE, this._moving, this);
       this.owner.scene.input.on(Input.Events.POINTER_UP, this._end, this);
+      // to do... need out side ?
       this.owner.scene.input.on(Input.Events.POINTER_UP_OUTSIDE, this._end, this);
 
       this.owner.on(DisplayObjectEvent.SIZE_CHANGED, this._sizeChanged, this);

@@ -5,6 +5,7 @@ import { Settings } from "../core/Setting";
 import { GestureEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { DragComponent } from "./DragComponent";
+import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
 export class GestureClick extends BaseComponent {
@@ -68,3 +69,5 @@ export class GestureClick extends BaseComponent {
         }
     }
 }
+
+ComponentFactory.inst.registEvents(Events.GestureEvent.Click, GestureClick);

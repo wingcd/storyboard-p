@@ -23,17 +23,6 @@ export class Property {
         );
         return fields;
     }
-
-    static SERIALIZE(source: any, tpl?: any): any {
-        return [source.name, source.value];
-    }
-
-    static DESERIALIZE(source: any, target: any, configProp: string, targetProp: string, tpl: any) {
-        let item = new Property();
-        item.name = source[0];
-        item.value = source[1];
-        return item;
-    }
 }
 
 class PropertyGroup {
@@ -70,13 +59,15 @@ class PropertyGroup {
     }
 
     public store(): this {
-        this._properties.forEach(p=>{
-            this._store[p._name] = {
-                name: p.name,
-                target: p.target,
-                value: p.target[p.name],
-            }
-        });
+        if(this.target) {
+            this._properties.forEach(p=>{
+                this._store[p._name] = {
+                    name: p.name,
+                    target: p.target,
+                    value: p.target[p.name],
+                }
+            });
+        }
         return this;
     }
 
@@ -223,12 +214,14 @@ export class PropertyManager implements ITemplatable {
             {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
 
             {property: "resourceUrl", default: null},
-            {property: "_id", alias: "id", default: null},
+            {property: "_id", alias: "id", default: ""},  
+            {property: "_name", alias: "name", default: null},
             {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
         );
         return fields;
-    }
+    } 
 
+    private _name: string = "";
     private _target: View;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
@@ -236,12 +229,22 @@ export class PropertyManager implements ITemplatable {
 
     public resourceUrl: string;
     
-    constructor() {
+    constructor(name?: string, target?: View) {
+        this._name = name;
+        this._target = target;
         this._id = `${Package.getUniqueID()}`;
     }
 
     public get id(): string {
         return this._id;
+    }
+
+    public set name(val: string) {
+        this._name = val;
+    }
+
+    public get name(): string {
+        return this._name;
     }
 
     public get groups(): PropertyGroup[] {
@@ -261,6 +264,12 @@ export class PropertyManager implements ITemplatable {
      */
     public getAll(): PropertyGroup[] {
         return this._groups;
+    }
+
+    public has(name: string): boolean {
+        return this._groups.findIndex((g=>{
+            g.name == name;
+        })) >= 0;
     }
 
     /**

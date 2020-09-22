@@ -6,6 +6,8 @@ import { EDragType } from "../core/Defines";
 import { ERelationPinType } from "../types";
 import { Package } from "../core/Package";
 import { View } from "../core/View";
+import * as Events from "../events";
+require("../components");
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -25,6 +27,10 @@ class UIScene extends ViewScene {
         left.setSize(50, 100);
         left.draggable = true;
         left.dragComponent.dragType = EDragType.Horizontal;
+
+        left.on(Events.PointerEvent.DOWN, ()=>{
+            console.log("click....")
+        });
 
         let right = this.addUI.view();        
         group.addChild(right);

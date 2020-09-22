@@ -3,11 +3,8 @@ import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
 import { ViewScene } from "./ViewScene";
-import { PoolManager } from "../utils/PoolManager";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { IComponent } from "../types/IComponent";
 import { ISerializeInfo } from "../annotations/Serialize";
-import { Deserialize } from "../utils/Serialize";
 import { View } from "./View";
 
 export class ViewGroup extends View {
@@ -19,12 +16,6 @@ export class ViewGroup extends View {
             {property: "children",importAs: "_children",default: [], type: View},
         );
         return fields;
-    }
-
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
-        if(target instanceof ViewGroup) {
-            target.reconstruct();
-        }
     }
 
     protected _container: Container;
@@ -383,23 +374,14 @@ export class ViewGroup extends View {
         super.checkDirty();
     }
 
-    // public clone(): View {        
-    //     let obj = super.clone() as ViewGroup;    
-    //     obj._buildingDisplayList = true;
-
-    //     if(this._children) {
-    //         this._children.forEach(child=>{
-    //             let c = child.clone();
-    //             obj.addChild(c);
-    //         });
-    //     }
-
-    //     obj._buildingDisplayList = false;
-
-    //     this.appendChildrenList();
-        
-    //     return obj;
-    // }
+    public set tint(value: number) {
+        if(this._tint != value) {
+            super.tint = value;
+            for(let c of this._children) {
+                c.tint = value;
+            }
+        }
+    }
 
     /**
      * @internal
@@ -488,9 +470,8 @@ export class ViewGroup extends View {
         }
     }
 
-    protected updateComponents() {
-        super.updateComponents();
-
+    protected onComponentChanged() {
+        super.onComponentChanged();
         this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
     }
 

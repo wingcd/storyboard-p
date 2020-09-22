@@ -3,6 +3,7 @@ import * as Events from "../events";
 import { Point,Time, Pointer } from "../phaser";
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
+import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
 export class GestureDoubleClick extends BaseComponent {
@@ -52,3 +53,5 @@ export class GestureDoubleClick extends BaseComponent {
         }
     }
 }
+
+ComponentFactory.inst.registEvents(Events.GestureEvent.DoubleClick, GestureDoubleClick);

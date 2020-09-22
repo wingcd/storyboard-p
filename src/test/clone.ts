@@ -39,31 +39,31 @@ class UIScene extends ViewScene {
         view.setXY(-10, -10);
         view.setBackgroundColor(0xff0000, true);
         let propComp = new PropertyComponent();
-        propComp.propertyManger = new PropertyManager();
+        let propMgr = propComp.add("c1");
         view.addComponent(propComp);
-        let state1 = propComp.propertyManger.add("state1");
+        let state1 = propMgr.add("state1");
         state1.add("x", 100);
         state1.add("y", 200);
-        propComp.propertyManger.store();
+        propMgr.store();
 
-        let timeline = new TimelineManager();
+        let animComp = new AnimationComponent();        
+        let timeline = animComp.add("t1");
+        timeline.playOnEnable = true;
         let tg1 = timeline.add("x");
         tg1.add(10, 100, {type: EEaseType.Linear}).add(2000, 400);
-        let animComp = new AnimationComponent();
-        animComp.playOnEnable = true;
-        animComp.timeline = timeline;
         view.addComponent(animComp);
         timeline.store();
 
         js = view.toJSON();
         let rr = view.clone();
-        rr.x = 300;
+        rr.y = 300;
+
         this.time.addEvent({
             delay: 2100,
             callback: ()=>{
-                propComp.propertyManger.applyTo('state1');
+                propMgr.applyTo('state1');
 
-                let pm = (rr.getComponent(PropertyComponent) as PropertyComponent).propertyManger;
+                let pm = (rr.getComponent(PropertyComponent) as PropertyComponent).get("c1");
                 pm.applyTo('state1');
             }
         })        

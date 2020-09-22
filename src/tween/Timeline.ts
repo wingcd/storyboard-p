@@ -129,14 +129,16 @@ export class KeyFrameGroup {
     }
 
     public store(): this {
-        this._keyframes.forEach(kf=>{
-            let p = kf.property;
-            this._store[p._name] = {
-                name: p.name,
-                target: p.target,
-                value: p.target[p.name],
-            }
-        });
+        if(this.target) {
+            this._keyframes.forEach(kf=>{
+                let p = kf.property;
+                this._store[p._name] = {
+                    name: p.name,
+                    target: p.target,
+                    value: p.target[p.name],
+                }
+            });
+        }
         return this;
     }
 
@@ -417,15 +419,21 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
 
             {property: "resourceUrl", default: null},
             {property: "_id", alias: "id", default: null},
+            {property: "_name", alias: "name", default: null},
+            {property: "playOnEnable", default: false},
             {property: "_groups", alias: "groups", type: KeyFrameGroup, default: []},
         );
         return fields;
     }
-
+    
     private _id: string;
+    private _name: string;
+    private _groups: KeyFrameGroup[] = [];
+    
+    public playOnEnable: boolean = false;
+    
     private _scene: Scene;
     private _target: View;
-    private _groups: KeyFrameGroup[] = [];
     private _playing: boolean = false;
     private _timeline: Timeline;
     private _paused: boolean = false;
@@ -436,9 +444,13 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
 
     public resourceUrl: string;
 
-    constructor() {
+    constructor(name?: string, scene?: Scene, target?: View) {
         super();
+
         this._id = `${Package.getUniqueID()}`;
+        this._name = name;
+        this._scene = scene;
+        this._target = target;
     }
 
     public get target(): View {
@@ -451,6 +463,14 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
 
     public get id(): string {
         return this._id;
+    }
+
+    public set name(val: string) {
+        this._name = val;
+    }
+
+    public get name(): string {
+        return this._name;
     }
 
     public get groups(): KeyFrameGroup[] {
@@ -623,7 +643,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
             gtweens.push({group, tweenDatas});
 
             KeyFrameGroup.addTweensEx(this._timeline, tweenDatas);
-        });   
+        });
         this._timeline.init();  
         
         if(reverse) {

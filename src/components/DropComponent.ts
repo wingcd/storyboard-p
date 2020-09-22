@@ -3,8 +3,9 @@ import * as Events from "../events";
 import { View } from "../core/View";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
-import { Input, Pointer, EventData } from "../phaser";
+import { Input, Pointer } from "../phaser";
 import { PoolManager } from "../utils/PoolManager";
+import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
 export class DropComponent extends BaseComponent {
@@ -35,3 +36,5 @@ export class DropComponent extends BaseComponent {
         this._draggingObject = null;
     }
 }
+
+ComponentFactory.inst.registEvents(Events.DragEvent.DROP, DropComponent);

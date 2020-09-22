@@ -15,13 +15,11 @@ export class Package {
         return fields;
     }
 
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any, depth: number) {
-        if(target instanceof Package) {
-            let packages = target._packages.slice();
-            target._packages.length = 0;
-            for(let t of packages) {
-                target.addPackage(t);
-            }
+    protected constructFromJson() {
+        let packages = this._packages.slice();
+        this._packages.length = 0;
+        for(let t of packages) {
+            this.addPackage(t);
         }
     }
 

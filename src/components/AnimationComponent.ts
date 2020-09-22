@@ -9,68 +9,77 @@ import { SerializableComponent } from "./SerializableComponent";
 
  @disallow_multiple_component()
 export class AnimationComponent extends SerializableComponent {
-    public static CATEGORY = ECategoryType.Component;
     public static TYPE = "animation";
 
-    private _playOnEnable: boolean = false;
-    private _timeline: TimelineManager;
+    private _timelines: TimelineManager[] = [];
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "_timeline", alias: "timeline", type: TimelineManager},
-            {property: "_playOnEnable", alias: "playOnEnable", default: false},
+            {property: "_timelines", alias: "timelines", type: TimelineManager, default: []},
         );
         return fields;
     }
 
-    public get timeline(): TimelineManager {
-        return this._timeline;
+    public get timelines(): TimelineManager[] {
+        return this._timelines;
     }
 
-    public set timeline(val: TimelineManager) {
-        if(val != this._timeline) {
-            this._timeline = val;
-            if(this.owner) {
-                this._timeline.bindTarget(this.owner.scene, this.owner);
-            }
+    public has(name: string): boolean {
+        return this._timelines.findIndex(c=>{
+            return c.name == name;
+        }) >= 0;
+    }
+
+    public add(name: string): TimelineManager {
+        if(this.has(name)) {
+            console.error(`has same name "${name}" timelie manager!`);
+            return null;
         }
+
+        let tl = new TimelineManager(name, this.owner?this.owner.scene:null, this.owner);
+        this._timelines.push(tl);
+        return tl;
     }
 
-    public get playOnEnable(): boolean {
-        return this._playOnEnable;
-    }
+    public get(name: string) {
+        return this._timelines.find(c=>{
+            return c.name == name;
+        });
+    }    
 
-    public set playOnEnable(val: boolean) {
-        this._playOnEnable = val;
+    public getAt(index: number): TimelineManager {
+        if(index >= 0 && index < this._timelines.length) {
+            return this._timelines[index];
+        }
+        return null;
     }
     
     public regist(view: View) {
-        if(this._timeline) {
-            this._timeline.bindTarget(view.scene, view);
+        if(this._timelines) {
+            for(let t of this._timelines) {
+                t.bindTarget(view.scene, view);
+                t.store();
+            }
         }
         super.regist(view);
     }
-    
-    public unRegist() {
-        super.unRegist();
-
-        if(this._timeline) {
-            this._timeline.stop();
-        }        
-    }
 
     private onEnable() {
-        if(this._timeline) {
-            if(this._playOnEnable) {
-                this._timeline.play();
-            } 
-        }
+        if(this._timelines) {
+            for(let t of this._timelines) {
+                if(t.playOnEnable) {
+                    t.play();
+                }
+            }
+        }  
     }
 
     private onDisable() {
-        if(this._timeline) {
-            this._timeline.stop();
-        } 
+        if(this._timelines) {
+            for(let t of this._timelines) {
+                t.stop();
+            }
+        }  
     }
 }
 

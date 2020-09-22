@@ -1,10 +1,9 @@
 import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
-import { Texture, Sprite, TileSprite } from "../phaser";
+import { Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { FillMask } from "./FillMask";
-import { ViewFactory } from "../core/ViewFactory";
 import { ETextureScaleType, INinePatchInfo, ITileInfo } from "../types";
 
 export class NinePatchInfo {
@@ -116,7 +115,7 @@ export class UIImage extends View {
         }
     }
     public set tint(val:number) {
-        if(this._tint != val) {            
+        if(this._tint != val) {       
             super.tint = val;
             this._updateInfo();
         }

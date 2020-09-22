@@ -85,8 +85,8 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                 // 判断是否有自带序列化函数
                 let isarray = Array.isArray(sourceData);
                 if(!info.raw) {
-                    if(isarray || info.asarray) {
-                        // 处理数组对象
+                    if(isarray || info.asMap) {
+                        // 处理数组对象,或者key-value对象
                         let rets: any = isarray ? [] : {};
                         for(let i in sourceData) {
                             let t = null;
@@ -194,11 +194,15 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
         if(typeof(config) == 'object') {
             let isarray = Array.isArray(cfgData);
             if(!info.raw) {
-                if((isarray || info.asarray) && info.type && !SerializeFactory.inst.toarray(info.type)) {
+                if((isarray || info.asMap) && info.type && !SerializeFactory.inst.toarray(info.type)) {
                     // process array
                     target[targetProp] = isarray ? [] : {};
 
-                    for(let i in cfgData) {
+                    for(let i in cfgData) {                        
+                        if(typeof(cfgData[i]) != 'object') {
+                            continue;
+                        }
+
                         let t = null;
                         if(tpl && tpl[i] != undefined) {
                             t = tpl[i];
@@ -217,8 +221,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             ritem = new info.type(...parms);
                         }
 
-                        if(!Array.isArray(cfgData[i])) {
-                            restore(ritem, i, cfgData[i], t, info, depth);
+                        restore(ritem, i, cfgData[i], t, info, depth);      
+
+                        if(ritem && ritem.constructFromJson) {
+                            ritem.constructFromJson();
                         }
 
                         if(isarray) {
@@ -250,6 +256,9 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
                         restore(ritem, targetProp, cfgData, tpl, info, depth);
 
+                        if(ritem && ritem.constructFromJson) {
+                            ritem.constructFromJson();
+                        }
                         target[targetProp] = ritem;
                     }else{      
                         SetValue(target, targetProp, cfgData);
@@ -329,10 +338,6 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
         if(!item.readonly) {
             deserializeProperty(target, item, config, tpl, depth);
         }
-    }
-
-    if(target.constructor.DESERIALIZE_COMPLETED) {
-        target.constructor.DESERIALIZE_COMPLETED(config, target, tpl, depth);
     }
     return true;
 }

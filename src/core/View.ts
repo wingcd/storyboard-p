@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
-import { EDirtyType, EOverflowType, ECategoryType } from "./Defines";
-import { Point, Container, Scene, GameObject, Graphics, Rectangle, Sprite, Texture, Vector2, GeometryMask, MaskType, BitmapMask } from "../phaser";
+import { EDirtyType, ECategoryType } from "./Defines";
+import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
@@ -12,8 +12,6 @@ import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
-import { PropertyManager } from "../tween/Property";
-import { TimelineManager } from "../tween/Timeline";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
@@ -21,8 +19,10 @@ import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
 import { Package } from "./Package";
 import { Templates } from "./Templates";
-import { ObjectFactory } from "./ObjectFactory";
-import { ViewFactory } from "./ViewFactory";
+import { PropertyManager } from "../tween/Property";
+import { PropertyComponent } from "../components/PropertyComponent";
+import { TimelineManager } from "../tween/Timeline";
+import { AnimationComponent } from "../components/AnimationComponent";
 
 export class View {  
     static CATEGORY = ECategoryType.UI;
@@ -80,14 +80,8 @@ export class View {
         
     }
 
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any, depth: number) {
-        if(target instanceof View) {
-            target.reconstruct();
-
-            if(depth === 0) {
-                
-            }
-        }
+    protected constructFromJson() {
+        this.reconstruct();
     }
 
     public data: any;    
@@ -129,7 +123,6 @@ export class View {
     /** enable trigger when touch point moved */
     public touchEnableMoved: boolean = true;
     protected _draggable: boolean = false;
-    private _dragComponent: DragComponent;
     protected _opaque: boolean = false;
     protected _enableBackground: boolean = false;
     protected _backgroundColor: number = 0xffffff;   
@@ -159,6 +152,10 @@ export class View {
     _sourceHeight: number = 0;
 
     private _components: IComponent[]; 
+    
+    private _dragComponent: DragComponent;
+    private _propertyCompoent: PropertyComponent;
+    private _animationComponent: AnimationComponent;
 
     constructor(scene: ViewScene) {
         this._rid = this._id = `${Package.getUniqueID()}`;
@@ -1307,9 +1304,10 @@ export class View {
             }
         }        
 
+        this._components.push(comp);
         comp.regist(this);
 
-        this._components.push(comp);
+        this.onComponentChanged();
 
         return comp;
     }
@@ -1327,6 +1325,8 @@ export class View {
         comp.unRegist();
 
         this._components.splice(index, 1);
+
+        this.onComponentChanged();
 
         return this;
     }
@@ -1442,7 +1442,13 @@ export class View {
                 this.addComponent(comp);
             });
         }
+        this.onComponentChanged();
+    }
+
+    protected onComponentChanged(){        
         this._dragComponent = this.getComponent(DragComponent) as DragComponent;
+        this._propertyCompoent = this.getComponent(PropertyComponent) as PropertyComponent;
+        this._animationComponent = this.getComponent(AnimationComponent) as AnimationComponent;
     }
 
     protected setDefaultValues() {
@@ -1475,6 +1481,14 @@ export class View {
 
     public get dragComponent(): DragComponent {
         return this._dragComponent;
+    }
+
+    public get propertyComponent(): PropertyComponent {
+        return this._propertyCompoent;
+    }
+
+    public get animationComponent(): AnimationComponent {
+        return this._animationComponent;
     }
 
     public get focusable(): boolean {
@@ -1591,7 +1605,7 @@ export class View {
     }
 
     public get alpha(): number {
-        return this._tint;
+        return this._alpha;
     }
 
     public set alpha(value: number) {

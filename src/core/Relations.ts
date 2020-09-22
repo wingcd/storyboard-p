@@ -294,7 +294,7 @@ export class Relations {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields: ISerializeInfo[] = [];
         fields.push(                               
-            {property: "_pins", alias: "pins", type: RelationPin, default: {}, asarray: true},
+            {property: "_pins", alias: "pins", type: RelationPin, default: {}, asMap: true},
         );
         return fields;
     }

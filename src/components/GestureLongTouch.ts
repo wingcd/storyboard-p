@@ -3,6 +3,7 @@ import * as Events from "../events";
 import { Point, Time, Input, Pointer, EventData } from "../phaser";
 import { Settings } from "../core/Setting";
 import { disallow_multiple_component } from "../annotations/Component";
+import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
 export class GestureLongTouch extends BaseComponent {
@@ -79,3 +80,6 @@ export class GestureLongTouch extends BaseComponent {
         }
     }
 }
+
+ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchStart, GestureLongTouch);
+ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchEnd, GestureLongTouch);

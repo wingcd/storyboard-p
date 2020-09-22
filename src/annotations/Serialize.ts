@@ -8,7 +8,7 @@ export interface ISerializeInfo {
     static?: boolean;  // 是否类的静态属性
     readonly?: boolean; // 是否只序列化，不反序列化
     priority?: number; // 反序列化时的优先级
-    asarray?: boolean; // 把对象当做数组处理
+    asMap?: boolean; // 把对象当做数组处理
     raw?: boolean; // 是否将对象直接序列化
     must?: boolean; // 必须包含属性，不存在则不进行后续序列化
 }

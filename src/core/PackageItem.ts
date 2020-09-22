@@ -16,13 +16,11 @@ export class PackageItem {
         return fields;
     }
 
-    static DESERIALIZE_COMPLETED(source: any, target: any, tpl: any, depth: number) {
-        if(target instanceof PackageItem) {
-            let templates = target._templates.slice();
-            target._templates.length = 0;
-            for(let t of templates) {
-                target.addTemplate(t);
-            }
+    protected constructFromJson() {
+        let templates = this._templates.slice();
+        this._templates.length = 0;
+        for(let t of templates) {
+            this.addTemplate(t);
         }
     }
 

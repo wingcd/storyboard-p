@@ -1,1 +1,1 @@
-require('./test/relations')
+require('./test/clone')

@@ -8,3 +8,4 @@ export * from "./StateChangeEvent";
 export * from "./TextEvent";
 export * from "./GestureEvent";
 export * from "./TimelineEvent";
+export * from "./PointerEvent";

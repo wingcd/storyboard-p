@@ -9,34 +9,58 @@ import { SerializableComponent } from "./SerializableComponent";
 
  @disallow_multiple_component()
 export class PropertyComponent extends SerializableComponent {
-    public static CATEGORY = ECategoryType.Component;
     public static TYPE = "property";
 
-    private _propMgr: PropertyManager;
+    private _contollers: PropertyManager[] = [];
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = BaseComponent.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "_propMgr", alias: "propMgr", type: PropertyManager},
+            {property: "_contollers", alias: "contollers", type: PropertyManager, default: []},
         );
         return fields;
     }
 
-    public get propertyManger(): PropertyManager {
-        return this._propMgr;
+    public get properties(): PropertyManager[] {
+        return this._contollers;
     }
 
-    public set propertyManger(val: PropertyManager) {
-        if(val != this._propMgr) {
-            this._propMgr = val;
-            if(this.owner) {
-                this._propMgr.bindTarget(this.owner);
-            }
+    public has(name: string): boolean {
+        return this._contollers.findIndex(c=>{
+            return c.name == name;
+        }) >= 0;
+    }
+
+    public add(name: string): PropertyManager {
+        if(this.has(name)) {
+            console.error(`has same name "${name}" property manager!`);
+            return null;
         }
+
+        let pm = new PropertyManager(name, this.owner);
+        this._contollers.push(pm);
+        return pm;
+    }
+
+    public get(name: string) {
+        return this._contollers.find(c=>{
+            return c.name == name;
+        });
+    }    
+
+    public getAt(index: number): PropertyManager {
+        if(index >= 0 && index < this._contollers.length) {
+            return this._contollers[index];
+        }
+        return null;
     }
     
     public regist(view: View) {
-        if(this._propMgr) {
-            this._propMgr.bindTarget(view);
+        if(this._contollers) {
+            for(let key in this._contollers) {
+                let pm = this._contollers[key];
+                pm.bindTarget(view);
+                pm.store();
+            }
         }
         super.regist(view);
     }
