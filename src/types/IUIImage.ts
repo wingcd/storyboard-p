@@ -54,6 +54,6 @@ export interface IUIImageConfig extends IViewConfig {
     fillMask?: IFillMask;
 }
 
-export interface IUIImage extends IUIImageConfig, IView{
+export interface IUIImage extends IUIImageConfig {
 
 }

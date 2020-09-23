@@ -56,12 +56,16 @@ export class BaseComponent implements IComponent {
     }
 
     /**@internal */
-    regist(obj: View): void {
+    regist(owner: View): void {
+        if(this._owner == owner) {
+            return;
+        }
+
         if(this._owner) {
             this.unRegist();
         }
 
-        this._owner = obj;
+        this._owner = owner;
 
         let that = this as any;   
         if(that.onEnable) {

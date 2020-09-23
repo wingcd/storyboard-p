@@ -1,4 +1,4 @@
-import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild } from "../utils/Object";
+import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild, SetValue } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
@@ -8,18 +8,22 @@ import { ITemplatable } from "../types/ITemplatable";
 import { Package } from "../core/Package";
 import { Templates } from "../core/Templates";
 import { SerializeFactory } from "../utils/SerializeFactory";
+import { EventEmitter } from "../phaser";
+import { PropertyEvent } from "../events";
 
 export class Property {
     _name: string = null;
     name: string = null;
     value: any = null;
     target: any = null;
+    targetPath: string = null;
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
             {property: "name"},
             {property: "value"},
+            {property: "targetPath"},
         );
         return fields;
     }
@@ -117,17 +121,19 @@ class PropertyGroup {
         return this;
     }
 
-    public add(propName: string, value: any): PropertyGroup {
+    public add(propName: string, value: any, target?: View): PropertyGroup {
+        target = target || this._target;
         let prop = this.getByName(propName);
         if(!prop) {
             prop = new Property();
             prop._name = prop.name = propName;
-            prop.target = this._target;
+            prop.target = target;
+            prop.targetPath = GetViewRelativePath(this._target, target);
             this._properties.push(prop);
 
             if(propName.indexOf('.') >= 0) {
                 prop._name = propName.replace('.', '$');
-                prop.target = GetValue(prop.target, propName, this._target, true);
+                prop.target = GetValue(target, propName, target, true);
                 let names = propName.split('.');            
                 prop.name = names[names.length - 1];
             }
@@ -166,8 +172,7 @@ class PropertyGroup {
 
     /**@internal */
     bindTarget(target: View): this {
-        let owner: View = target;
-        this._target = owner;
+        this._target = target;
 
         this._targetPath = GetViewRelativePath(this._parent.target, this._target);
         if(this._target) {
@@ -175,7 +180,11 @@ class PropertyGroup {
             this._properties.length = 0;
 
             for(let p of props) {
-                this.add(p.name, p.value);
+                let pTarget = GetViewByRelativePath(this._parent.target, p.targetPath) as View;
+                if(pTarget == this._parent.target) {
+                    pTarget = target;
+                }
+                this.add(p.name, p.value, pTarget);
             }
         }
 
@@ -188,8 +197,8 @@ class PropertyGroup {
         if(this._targetPath) {
             this._target = GetViewByRelativePath(root, this._targetPath) as View;
         }else{
-            this._target = IsViewChild(this._parent.target, this._target) ? this._target : this._parent.target;            
-            this._targetPath = GetViewRelativePath(this._parent.target, this._target);
+            this._target = IsViewChild(root, this._target) ? this._target : root;            
+            this._targetPath = GetViewRelativePath(root, this._target);
         }
 
         if(this._target) {
@@ -197,7 +206,11 @@ class PropertyGroup {
             this._properties.length = 0;
 
             for(let p of props) {
-                this.add(p.name, p.value);
+                let pTarget = GetViewByRelativePath(root, p.targetPath) as View;
+                if(pTarget == this._parent.target) {
+                    pTarget = this._target;
+                }
+                this.add(p.name, p.value, pTarget);
             }
         }
 
@@ -205,7 +218,7 @@ class PropertyGroup {
     }
 }
 
-export class PropertyManager implements ITemplatable {
+export class PropertyManager extends EventEmitter implements ITemplatable {
     static CATEGORY = ECategoryType.Property;
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -230,10 +243,19 @@ export class PropertyManager implements ITemplatable {
     public resourceUrl: string;
     
     constructor(name?: string, target?: View) {
+        super();
+
         this._name = name;
         this._target = target;
         this._id = `${Package.getUniqueID()}`;
     }
+
+    private _emit(eventType: string, ...data: any[]) {
+        if(this._target instanceof View) {
+            this._target.emit(eventType, ...data);
+        }
+        this.emit(eventType, this, ...data);
+    }   
 
     public get id(): string {
         return this._id;
@@ -337,6 +359,7 @@ export class PropertyManager implements ITemplatable {
      * @returns when not exist group return false, or true
      */
     public applyTo(name: string): boolean {
+        let oldName = this._lastGroup ? this._lastGroup.name : null;
         let pg = this.get(name);
         if(!pg) {
             return false;
@@ -344,6 +367,8 @@ export class PropertyManager implements ITemplatable {
 
         pg.applyAll(this._lastGroup);
         this._lastGroup = pg;
+
+        this._emit(PropertyEvent.CHANGED, oldName, name);
     }
 
     public bindTarget(target: View): this {

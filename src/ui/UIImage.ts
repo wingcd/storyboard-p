@@ -114,14 +114,20 @@ export class UIImage extends View {
             this._updateInfo();
         }
     }
+    public get tint(): number {
+        return super.tint;
+    }
     public set tint(val:number) {
-        if(this._tint != val) {       
+        if(this.tint != val) {       
             super.tint = val;
             this._updateInfo();
         }
     }
+    public get alpha(): number {
+        return super.alpha;
+    }
     public set alpha(val: number) {
-        if(this._alpha != val) {
+        if(this.alpha != val) {
             super.alpha = val;
             this._updateInfo();
         }
@@ -171,8 +177,8 @@ export class UIImage extends View {
         }
         this._disp.flipX = this._flipX;
         this._disp.flipY = this._flipY;
-        this._disp.tint = this._tint;
-        this._disp.alpha = this._alpha;
+        this._disp.tint = this.tint;
+        this._disp.alpha = this.alpha;
 
         if(this._fillMask) {
             this._fillMask.attach(this, this._disp);
@@ -187,7 +193,7 @@ export class UIImage extends View {
 
         let width = this.width;
         let height = this.height;
-        let texture = this._scene.textures.get(this._textureKey);
+        let texture = this.scene.textures.get(this._textureKey);
         let frameName = this._textureFrame === undefined ? "__BASE" : this._textureFrame;
         let frame = texture.get(frameName);
         if(!frame) {
@@ -196,7 +202,7 @@ export class UIImage extends View {
         }
         switch(this._scaleType){
             case ETextureScaleType.Tile:
-                this._disp = this._scene.add.tileSprite(0, 0, width, height, this._textureKey, this._textureFrame);
+                this._disp = this.scene.add.tileSprite(0, 0, width, height, this._textureKey, this._textureFrame);
                 break;
             case ETextureScaleType.NinePatch:
                 let columns: number[] = [], rows: number[] = [];
@@ -207,7 +213,7 @@ export class UIImage extends View {
                 let bottom = MathUtils.isNumber(ninePatch.bottom) ? ninePatch.bottom : 1;
                 if(!ninePatch 
                     || (top == 0 && left == 0 && right == 1 && bottom == 1)) {
-                        this._disp = this._scene.add.sprite(0, 0, this._textureKey, this._textureFrame);    
+                        this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame);    
                 }else {
                     let hl = left * frame.width || 1;
                     let hr = frame.width - frame.width * right || 1;
@@ -224,12 +230,12 @@ export class UIImage extends View {
                         cfg.stretchMode = ninePatch.stretchMode;
                     }
 
-                    this._disp = this._scene.addExt.ninePatchTexture(0, 0, width || frame.width, height || frame.width, 
+                    this._disp = this.scene.addExt.ninePatchTexture(0, 0, width || frame.width, height || frame.width, 
                         this._textureKey, this._textureFrame as any, columns, rows, cfg);
                 }
                 break;            
             default:
-                this._disp = this._scene.add.sprite(0, 0, this._textureKey, this._textureFrame);
+                this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame);
                 break;
         }
 

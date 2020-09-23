@@ -4,10 +4,12 @@ import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
 import { Input } from "../phaser";
-import { PropertyComponent } from "../components/PropertyComponent";
 import { PropertyManager } from "../tween/Property";
+import { EButtonMode } from "../types/IUIButton";
+import { UIImage } from "./UIImage";
+import { UITextField } from "./UITextField";
+require("../components");
                     
-export const enum EButtonMode { Common, Check, Radio };
 export class UIButton extends ViewGroup {
     static TYPE = "button";
 
@@ -17,7 +19,8 @@ export class UIButton extends ViewGroup {
             {property: "_selected", alias: "selected", default: false},
             {property: "_title", alias: "title", default: ""},
             {property: "_icon", alias: "icon", default: ""},
-            {property: "_titleColor", alias: "titleColor", default: 0},
+            {property: "_titleColor", alias: "titleColor", default: 0},            
+            {property: "_mode", alias: "mode", default: EButtonMode.Common},
         );
         return fields;
     }
@@ -35,8 +38,8 @@ export class UIButton extends ViewGroup {
     private _titleColor: number = 0;
     private _mode: EButtonMode = EButtonMode.Common;
 
-    protected _titleObject: View;
-    protected _iconObject: View;
+    protected _titleObject: UITextField;
+    protected _iconObject: UIImage;
     protected _buttonPropManager: PropertyManager;
 
     private _down: boolean = false;
@@ -49,46 +52,33 @@ export class UIButton extends ViewGroup {
         this.on(Events.PointerEvent.OUT, this._rollout, this);
         this.on(Events.PointerEvent.DOWN, this._mousedown, this);
         this.on(Events.GestureEvent.Click, this._click, this);
-    }
+    }    
 
-    protected onComponentChanged() {
-        super.onComponentChanged();
+    protected constructFromJson() {
+        super.constructFromJson();
 
-        if(this.propertyComponent) {
-            this._buttonPropManager = this.propertyComponent.get('button');
-        }else{
-            this._buttonPropManager = null;
-        }
-    }
-
-    private _rollover(sender: View, pointer: Input.Pointer) {
-        this._over = true;
-        
-        if(!this._buttonPropManager) {
-            return;
-        }
-        
-        if(this._down) {
-            return;
+        if(this._iconObject) {
+            this._iconObject.textureKey = this._icon;
         }
 
-        this._buttonPropManager.applyTo(this._selected ? UIButton.SELECTED_OVER : UIButton.OVER);
-    }
-
-    private _rollout(sender: View, pointer: Input.Pointer) {
-        this._over = false;
-    }
-
-    private _mousedown(sender: View, pointer: Input.Pointer) {
-        this._down = true;
-    }
-
-    private _click(sender: View, pointer: Input.Pointer) {
-        this._down = false;
+        if(this._titleObject) {
+            this._titleObject.text = this._title;
+            this._titleObject.titleColor = this._titleColor;
+        }
     }
 
     public get icon(): string {
         return this._icon;
+    }
+
+    public set icon(val: string) {
+        if(this._icon != val) {
+            this._icon = val;
+            
+            if(this._iconObject) {
+                this._iconObject.textureKey = val;
+            }
+        }
     }
 
     public get title(): string {
@@ -98,6 +88,10 @@ export class UIButton extends ViewGroup {
     public set title(val: string) {
         if(this._title != val) {
             this._title = val;
+
+            if(this._titleObject) {
+                this._titleObject.text = val;
+            }
         }
     }
 
@@ -108,6 +102,10 @@ export class UIButton extends ViewGroup {
     public set titleColor(val: number) {
         if(this._titleColor != val) {
             this._titleColor = val;
+
+            if(this._titleObject) {
+                this._titleObject.titleColor = val;
+            }
         }
     }
 
@@ -119,5 +117,108 @@ export class UIButton extends ViewGroup {
         if(this._selected != val) {
             this._selected = val;
         }
+    }
+
+    protected onComponentChanged() {
+        super.onComponentChanged();
+        this._searchAll();
+    }
+
+    private _searchAll() {
+        if(this.propertyComponent) {
+            this._buttonPropManager = this.propertyComponent.get('button');
+        }else{
+            this._buttonPropManager = null;
+        }
+    }
+
+    public ensureAllCorrect() {
+        super.ensureAllCorrect();
+        this._searchAll();
+    }
+
+    protected onChildrenChanged() {
+        super.onChildrenChanged();
+
+        this._iconObject = this.getChild("icon") as UIImage;
+        this._titleObject = this.getChild("title") as UITextField;
+    }
+
+    private _rollover(sender: View, pointer: Input.Pointer) {        
+        if(!this._buttonPropManager) {
+            return;
+        }
+        
+        this._over = true;
+        if(this._down) {
+            return;
+        }
+
+        this._buttonPropManager.applyTo(this._selected ? UIButton.SELECTED_OVER : UIButton.OVER);
+    }
+
+    private _rollout(sender: View, pointer: Input.Pointer) {
+        if(!this._buttonPropManager) {
+            return;
+        }
+        
+        this._over = false;
+        if(this._down) {
+            return;
+        }
+
+        this._buttonPropManager.applyTo(this._selected ? UIButton.DOWN : UIButton.UP);
+    }
+
+    private _mousedown(sender: View, pointer: Input.Pointer) {
+        this._down = true;
+        this.root.on(Events.PointerEvent.UP, this._mouseup, this);
+
+        if (this._mode == EButtonMode.Common) {
+            if(this._buttonPropManager) {
+                if (this.grayed && this._buttonPropManager.has(UIButton.DISABLED)) {
+                    this._buttonPropManager.applyTo(UIButton.SELECTED_DISABLED);
+                } else {
+                    this._buttonPropManager.applyTo(UIButton.DOWN);
+                }
+            }
+        }
+    }
+
+    private _mouseup(sender: View, pointer: Input.Pointer) {
+        if(this._down) {
+            this._down = false;
+            this.root.off(Events.PointerEvent.UP, this._mouseup, this);
+
+            if (this._mode == EButtonMode.Common) {
+                if(this._buttonPropManager) {
+                    if (!this.grayed && this._buttonPropManager.has(UIButton.DISABLED)) {
+                        this._buttonPropManager.applyTo(UIButton.DISABLED);
+                    } else if (this._over && this._buttonPropManager.has(UIButton.OVER)) {
+                        this._buttonPropManager.applyTo(UIButton.OVER);
+                    } else {
+                        this._buttonPropManager.applyTo(UIButton.UP);
+                    }
+                }
+            }
+        }
+    }
+
+    private _click(sender: View, pointer: Input.Pointer) {
+        if (this._mode == EButtonMode.Check) {
+            this.selected = !this._selected;
+            this.emit(Events.StateChangeEvent.CHANGED, this);
+        }
+        else if (this._mode == EButtonMode.Radio) {
+            if (!this._selected) {
+                this.selected = true;
+                this.emit(Events.StateChangeEvent.CHANGED, this);
+            }
+        }
+    }
+
+    public dispose():void {
+        this.root.off(Events.PointerEvent.UP, this._mouseup, this);
+        super.dispose();
     }
 }

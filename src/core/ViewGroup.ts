@@ -25,6 +25,7 @@ export class ViewGroup extends View {
     protected _overflowType: EOverflowType = EOverflowType.Visible;
     private _scrollPane: ScrollPaneComponent = null;
 
+    private _batchProcessing = false;
     /**debug */    
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
@@ -37,7 +38,7 @@ export class ViewGroup extends View {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
             this.setDisplayObject(this._container);
-            this._container.width = this._width;
+            this._container.width = this.width;
             this._container.height = this.height;
             return true;
         }
@@ -57,11 +58,24 @@ export class ViewGroup extends View {
         return this._bounds;
     }
 
+    public ensureAllCorrect() {
+        super.ensureAllCorrect();
+        this.ensureBoundsCorrect();
+    }
+
     public ensureBoundsCorrect(): this {
         if (this.withDirty(EDirtyType.BoundsChanged)) {
             this.updateBounds();
         }
         return this;
+    }
+
+    protected handleGrayedChanged() {
+        super.handleBorderChange();
+        
+        this._children.forEach(child=>{
+            child.grayed = this.grayed;
+        });
     }
 
     /**@internal */
@@ -79,8 +93,8 @@ export class ViewGroup extends View {
         }   
 
         if(!this._gBounds) {
-            this._gBounds = this._scene.make.graphics({});
-            this._rootContainer.add(this._gBounds);
+            this._gBounds = this.scene.make.graphics({});
+            this.rootContainer.add(this._gBounds);
         }
 
         this._gBounds.clear();
@@ -230,6 +244,8 @@ export class ViewGroup extends View {
 
                 this.childStateChanged(child);
                 this.addDirty(EDirtyType.BoundsChanged | EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged);
+
+                this.onChildrenChanged();
             }
         }else{
             throw new Error("Invalid child index");
@@ -239,20 +255,26 @@ export class ViewGroup extends View {
     }
 
     public removeAllChildren(dispose?: boolean, toPool?: boolean): this {
+        this._batchProcessing = true;
         let children = this._children.slice();
         for(let i=0;i<children.length;i++) {
             this.removeChild(children[i], dispose, toPool);
         }
         this._children = [];
-        this.addDirty(EDirtyType.BoundsChanged); 
-
+        this.addDirty(EDirtyType.BoundsChanged);
+        this.onChildrenChanged();
+        this._batchProcessing = false;
         return this;
     }
 
     public removeChild(child: View, dispose?: boolean, toPool?: boolean): View {
         let childIndex: number = this._children.indexOf(child);
         if (childIndex >= 0) {
-            return this.removeChildAt(childIndex, dispose, toPool);
+            let ret = this.removeChildAt(childIndex, dispose, toPool);
+            if(!this._batchProcessing) {
+                this.onChildrenChanged();
+            }
+            return ret;
         }
 
         return child;
@@ -270,7 +292,7 @@ export class ViewGroup extends View {
     public removeChildAt(index: number, dispose?: boolean, toPool?: boolean): View {
         if(index >= 0 && index < this._children.length) {
             let child = this._children[index];
-            child._parent = null;
+            child.clearParent();
 
             this._children.splice(index, 1);
             if(child.inContainer) {
@@ -375,7 +397,7 @@ export class ViewGroup extends View {
     }
 
     public set tint(value: number) {
-        if(this._tint != value) {
+        if(this.tint != value) {
             super.tint = value;
             for(let c of this._children) {
                 c.tint = value;
@@ -396,7 +418,7 @@ export class ViewGroup extends View {
                 this._container.add(child.rootContainer);
             }
         }, this);
-        this._container.sort('depth');
+        this._container.sort('depth'); 
     }  
 
     public get overflowType() {
@@ -445,7 +467,7 @@ export class ViewGroup extends View {
     protected updateBorder() {
         super.updateBorder();
 
-        this._container.width = this._width;
+        this._container.width = this.width;
         this._container.height = this.height;
         if(this._overflowType == EOverflowType.Hidden) {
             this._updateHideMask();
@@ -475,6 +497,10 @@ export class ViewGroup extends View {
         this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
     }
 
+    protected onChildrenChanged() {
+
+    }
+
     protected reconstruct() {        
         for(let c of this._children) {
             c.parent = this;
@@ -488,5 +514,6 @@ export class ViewGroup extends View {
         for(let c of this._children) {
             c.relations.focusUpdateOwner(c);
         }   
+        this.onChildrenChanged();
     }
 }

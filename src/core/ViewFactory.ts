@@ -7,6 +7,8 @@ import { UITextInput } from "../ui/UITextInput";
 import { UITextField } from "../ui/UITextField";
 import { ObjectFactory } from "./ObjectFactory";
 import { ECategoryType } from "./Defines";
+import { UIButton } from "../ui/UIButton";
+import { IUIButton, IUIButtonConfig } from "../types/IUIButton";
 
 export interface IPrefab {
     id: number;
@@ -69,6 +71,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UITextInput;
     }
 
+    public button(config?: IUIButtonConfig, template?: any): UIButton {
+        let type: any = ViewFactory.getType("button");
+        return this._add(type, config, template) as UIButton;
+    }
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
         if(!viewType) {
@@ -87,6 +94,7 @@ export class ViewFactory {
 ViewFactory.regist(View);
 ViewFactory.regist(ViewGroup);
 ViewFactory.regist(UIImage);
+ViewFactory.regist(UIButton);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UITextInput);

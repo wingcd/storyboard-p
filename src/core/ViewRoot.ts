@@ -11,9 +11,10 @@ export class ViewRoot extends ViewGroup {
 
     constructor(scene: ViewScene) {
         super(scene);
-        this._root = this;
+        this.setRoot(this);
 
         this._attachTo(scene);
+        this.opaque = true;
     }
 
     private _attachTo(scene: ViewScene) {
@@ -21,7 +22,7 @@ export class ViewRoot extends ViewGroup {
             this._game = scene.game;
             this.bind(scene);
 
-            scene.children.add(this._rootContainer);
+            scene.children.add(this.rootContainer);
             this.opaque = true;
             this._init();
         }

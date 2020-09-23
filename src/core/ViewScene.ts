@@ -20,6 +20,13 @@ export class ViewScene extends Scene {
         this._makeFactory = new ViewFactory(this, false);
         this._addExt = new GameObjectFactoryExt(this);
         this.scale.refresh();
+
+        // 打开事件冒泡
+        this.input.topOnly = false;
+        // 添加渲染管线
+        if(this.game.renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer) {
+            var pipeline = new GrayScalePipeline(this, "gray-scale", {intensity: 1});
+        }
     }
 
     public get addExt(): GameObjectFactoryExt {        

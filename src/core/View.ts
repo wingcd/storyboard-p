@@ -57,7 +57,8 @@ export class View {
             {property: "opaque",importAs: "_opaque",default: false},
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
-            {property: "tint", importAs: "_tint", default: 0xffffff},
+            {property: "tint", importAs: "_tint", default: 0xffffff},            
+            {property: "_gray", importAs: "gray", default: 0},
             {property: "_components", alias: "components", type: BaseComponent, priority: 999},          
             {property: "_relations", alias: "relations", type: Relations, priority: 999},
         );
@@ -87,53 +88,54 @@ export class View {
     public data: any;    
     public resourceUrl: string;
 
-    protected _rid: string;
-    protected _id: string;
+    private _rid: string;
+    private _id: string;
     private _sourceId: string;
-
     private _name: string = "";
-    protected _root: ViewRoot = null;
 
     private _visible: boolean = true;
     private _internalVisible: boolean = true;
     private _hiddenCollapsed: boolean = false;
-    protected _x: number = 0; 
-    protected _y: number = 0;    
-    protected _width: number = 100;
-    protected _height: number = 100;  
-    protected _scaleX: number = 1;
-    protected _scaleY: number = 1;
-    protected _angle: number = 0;
-    protected _pivot: Point = new Point();
-    private   _pivotOffset: Point = new Point();
-    protected _pivotAsAnchor: boolean = false;
+    private _x: number = 0; 
+    private _y: number = 0;    
+    private _width: number = 100;
+    private _height: number = 100;  
+    private _scaleX: number = 1;
+    private _scaleY: number = 1;
+    private _angle: number = 0;
+    private _pivot: Point = new Point();
+    private _pivotOffset: Point = new Point();
+    private _pivotAsAnchor: boolean = false;
+    private _grayed: boolean = false;
     
-    /**@internal */
-    _parent: ViewGroup = null;
+    private _parent: ViewGroup = null;
     private _dirtyType: EDirtyType = EDirtyType.None; 
     private _isDisposed: boolean = false;
-
-    protected _scene: ViewScene;
-    protected _rootContainer: Container;
+    
+    private _root: ViewRoot = null;
+    private _scene: ViewScene;
+    private _rootContainer: Container;
     private _displayObject: GameObject;
 
-    protected _useBorderAsFrame: boolean = true;
-    protected _focusable: boolean = false;
-    protected _touchable: boolean = true;    
+    private _useBorderAsFrame: boolean = true;
+    private _focusable: boolean = false;
+    private _touchable: boolean = true;    
+    private _draggable: boolean = false;
+    private _opaque: boolean = false;
+    private _enableBackground: boolean = false;
+    private _backgroundColor: number = 0xffffff;   
+    private _tint: number = 0xffffff;
+    private _alpha: number = 1;
+    private _gBackground: Graphics = null;
+    private _relations: Relations;
+    
     /** enable trigger when touch point moved */
     public touchEnableMoved: boolean = true;
-    protected _draggable: boolean = false;
-    protected _opaque: boolean = false;
-    protected _enableBackground: boolean = false;
-    protected _backgroundColor: number = 0xffffff;   
-    protected _tint: number = 0xffffff;
-    protected _alpha: number = 1;
-    private _gBackground: Graphics = null;
-    protected _relations: Relations;
 
-    protected _frame: Rectangle = new Rectangle(0, 0, 100, 100);
-    protected _border: Rectangle = new Rectangle(0, 0, 100, 100);
+    private _frame: Rectangle = new Rectangle(0, 0, 100, 100);
+    private _border: Rectangle = new Rectangle(0, 0, 100, 100);
     private _hitArea: Rectangle = null;
+
     /**debug */
     private _gBorder: Graphics;
     private _gFrame: Graphics;
@@ -151,7 +153,7 @@ export class View {
     /**@internal */
     _sourceHeight: number = 0;
 
-    private _components: IComponent[]; 
+    private _components: IComponent[];
     
     private _dragComponent: DragComponent;
     private _propertyCompoent: PropertyComponent;
@@ -193,6 +195,11 @@ export class View {
     setRoot(root: ViewRoot): this {
         this._root = root;
         return this;
+    }
+
+    /**@internal */
+    clearParent() {
+        this._parent = null;
     }
 
     public get root(): ViewRoot {
@@ -475,25 +482,34 @@ export class View {
         return this;
     }
 
+    protected mapPivotWidth(scale: number): number {
+        return scale * this._width;
+    }
+
+    protected mapPivotHeight(scale: number): number {
+        return scale * this._height;
+    }
+
     protected updatePivotOffset() {
         // translate object after rotate by pivot point(align pivot to rotate pivot)
         if((this.pivotX == 0 && this.pivotY == 0) || !this.rootContainer.localTransform) {
             this._pivotOffset.setTo(0, 0);
         }else{        
             //old pivot    
-            let dx = this._width * this.pivotX;
-            let dy = this._height * this.pivotY;
+            let dx = this.mapPivotWidth(this.pivotX);
+            let dy = this.mapPivotHeight(this.pivotY);
 
-            // this.rootContainer.transform.updateLocalTransform();
             let pos = PoolManager.inst.get(Point) as Point;
             pos.setTo(dx, dy);
-            let trans = this.rootContainer.localTransform;
+            // need update transform, 
+            // do not use localtransform directly
+            let trans = this.rootContainer.getLocalTransformMatrix();
             //offset = (new poivt - old poivt)
             trans.transformPoint(pos.x, pos.y, pos);
             //new pivot
             pos.x -= trans.tx;
             pos.y -= trans.ty;
-            this._pivotOffset.setTo(dx - pos.x, dy - pos.y);
+            this._pivotOffset.setTo(this.pivotX*this._width - pos.x, this.pivotY*this._height - pos.y);
             PoolManager.inst.put(pos);
         }
     }
@@ -631,7 +647,28 @@ export class View {
             this.setMask(this._rootContainer, mask);
             this._updateRootMask();
         }
-    }   
+    } 
+
+    public get grayed(): boolean {
+        return this._grayed;
+    }
+
+    public set grayed(value: boolean) {
+        if (this._grayed != value) {
+            this._grayed = value;
+            this.handleGrayedChanged();
+        }
+    }
+    
+    public get enabled(): boolean {
+        return !this._grayed && this._touchable;
+    }
+
+    public set enabled(value: boolean) {
+        this.grayed = !value;
+        this.touchable = value;
+        this._rootContainer.cameraFilter
+    }
     
     protected updateGraphicsMask(targetObj: Phaser.GameObjects.Components.Mask, x?: number, y?: number, width?: number, height?: number, clear: boolean = false) {
         if(clear) {
@@ -905,18 +942,20 @@ export class View {
     /**@internal */
     onUpdate(time: number, delta: number) {
         let self = this as any;
-        if(this.finalVisible && self.update && self.update instanceof Function) {
-            self.update(time, delta);
-        }
+        if(this.finalVisible) {
+            if(this._components) {
+                this._components.forEach(comp=>{
+                    let thisComp = comp as any;
+                    if(comp.enable && thisComp.update) {
+                        thisComp.update(time, delta);
+                    }
+                });
+            }
 
-        // if(this._components) {
-        //     this._components.forEach(comp=>{
-        //         let thisComp = comp as any;
-        //         if(comp.enable && thisComp.update) {
-        //             thisComp.update(time, delta);
-        //         }
-        //     });
-        // }
+            if(self.update && self.update instanceof Function) {
+                self.update(time, delta);
+            }
+        }
     }
 
     /**@internal */
@@ -966,6 +1005,10 @@ export class View {
                 this._parent.addDirty(EDirtyType.BoundsChanged);
             }
         }
+    }
+
+    public ensureAllCorrect() {
+        this.ensureSizeCorrect();
     }
 
     public ensureSizeCorrect(): this {        
@@ -1121,6 +1164,20 @@ export class View {
 
     protected handleSizeChanged() {
 
+    }
+
+    protected handleGrayedChanged() {
+        let gameobjects = this._rootContainer.getAll();
+        for(let i in gameobjects) {
+            let g: any = gameobjects[i];
+            if(g.setPipeline) {
+                if(this._grayed) {
+                    g.setPipeline("gray-scale");
+                }else{
+                    g.resetPipeline(); 
+                }
+            }
+        }
     }
 
     protected applyBackgroundChange() {
@@ -1359,7 +1416,7 @@ export class View {
             find = item instanceof type;
         }
 
-        if(options.containsParentType) {
+        if(!find && options.containsParentType) {
             if(options.containsSameParentType) {
                 while((item as any).__proto__.__proto__.constructor.name != BaseComponent.name) {
                     item = (item as any).__proto__;

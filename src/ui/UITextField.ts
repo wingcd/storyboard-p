@@ -305,7 +305,7 @@ export class UITextField extends View {
                 this._richTextField = null;
             }
             if(!this._bitmapTextField) {
-                this._bitmapTextField = this._scene.add.bitmapText(0, 0, this.font);
+                this._bitmapTextField = this.scene.add.bitmapText(0, 0, this.font);
                 this.setDisplayObject(this._bitmapTextField);
             }            
         }else if(!this._rich){
@@ -318,7 +318,7 @@ export class UITextField extends View {
                 this._richTextField = null;
             }
             if(!this._textField) {
-                this._textField = this._scene.addExt.text(0, 0, "");
+                this._textField = this.scene.addExt.text(0, 0, "");
                 this.setDisplayObject(this._textField);
             }
         }else {
@@ -331,7 +331,7 @@ export class UITextField extends View {
                 this._textField = null;
             }
             if(!this._richTextField) {
-                this._richTextField = this._scene.addExt.richText(0, 0, "", this._tagMode);
+                this._richTextField = this.scene.addExt.richText(0, 0, "", this._tagMode);
                 this.setDisplayObject(this._richTextField);
             }
         }        
@@ -350,7 +350,7 @@ export class UITextField extends View {
         }
         
         this._requireRender = true;
-        this._scene.time.addEvent({
+        this.scene.time.addEvent({
             delay: 1,
             callback: ()=>{
                 this._render();
@@ -515,7 +515,7 @@ export class UITextField extends View {
             style.stroke = Color.RGBToString(color.r, color.g, color.b, color.a);
         }
         if(style.resolution) {
-            style.resolution = this._scene.game.config.resolution;
+            style.resolution = this.scene.game.config.resolution;
         }
         return style;
     }
@@ -537,7 +537,7 @@ export class UITextField extends View {
             this._richTextField.setStyle(style);
             let richStyle: any = this._richTextField.style;
             if(!richStyle.resolution) {
-                richStyle.resolution = this._scene.game.config.resolution;
+                richStyle.resolution = this.scene.game.config.resolution;
             }
             this._richTextField.setWrapMode('char');
             this._richTextField.setWrapWidth(style.wordWrap.width);

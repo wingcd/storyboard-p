@@ -1,5 +1,8 @@
 import { IView, IViewGroup } from "../types";
 
+let nameIndexRegex = new RegExp(/^(\w*?)\[(\w+?)\]$/);
+let indexRegex = new RegExp(/^(\w*?)\[(\d+?)\]$/);
+
 export function IsViewChild(root: IView, target: IView) {
     if(!root || !target) {
         return false;
@@ -62,6 +65,44 @@ export function GetViewByRelativePath(root: IView, path: string): IView {
     return child;
 }
 
+function getArrayItem(parent: any, key: string) {
+    let ret: any = null;
+    let match = indexRegex.exec(key);
+    if(match) {
+        let items = parent[match[1] || "children"];
+        if(items) {
+            for(let vi in items) {
+                if(vi == match[2]) {
+                    ret = items[vi];
+                    break;
+                }
+            }
+        }                    
+        if(!ret) {
+            console.error("can not get value by path:" + key);
+        }
+    }else{                      
+        match = nameIndexRegex.exec(key); 
+        if(match) {
+            let items = parent[match[1] || "children"];
+            if(items) {
+                for(let vi in items) {
+                    let item = items[vi];
+                    if(item && item.name == match[2]) {
+                        ret = item;
+                        break;
+                    }
+                }
+            }
+
+            if(!ret) {
+                console.error("can not get value by path:" + key);
+            }
+        }
+    }
+    return ret;
+}
+
 export function SetValue(source: any, key: string, value: any, checkProp: boolean = false)
 {
     if (!source || typeof source === 'number')
@@ -74,10 +115,15 @@ export function SetValue(source: any, key: string, value: any, checkProp: boolea
         var parent = source;
         var prev = source;
 
-        //  Use for loop here so we can break early
         for (var i = 0; i < keys.length; i++)
         {
-            if (parent.hasOwnProperty(keys[i]))
+            let item = getArrayItem(parent, keys[i]);
+            if(item) {
+                parent = item;
+                continue;
+            }
+
+            if (!checkProp || checkProp && parent.hasOwnProperty(keys[i]))
             {
                 //  Yes it has a key property, let's carry on down
                 prev = parent;
@@ -103,6 +149,13 @@ export function SetValue(source: any, key: string, value: any, checkProp: boolea
     return false;
 };
 
+/**
+ * 
+ * @param source 
+ * @param key 
+ * @param defaultValue 
+ * @param back 回退一个属性，获取上一级对象
+ */
 export function GetValue(source: any, key: string, defaultValue?: any, back?: boolean)
 {
     let defaultV = back ? source : defaultValue;
@@ -123,14 +176,21 @@ export function GetValue(source: any, key: string, defaultValue?: any, back?: bo
 
         //  Use for loop here so we can break early
         let backstep = back ? 1 : 0;
+
         for (var i = 0; i < keys.length - backstep; i++)
         {
-            if (parent[keys[i]] != undefined || parent.hasOwnProperty(keys[i]))
+            let item = getArrayItem(parent, keys[i]);
+            if(item) {
+                value = item;
+                continue;
+            }
+
+            if (parent[key] != undefined || parent.hasOwnProperty(keys[i]))
             {
                 //  Yes it has a key property, let's carry on down
-                value = parent[keys[i]];
+                value = parent[key];
 
-                parent = parent[keys[i]];
+                parent = parent[key];
             }
             else
             {

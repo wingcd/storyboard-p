@@ -4,14 +4,14 @@ export interface IColorable {
 }
 
 export interface ITitle {
-    title: string;
-    titleColor: number;
+    title?: string;
+    titleColor?: number;
 }
 
 export interface IIcon {
-    icon: string;
+    icon?: string;
 }
 
 export interface ISelectable {
-    selected: boolean;
+    selected?: boolean;
 }

@@ -1,8 +1,8 @@
 import { EOverflowType } from "../core/Defines";
-import { IView } from ".";
+import { IView, IViewConfig } from ".";
 import { Container } from "../phaser";
 
-export interface IViewGroupConfig {
+export interface IViewGroupConfig extends IViewConfig{
     overflowType?: EOverflowType;
 
     children?: IView[];

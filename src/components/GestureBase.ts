@@ -16,13 +16,13 @@ export class PointerDownOutside extends RemapEventComponent {
 ComponentFactory.inst.registEvents(Events.PointerEvent.DOWN_OUTSIDE, PointerDownOutside);
 
 export class PointerUp extends RemapEventComponent {
-    protected _souceType = Input.Events.POINTER_DOWN_OUTSIDE;
+    protected _souceType = Input.Events.POINTER_UP;
     protected _targetType = Events.PointerEvent.UP;
 }
 ComponentFactory.inst.registEvents(Events.PointerEvent.UP, PointerUp);
 
 export class PointerUpOutside extends RemapEventComponent {
-    protected _souceType = Input.Events.POINTER_DOWN_OUTSIDE;
+    protected _souceType = Input.Events.POINTER_UP_OUTSIDE;
     protected _targetType = Events.PointerEvent.UP_OUTSIDE;
 }
 ComponentFactory.inst.registEvents(Events.PointerEvent.UP_OUTSIDE, PointerUpOutside);

@@ -596,11 +596,11 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         return this._timeline.totalDuration;
     }
 
-    private _emit(eventType: string, data?: any) {
+    private _emit(eventType: string, ...data: any[]) {
         if(this._target instanceof View) {
-            this._target.emit(eventType, null, data);
+            this._target.emit(eventType, ...data);
         }
-        this.emit(eventType, this, data);
+        this.emit(eventType, this, ...data);
     }   
 
     private _getDuration( tweenDatas: any[]) {

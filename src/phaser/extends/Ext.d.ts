@@ -113,3 +113,9 @@ declare class TextEdit {
     get text(): string;
     get inputText(): InputText;
 }
+declare class GrayScalePipeline extends Phaser.Renderer.WebGL.WebGLPipeline{
+    // 0-1
+    intensity: number;
+
+    constructor(scene: Phaser.Scene, key: string, config?: {intensity?: number});
+}
