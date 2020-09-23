@@ -1,8 +1,10 @@
 import { View } from "../core/View";
-import { Text, BitmapText, Point, ITextStyle, Color, GeometryMask, Graphics } from "../phaser";
+import { Text, BitmapText, Point, ITextStyle, Color } from "../phaser";
 import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
+import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
+import { ISerializeInfo } from "../annotations/Serialize";
 
 export class LineInfo {
     public width: number = 0;
@@ -44,6 +46,24 @@ export class LineInfo {
 
 export class UITextField extends View {
     static TYPE = "textfield";
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields = View.SERIALIZABLE_FIELDS;
+        fields.push(
+            {property: "_text", alias: "text", default: ""},
+            {property: "_rich", alias: "rich", default: false},
+            {property: "_tagMode", alias: "tagMode", default: false},
+            {property: "_style", alias: "style", default: null, raw: true},            
+            {property: "_verticalAlign", alias: "verticalAlign", default: EVertAlignType.Top},
+            {property: "_horizontalAlign", alias: "horizontalAlign", default: EHorAlignType.Left},
+            {property: "_offset", alias: "offset"},            
+            {property: "_singleLine", alias: "singleLine", default: true},
+            {property: "_autoSize", alias: "autoSize", default: EAutoSizeType.Both},
+            
+            {property: "GUTTER_X", default: 2, static: true},
+            {property: "GUTTER_Y", default: 2, static: true},
+        );
+        return fields;
+    }
 
     private _textField: Text;
     private _richTextField: BBCodeText;
@@ -58,10 +78,10 @@ export class UITextField extends View {
     private _horizontalAlign: EHorAlignType = EHorAlignType.Left;
     private _offset: Point = new Point();
     private _singleLine:boolean = true;
+    private _autoSize: EAutoSizeType = EAutoSizeType.Both;
 
-    private _autoSize: EAutoSizeType;
-    private _widthAutoSize: boolean;
-    private _heightAutoSize: boolean;
+    private _widthAutoSize: boolean = true;
+    private _heightAutoSize: boolean = true;
 
     private _requireRender: boolean;
     private _updatingSize: boolean;
@@ -72,8 +92,6 @@ export class UITextField extends View {
     
     public static GUTTER_X: number = 2;
     public static GUTTER_Y: number = 2;
-
-    private _mask: GeometryMask;
 
     public constructor(scene: ViewScene) {
         super(scene);
@@ -96,18 +114,29 @@ export class UITextField extends View {
         this.render();
     }
 
+    protected constructFromJson() {
+        super.constructFromJson();
+        this._updateFont();
+        this.renderNow();
+    }
+
     public get font(): string {
         return this._style.fontFamily;
+    }
+
+    private _updateFont() {
+        let font = this._style.fontFamily;
+        if(font && font.startsWith("ui://")) {
+            this.switchBitmapMode(true);
+        }else{
+            this.switchBitmapMode(false);
+        }
     }
 
     public set font(val: string) {
         if(this._style.fontFamily != val) {
             this._style.fontFamily = val;
-            if(val && val.startsWith("ui://")) {
-                this.switchBitmapMode(true);
-            }else{
-                this.switchBitmapMode(false);
-            }
+            this._updateFont();
         }
     }
 
@@ -355,7 +384,12 @@ export class UITextField extends View {
             callback: ()=>{
                 this._render();
             },
-        })
+        });
+
+        if (!this._sizeDirty && (this._widthAutoSize || this._heightAutoSize)) {
+            this._sizeDirty = true;
+            this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE, this);
+        }
     }
 
     protected getTextField() {
@@ -389,7 +423,10 @@ export class UITextField extends View {
             }
         }
 
-        let textfield = this.getTextField();     
+        let textfield = this.getTextField();
+        if(!textfield) {
+            return;
+        }     
         textfield.setOrigin(0, 0);
 
         let style = this._getStyle();            

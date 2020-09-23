@@ -22,7 +22,7 @@ function store(source: any, info: ISerializeInfo, tpl: any): any {
     if(info.raw) {
         item = Object.assign({}, source);
     }else{    
-        if(info.type.SERIALIZE) {
+        if(info.type && info.type.SERIALIZE) {
             item = info.type.SERIALIZE(source, tpl);
         }
         

@@ -17,8 +17,8 @@ import { View } from "../core/View";
 import { UIButton } from "../ui/UIButton";
 import * as Events from "../events";
 
-Settings.showDebugBorder = true;
-Settings.showDebugFrame = true;
+// Settings.showDebugBorder = true;
+// Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -28,6 +28,7 @@ class UIScene extends ViewScene {
     preload() {
         this.load.image('normal', './res/ui/normal.png');
         this.load.image('click', './res/ui/click.png');
+        this.load.image('hover', './res/ui/hover.png');
     }
 
     create(): void {
@@ -55,6 +56,7 @@ class UIScene extends ViewScene {
         let title = this.makeUI.textfield();
         title.name = "title";
         title.text = "测试";
+        title.setXY((button.width-title.width)/2, (button.height-title.height)/2);
         button.addChild(title);
 
         let propComp = button.addComponentByType(PropertyComponent) as PropertyComponent;
@@ -64,6 +66,10 @@ class UIScene extends ViewScene {
         downStatus.add("icon", "click");
         downStatus.add("scaleX", 1.2, img);
         downStatus.add("scaleY", 1.2, img);
+        downStatus.add("text", "按下", title);
+
+        let overStatus = propMgr.add(UIButton.OVER);
+        overStatus.add("icon", "hover");
         
         img.setPivot(0.5, 0.5);
         button.icon = "normal";

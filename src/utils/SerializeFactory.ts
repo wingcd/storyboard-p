@@ -73,13 +73,13 @@ SerializeFactory.inst.regist(Rectangle,
         inst.height = data.h;
     });
 
-    SerializeFactory.inst.regist(Point, 
-        (inst:Point)=>{
-            return {
-                x: inst.x,
-                y: inst.y,
-            }
-        }, (inst:Point,data:any)=>{
-            inst.x = data.x;
-            inst.y = data.y;
-        });
+SerializeFactory.inst.regist(Point, 
+    (inst:Point)=>{
+        return {
+            x: inst.x,
+            y: inst.y,
+        }
+    }, (inst:Point,data:any)=>{
+        inst.x = data.x;
+        inst.y = data.y;
+    });
