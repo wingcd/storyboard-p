@@ -31,7 +31,7 @@ export class UIImage extends View {
             {property: "ninePatch", importAs: "_ninePatch", default: null},
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
-            {property: "_fillMask", importAs: "_fillMask", alias: "fillMask", type:FillMask, default: null},
+            {property: "fillMask", importAs: "_fillMask", type:FillMask, default: null},
         );
         return fields;
     }
@@ -47,8 +47,16 @@ export class UIImage extends View {
     private _flipY: boolean = false;   
     private _fillMask: FillMask;
 
+    private _requireRender: boolean;
+
     constructor(scene: ViewScene) {
         super(scene);
+    }
+
+    protected constructFromJson() {
+        super.constructFromJson();
+
+        this._updateTexture();
     }
     
     public get textureKey(): string {
@@ -57,7 +65,7 @@ export class UIImage extends View {
     public set textureKey(val: string) {
         if(this._textureKey != val) {
             this._textureKey = val;
-            this._updateTexture();
+            this.render();
         }
     }
     public get scaleType(): ETextureScaleType {
@@ -66,7 +74,7 @@ export class UIImage extends View {
     public set scaleType(val: ETextureScaleType) {
         if(this._scaleType != val) {
             this._scaleType = val;
-            this._updateTexture();
+            this.render();
         }
     }
     public get textureFrame(): string | number {
@@ -75,7 +83,7 @@ export class UIImage extends View {
     public set textureFrame(val: string | number) {
         if(this._textureFrame != val) {
             this._textureFrame = val;
-            this._updateTexture();
+            this.render();
         }
     }
     public get tile() {
@@ -93,7 +101,7 @@ export class UIImage extends View {
     public set ninePatch(val: INinePatchInfo) {
         if(this._ninePatch != val) {
             this._ninePatch = val;
-            this._updateTexture();
+            this.render();
         }
     }
     public get flipX(): boolean {
@@ -145,6 +153,26 @@ export class UIImage extends View {
         return this._fillMask;
     }
 
+    protected render() {
+        if(this._requireRender) {
+            return;
+        }
+        
+        this._requireRender = true;
+        this.scene.time.addEvent({
+            delay: 1,
+            callback: ()=>{
+                this._render();
+            },
+        });
+    }
+
+    private _render() {
+        if(this._requireRender) {
+            this._updateTexture();
+        }
+    }
+
     private _updateSize() {
         if(this._disp) {
             if(this._disp instanceof Sprite) {
@@ -190,6 +218,7 @@ export class UIImage extends View {
             this._disp.destroy();
             this._disp = null;
         }
+        this._requireRender = false;
 
         let width = this.width;
         let height = this.height;
@@ -253,7 +282,7 @@ export class UIImage extends View {
         }
         super.fromJSON(config, template);
 
-        this._updateTexture();
+        this.render();
 
         return this;
     }

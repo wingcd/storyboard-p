@@ -156,8 +156,10 @@ export class View {
     private _components: IComponent[];
     
     private _dragComponent: DragComponent;
-    private _propertyCompoent: PropertyComponent;
+    private _propertyComponent: PropertyComponent;
     private _animationComponent: AnimationComponent;
+
+    private _batchAddComponents = false;
 
     constructor(scene: ViewScene) {
         this._rid = this._id = `${Package.getUniqueID()}`;
@@ -1364,7 +1366,10 @@ export class View {
         this._components.push(comp);
         comp.regist(this);
 
-        this.onComponentChanged();
+        
+        if(!this._batchAddComponents) {
+            this.onComponentChanged();
+        }
 
         return comp;
     }
@@ -1492,6 +1497,8 @@ export class View {
     }
 
     protected updateComponents() {
+        this._batchAddComponents = true;
+
         if(this._components) {
             let comps = this._components.concat();
             this._components.length = 0;
@@ -1499,12 +1506,14 @@ export class View {
                 this.addComponent(comp);
             });
         }
+
+        this._batchAddComponents = false;
         this.onComponentChanged();
     }
 
     protected onComponentChanged(){        
         this._dragComponent = this.getComponent(DragComponent) as DragComponent;
-        this._propertyCompoent = this.getComponent(PropertyComponent) as PropertyComponent;
+        this._propertyComponent = this.getComponent(PropertyComponent) as PropertyComponent;
         this._animationComponent = this.getComponent(AnimationComponent) as AnimationComponent;
     }
 
@@ -1541,7 +1550,7 @@ export class View {
     }
 
     public get propertyComponent(): PropertyComponent {
-        return this._propertyCompoent;
+        return this._propertyComponent;
     }
 
     public get animationComponent(): AnimationComponent {

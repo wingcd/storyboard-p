@@ -7,7 +7,7 @@ import { Deserialize, Serialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
-import { EEaseType, EOverflowType } from "../core/Defines";
+import { EAlignType, EAutoSizeType, EEaseType, EHorAlignType, EOverflowType } from "../core/Defines";
 import { PropertyManager } from "../tween/Property";
 import { PropertyComponent } from "../components/PropertyComponent";
 import { AnimationComponent } from "../components/AnimationComponent";
@@ -54,9 +54,12 @@ class UIScene extends ViewScene {
         button.addChild(img);
 
         let title = this.makeUI.textfield();
+        title.setSize(100, 40);
+        title.autoSize = EAutoSizeType.None;
+        title.textAlign = EAlignType.Center;
+        title.horizontalAlign = EHorAlignType.Center;
         title.name = "title";
         title.text = "测试";
-        title.setXY((button.width-title.width)/2, (button.height-title.height)/2);
         button.addChild(title);
 
         let propComp = button.addComponentByType(PropertyComponent) as PropertyComponent;
@@ -70,6 +73,7 @@ class UIScene extends ViewScene {
 
         let overStatus = propMgr.add(UIButton.OVER);
         overStatus.add("icon", "hover");
+        overStatus.add("title", "移动");
         
         img.setPivot(0.5, 0.5);
         button.icon = "normal";

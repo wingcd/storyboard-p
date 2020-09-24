@@ -165,8 +165,8 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
     if(cfgData == undefined) {
         if(tpl == undefined) {   
-            if(target[targetProp] == undefined) {         
-                target[targetProp] = clone(info.default);
+            if(targetProp.indexOf('.') >= 0 || target[targetProp] == undefined) {         
+                SetValue(target, targetProp, info.default);
             }
             return;
         }
@@ -221,11 +221,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             ritem = new info.type(...parms);
                         }
 
-                        restore(ritem, i, cfgData[i], t, info, depth);      
-
-                        if(ritem && ritem.constructFromJson) {
-                            ritem.constructFromJson();
-                        }
+                        restore(ritem, i, cfgData[i], t, info, depth);
 
                         if(isarray) {
                             target[targetProp].push(ritem);
@@ -256,9 +252,6 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
                         restore(ritem, targetProp, cfgData, tpl, info, depth);
 
-                        if(ritem && ritem.constructFromJson) {
-                            ritem.constructFromJson();
-                        }
                         target[targetProp] = ritem;
                     }else{      
                         SetValue(target, targetProp, cfgData);
@@ -338,6 +331,11 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
         if(!item.readonly) {
             deserializeProperty(target, item, config, tpl, depth);
         }
+    }          
+
+    if(target && target.constructFromJson) {
+        target.constructFromJson();
     }
+
     return true;
 }

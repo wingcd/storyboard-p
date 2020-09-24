@@ -58,12 +58,14 @@ export class UIButton extends ViewGroup {
         super.constructFromJson();
 
         if(this._iconObject) {
+            this._iconObject.textureKey = "";
             this._iconObject.textureKey = this._icon;
         }
 
         if(this._titleObject) {
-            this._titleObject.text = this._title;
             this._titleObject.titleColor = this._titleColor;
+            this._titleObject.text = "";
+            this._titleObject.text = this._title;
         }
     }
 

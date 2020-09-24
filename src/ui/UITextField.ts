@@ -48,19 +48,19 @@ export class UITextField extends View {
     static TYPE = "textfield";
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "_text", alias: "text", default: ""},
-            {property: "_rich", alias: "rich", default: false},
-            {property: "_tagMode", alias: "tagMode", default: false},
-            {property: "_style", alias: "style", default: null, raw: true},            
-            {property: "_verticalAlign", alias: "verticalAlign", default: EVertAlignType.Top},
-            {property: "_horizontalAlign", alias: "horizontalAlign", default: EHorAlignType.Left},
-            {property: "_offset", alias: "offset"},            
-            {property: "_singleLine", alias: "singleLine", default: true},
-            {property: "_autoSize", alias: "autoSize", default: EAutoSizeType.Both},
-            
+        fields.push(            
             {property: "GUTTER_X", default: 2, static: true},
             {property: "GUTTER_Y", default: 2, static: true},
+
+            {property: "text", default: ""},
+            {property: "rich", default: false},
+            {property: "tagMode", default: false},
+            {property: "style", default: null, raw: true},            
+            {property: "verticalAlign", default: EVertAlignType.Top},
+            {property: "horizontalAlign", default: EHorAlignType.Left},
+            {property: "offset", type: Point},            
+            {property: "singleLine", default: true},
+            {property: "autoSize", default: EAutoSizeType.Both},
         );
         return fields;
     }
@@ -114,17 +114,11 @@ export class UITextField extends View {
         this.render();
     }
 
-    protected constructFromJson() {
-        super.constructFromJson();
-        this._updateFont();
-        this.renderNow();
-    }
-
     public get font(): string {
         return this._style.fontFamily;
     }
 
-    private _updateFont() {
+    private _updateTextField() {
         let font = this._style.fontFamily;
         if(font && font.startsWith("ui://")) {
             this.switchBitmapMode(true);
@@ -136,7 +130,7 @@ export class UITextField extends View {
     public set font(val: string) {
         if(this._style.fontFamily != val) {
             this._style.fontFamily = val;
-            this._updateFont();
+            this._updateTextField();
         }
     }
 
@@ -425,7 +419,8 @@ export class UITextField extends View {
 
         let textfield = this.getTextField();
         if(!textfield) {
-            return;
+            this._updateTextField();
+            textfield = this.getTextField();
         }     
         textfield.setOrigin(0, 0);
 
