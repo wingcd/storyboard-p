@@ -14,6 +14,7 @@ export class ViewGroup extends View {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "children",importAs: "_children",default: [], type: View},
+            {property: "overflowType", default: EOverflowType.Visible},
         );
         return fields;
     }
@@ -32,6 +33,11 @@ export class ViewGroup extends View {
 
     constructor(scene: ViewScene) {
         super(scene);
+    }
+
+    protected constructFromJson() {
+        super.constructFromJson();
+        this.updateMask();
     }
 
     protected bind(scene: ViewScene): boolean {
@@ -246,6 +252,9 @@ export class ViewGroup extends View {
                 this.addDirty(EDirtyType.BoundsChanged | EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged);
 
                 this.onChildrenChanged();
+
+                // 子节点位置会发生改变，需要刷新mask位置
+                child.updateMask();
             }
         }else{
             throw new Error("Invalid child index");
@@ -430,8 +439,11 @@ export class ViewGroup extends View {
     }    
 
     protected applyOverflow() {
+        let filterInput = false;
+
         switch(this._overflowType) {
             case EOverflowType.Hidden:
+                filterInput = true;
                 this._updateHideMask();
             break;
             case EOverflowType.Scroll:
@@ -441,6 +453,8 @@ export class ViewGroup extends View {
                         this._scrollPane = this.addComponentByType(ScrollPaneComponent) as ScrollPaneComponent;
                     }
                 }
+                filterInput = true;
+                this._updateHideMask();
             break;
             default:
                 this._updateHideMask(true);
@@ -449,6 +463,11 @@ export class ViewGroup extends View {
 
         if(this._overflowType != EOverflowType.Scroll) {
             this.removeComponent(this._scrollPane);
+        }
+        
+        if(this.rootContainer.input) {
+            // 是否通过父节点input过滤子节点的input
+            (this.rootContainer.input as any).___filter_input__ = filterInput;
         }
     }
 
@@ -459,19 +478,27 @@ export class ViewGroup extends View {
             this.applyOverflow();
         }
     }
+    
 
-    private _updateHideMask(clear: boolean = false) {
-        this.updateGraphicsMask(this._container, 0, 0, this.width, this.height, clear);
+    protected handleXYChanged() {
+        super.handleXYChanged();
+        this.updateMask();
     }
 
-    protected updateBorder() {
-        super.updateBorder();
+    public updateMask() {
+        for(let c of this._children) {
+            c.updateMask();
+        }
 
         this._container.width = this.width;
         this._container.height = this.height;
         if(this._overflowType == EOverflowType.Hidden) {
             this._updateHideMask();
         }
+    }
+
+    private _updateHideMask(clear: boolean = false) {
+        this.updateGraphicsMask(this._container, 0, 0, this.width, this.height, clear);
     }
 
     /**@internal */
@@ -487,6 +514,7 @@ export class ViewGroup extends View {
             dirty = true;
         }
 
+        this.updateMask();
         if(dirty) {
             this.addDirty(EDirtyType.DebugBoundsChanged);
         }

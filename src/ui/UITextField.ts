@@ -6,6 +6,55 @@ import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
 import { ISerializeInfo } from "../annotations/Serialize";
 
+class TextStyle implements ITextStyle {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(    
+            {property: "fontFamily", default: "Arial"},
+            {property: "fontSize", default: 16},
+            {property: "fontStyle"},
+            {property: "backgroundColor"},            
+            {property: "color", default: 0},
+            {property: "stroke"},
+            {property: "strokeThickness"},            
+            {property: "shadow", raw: true},
+            {property: "padding", raw: true},
+            {property: "align", default: "left"},
+            {property: "maxLines"},            
+            {property: "fixedWidth"},
+            {property: "fixedHeight"},
+            {property: "resolution"},
+            {property: "rtl"},            
+            {property: "rtlByWord"},
+            {property: "testString"},
+            {property: "baselineX"},
+            {property: "baselineY"},
+            {property: "wordWrap", raw: true},            
+            {property: "metrics", raw: true},
+            {property: "lineSpacing", default: 0},
+            {property: "letterSpacing", default: 0},
+            {property: "vertical", raw: true},
+        );
+        return fields;
+    }
+
+    /**
+     * The font the Text object will render with. This is a Canvas style font string.
+     */
+    fontFamily?: string = "Arial";    
+    fontSize?: number = 16;
+    color?: number = 0;
+    /**
+     * The alignment of the Text. This only impacts multi-line text.
+     *  Either `left`, `right`, `center` or `justify` in horizontal model.
+     *  Either `top`, `middle`, `bottom` or `justify` in vertical model.
+     */
+    align?: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'justify' = 'left';    
+    lineSpacing?: number = 0;
+    letterSpacing?: number = 0;
+}
+
+
 export class LineInfo {
     public width: number = 0;
     public height: number = 0;
@@ -55,7 +104,7 @@ export class UITextField extends View {
             {property: "text", default: ""},
             {property: "rich", default: false},
             {property: "tagMode", default: false},
-            {property: "style", default: null, raw: true},            
+            {property: "_style", alias: "style", type: TextStyle},            
             {property: "verticalAlign", default: EVertAlignType.Top},
             {property: "horizontalAlign", default: EHorAlignType.Left},
             {property: "offset", type: Point},            
@@ -73,7 +122,7 @@ export class UITextField extends View {
     private _rich: boolean = false;
     private _tagMode: boolean = false;
 
-    protected _style: ITextStyle;
+    protected _style: ITextStyle = new TextStyle();
     private _verticalAlign: EVertAlignType = EVertAlignType.Top;
     private _horizontalAlign: EHorAlignType = EHorAlignType.Left;
     private _offset: Point = new Point();
@@ -96,22 +145,16 @@ export class UITextField extends View {
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this._style = {
-            fontSize: 24,
-            align: EAlignType.Left,
-            lineSpacing: 0,
-            color: 0,
-        };
-        this._verticalAlign = EVertAlignType.Top;
-        this._horizontalAlign = EHorAlignType.Left;
-        this._text = "";
-        this._autoSize = EAutoSizeType.Both;
-        this._widthAutoSize = true;
-        this._heightAutoSize = true;
-
         this.touchable = false;  //base GTextField has no interaction
 
+        this._updateTextField();
         this.render();
+    }
+
+    protected constructFromJson() {
+        super.constructFromJson();
+
+
     }
 
     public get font(): string {
@@ -310,7 +353,9 @@ export class UITextField extends View {
         }
     }
 
-    private _updateHideMask(clear: boolean = false) {
+    public updateMask(clear: boolean = false) {
+        super.updateMask();
+
         let textfield = this.getTextField();
         if(textfield) {
             this.updateGraphicsMask(textfield, 0, 0, this.width, this.height, clear);
@@ -360,11 +405,6 @@ export class UITextField extends View {
         }        
         
         this.render();
-    }
-
-    protected updateBorder() {
-        super.updateBorder();
-        this._updateHideMask();
     }
 
     protected render() {
@@ -525,7 +565,7 @@ export class UITextField extends View {
         }
 
         this.layoutAlign();
-        this._updateHideMask();
+        this.updateMask();
     }
 
     private _getStyle(): ITextStyle {

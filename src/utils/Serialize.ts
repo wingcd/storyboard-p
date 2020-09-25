@@ -74,7 +74,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 
     let sourceData = source[sourceProp];
     if(!done) {
-        if(typeof(sourceData) == 'function' || sourceData == undefined || sourceData == info.default) {
+        if(typeof(sourceData) == 'function' || sourceData == undefined || sourceData == info.default || (!sourceData && !info.default)) {
             done = true;
         }
     }
@@ -165,8 +165,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
 
     if(cfgData == undefined) {
         if(tpl == undefined) {   
-            if(targetProp.indexOf('.') >= 0 || target[targetProp] == undefined) {         
-                SetValue(target, targetProp, info.default);
+            if(info.default != undefined) {
+                if(targetProp.indexOf('.') >= 0 || target[targetProp] == undefined) {         
+                    SetValue(target, targetProp, info.default);
+                }
             }
             return;
         }

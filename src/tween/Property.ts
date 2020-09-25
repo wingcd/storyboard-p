@@ -40,9 +40,9 @@ class PropertyGroup {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
-            {property: "_name", alias: "name", default: null},
+            {property: "_name", alias: "name"},
             {property: "_properties", alias: "properties", type: Property, default: []},            
-            {property: "_targetPath", alias: "target", default: null},
+            {property: "_targetPath", alias: "target"},
         );
         return fields;
     }

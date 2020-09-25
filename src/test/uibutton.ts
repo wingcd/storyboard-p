@@ -17,8 +17,8 @@ import { View } from "../core/View";
 import { UIButton } from "../ui/UIButton";
 import * as Events from "../events";
 
-// Settings.showDebugBorder = true;
-// Settings.showDebugFrame = true;
+Settings.showDebugBorder = true;
+Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -35,15 +35,18 @@ class UIScene extends ViewScene {
         let r = this.addUI.group({
             x: 50,
             y: 50,
+            width: 300,
+            height: 300,
         });
+
+
         let button = this.addUI.button({
-            x: 100,
-            y: 200,
+            x: 250,
+            y: 25,
             width: 100,
             height: 40,
         });  
-        r.opaque = true;
-        r.addChild(button);
+        button.overflowType = EOverflowType.Hidden;
 
         let img = this.makeUI.image({
             name: "icon",
@@ -51,6 +54,11 @@ class UIScene extends ViewScene {
             width: 100,
             height: 40,
         });
+
+        r.opaque = false;
+        r.addChild(button);
+        r.overflowType = EOverflowType.Scroll;
+
         button.addChild(img);
 
         let title = this.makeUI.textfield();
@@ -60,6 +68,7 @@ class UIScene extends ViewScene {
         title.horizontalAlign = EHorAlignType.Center;
         title.name = "title";
         title.text = "测试";
+        title.fontSize = 24;
         button.addChild(title);
 
         let propComp = button.addComponentByType(PropertyComponent) as PropertyComponent;
@@ -67,23 +76,23 @@ class UIScene extends ViewScene {
         propMgr.add(UIButton.UP);
         let downStatus = propMgr.add(UIButton.DOWN);
         downStatus.add("icon", "click");
-        downStatus.add("scaleX", 1.2, img);
-        downStatus.add("scaleY", 1.2, img);
+        downStatus.add("scaleX", 1.2);
+        downStatus.add("scaleY", 1.2);
         downStatus.add("text", "按下", title);
 
         let overStatus = propMgr.add(UIButton.OVER);
         overStatus.add("icon", "hover");
         overStatus.add("title", "移动");
         
-        img.setPivot(0.5, 0.5);
+        button.setPivot(0.5, 0.5);
         button.icon = "normal";
         button.title = "test";
 
         propMgr.store();
         button.ensureAllCorrect();
 
-        console.log(button.toJSON());
-        button.clone().y= 400;
+        // console.log(button.toJSON());
+        // button.clone().y= 400;
 
         console.log(1);
     }

@@ -377,6 +377,10 @@ export class View {
         this.setXY(this._x, val);
     }
 
+    public updateMask() {
+        this._updateRootMask();
+    }
+
     protected handleXYChanged() {
         let xv: number = this._x;
         let yv: number = this._y;
@@ -778,7 +782,7 @@ export class View {
     }    
 
     protected updateBorder() {        
-        this._updateRootMask();
+        this.updateMask();
     }
 
     /**
@@ -1145,6 +1149,9 @@ export class View {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
+            if(this._rootContainer.input) {
+                this._rootContainer.input.enabled = false;
+            }
             return;
         }
 
@@ -1152,6 +1159,7 @@ export class View {
             this._hitArea = PoolManager.inst.get(Rectangle) as Rectangle;
             this._rootContainer.setInteractive(this._hitArea, Rectangle.Contains);
         }
+        this._rootContainer.input.enabled = true;
 
         let h: Rectangle = this._hitArea;
         h.x = h.y = 0;
