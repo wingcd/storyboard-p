@@ -21,23 +21,23 @@ class UIScene extends ViewScene {
         view.name = 'view';
         view.touchEnableMoved = false;
         // view.draggable = true;
-        view.on(Events.GestureEvent.Click, (sender: View)=>{
+        view.on(Events.GestureEvent.CLICK, (sender: View)=>{
             console.log('click:' + sender.name);
         }, this);
 
-        view.on(Events.GestureEvent.DoubleClick, (sender: View)=>{
+        view.on(Events.GestureEvent.DOUBLE_CLICK, (sender: View)=>{
             console.log('double click:' + sender.name);
         }, this);
 
-        view.on(Events.GestureEvent.LongTouchStart, (sender: View)=>{
+        view.on(Events.GestureEvent.LONG_TOUCH_START, (sender: View)=>{
             console.log('long touch start:' + sender.name);
         }, this);
 
         let touchEnd = (sender: View)=>{
             console.log('long touch end:' + sender.name);
         };
-        view.on(Events.GestureEvent.LongTouchEnd, touchEnd, this);
-        view.off(Events.GestureEvent.LongTouchEnd, touchEnd);
+        view.on(Events.GestureEvent.LONG_TOUCH_END, touchEnd, this);
+        view.off(Events.GestureEvent.LONG_TOUCH_END, touchEnd);
     }
 
     create(): void {

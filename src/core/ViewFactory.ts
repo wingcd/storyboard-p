@@ -9,6 +9,8 @@ import { ObjectFactory } from "./ObjectFactory";
 import { ECategoryType } from "./Defines";
 import { UIButton } from "../ui/UIButton";
 import { IUIButton, IUIButtonConfig } from "../types/IUIButton";
+import { IUILabelCOnfig } from "../types/IUILabel";
+import { UILabel } from "../ui/UILabel";
 
 export interface IPrefab {
     id: number;
@@ -76,6 +78,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UIButton;
     }
 
+    public label(config?: IUILabelCOnfig, template?: any): UILabel {
+        let type: any = ViewFactory.getType("label");
+        return this._add(type, config, template) as UILabel;
+    }
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
         if(!viewType) {
@@ -95,6 +102,7 @@ ViewFactory.regist(View);
 ViewFactory.regist(ViewGroup);
 ViewFactory.regist(UIImage);
 ViewFactory.regist(UIButton);
+ViewFactory.regist(UILabel);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UITextInput);

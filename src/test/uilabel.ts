@@ -16,7 +16,6 @@ import { Package } from "../core/Package";
 import { View } from "../core/View";
 import { UIButton } from "../ui/UIButton";
 import * as Events from "../events";
-import { EButtonMode } from "../types/IUIButton";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -33,69 +32,39 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let r = this.addUI.group({
-            x: 50,
-            y: 50,
-            width: 300,
-            height: 300,
-        });
-
-
-        let button = this.addUI.button({
+        let label = this.addUI.label({
             x: 250,
             y: 25,
             width: 100,
             height: 40,
         });  
-        button.overflowType = EOverflowType.Hidden;
+        label.setBackgroundColor(0xffff00, true);
+        label.overflowType = EOverflowType.Hidden;
 
         let img = this.makeUI.image({
             name: "icon",
             textureKey: "normal",
-            width: 100,
+            width: 40,
             height: 40,
         });
 
-        r.opaque = false;
-        r.addChild(button);
-        r.overflowType = EOverflowType.Scroll;
-
-        button.addChild(img);
+        label.addChild(img);
 
         let title = this.makeUI.textfield();
-        title.setSize(100, 40);
+        title.x = 40;
+        title.setSize(60, 40);
         title.autoSize = EAutoSizeType.None;
         title.textAlign = EAlignType.Center;
         title.horizontalAlign = EHorAlignType.Center;
         title.name = "title";
-        title.text = "测试";
         title.fontSize = 24;
-        button.addChild(title);
+        label.addChild(title);
 
-        let propComp = button.addComponentByType(PropertyComponent) as PropertyComponent;
-        let propMgr = propComp.add("button");
-        propMgr.add(UIButton.UP);
-        let downStatus = propMgr.add(UIButton.DOWN);
-        downStatus.add("icon", "click");
-        downStatus.add("scaleX", 1.2);
-        downStatus.add("scaleY", 1.2);
-        downStatus.add("text", "按下", title);
+        label.title = "标签";
+        label.ensureAllCorrect();
 
-        let overStatus = propMgr.add(UIButton.OVER);
-        overStatus.add("icon", "hover");
-        overStatus.add("title", "移动");
-        
-        button.setPivot(0.5, 0.5);
-        button.icon = "normal";
-        button.title = "test";
-
-        propMgr.store();
-        button.ensureAllCorrect();
-
-        console.log(button.toJSON());
-        let clone = button.clone() as UIButton;
-        clone.y= 400;
-        clone.mode = EButtonMode.Radio;
+        console.log(label.toJSON());
+        label.clone().y= 400;
 
         console.log(1);
     }

@@ -1,7 +1,7 @@
 export const enum TextEvent {
-    LinkClick = "__link_click",
-    Change = "__text_change",
-    Changed = "__text_changed",
-    FocusIn = "__text_focus_in",
-    FocusOut = "__text_focus_out"
+    LINK_CLICK = "__link_click",
+    CHANGE = "__text_change",
+    CHANGED = "__text_changed",
+    FOCUS_IN = "__text_focus_in",
+    FOCUS_OUT = "__text_focus_out"
 }

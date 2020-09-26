@@ -4,6 +4,20 @@ import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
 
+export function addIgnoreFields(target: any, fields: string[]) {
+    if(target && typeof(target) == 'object') {
+        let ret = target.SERIALIZE_IGNORE_FIELDS || [];    
+        ret = ret.concat(fields);
+        target.SERIALIZE_IGNORE_FIELDS = ret;
+    }
+}
+
+export function clearIgnoreFields(target: any) {
+    if(target && typeof(target) == 'object') {
+        delete target.SERIALIZE_IGNORE_FIELDS;
+    }
+}
+
 function clone(source: any): any {
     if(source == null || typeof(source) !== 'object') {
         return source;
@@ -57,6 +71,11 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 
     let targetProp = info.alias || info.property;
     let sourceProp = info.property;
+    
+    // 过滤一些重复字段
+    if(source.SERIALIZE_IGNORE_FIELDS && source.SERIALIZE_IGNORE_FIELDS.indexOf(targetProp) >= 0) {
+        return;
+    }
 
     if(tpl) {
         let t = tpl[info.alias || info.importAs];

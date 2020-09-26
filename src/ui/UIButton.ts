@@ -16,10 +16,7 @@ export class UIButton extends ViewGroup {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = ViewGroup.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "_selected", alias: "selected", default: false},
-            {property: "_title", alias: "title", default: ""},
-            {property: "_icon", alias: "icon", default: ""},
-            {property: "_titleColor", alias: "titleColor", default: 0},            
+            {property: "_selected", alias: "selected", default: false},     
             {property: "_mode", alias: "mode", default: EButtonMode.Common},
         );
         return fields;
@@ -33,9 +30,6 @@ export class UIButton extends ViewGroup {
     public static SELECTED_DISABLED: string = "selectedDisabled";
 
     private _selected: boolean = false;
-    private _title: string = "";
-    private _icon: string = "";
-    private _titleColor: number = 0;
     private _mode: EButtonMode = EButtonMode.Common;
 
     protected _titleObject: UITextField;
@@ -49,66 +43,68 @@ export class UIButton extends ViewGroup {
         super(scene);
 
         this.on(Events.PointerEvent.OVER, this._rollover, this);
-        this.on(Events.PointerEvent.OUT, this._rollout, this);
+        this.on(Events.PointerEvent.OUT, this._rollout, this);        
         this.on(Events.PointerEvent.DOWN, this._mousedown, this);
-        this.on(Events.GestureEvent.Click, this._click, this);
+        this.on(Events.GestureEvent.CLICK, this._click, this);
     }    
 
-    protected constructFromJson() {
-        super.constructFromJson();
+    public get mode(): EButtonMode {
+        return this._mode;
+    }
 
-        if(this._iconObject) {
-            this._iconObject.textureKey = "";
-            this._iconObject.textureKey = this._icon;
-        }
-
-        if(this._titleObject) {
-            this._titleObject.titleColor = this._titleColor;
-            this._titleObject.text = "";
-            this._titleObject.text = this._title;
+    public set mode(value: EButtonMode) {
+        if (this._mode != value) {
+            if (value == EButtonMode.Common)
+                this.selected = false;
+            this._mode = value;
         }
     }
 
     public get icon(): string {
-        return this._icon;
+        if(this._iconObject) {
+            return this._iconObject.textureKey;
+        }
+        return ""
     }
 
     public set icon(val: string) {
-        if(this._icon != val) {
-            this._icon = val;
-            
-            if(this._iconObject) {
-                this._iconObject.textureKey = val;
-            }
+        if(this._iconObject) {
+            this._iconObject.textureKey = val;
         }
     }
 
     public get title(): string {
-        return this._title;
+        if(this._titleObject) {
+            return this._titleObject.text;
+        }
+        return "";
     }
 
     public set title(val: string) {
-        if(this._title != val) {
-            this._title = val;
-
-            if(this._titleObject) {
-                this._titleObject.text = val;
-            }
+        if(this._titleObject) {
+            this._titleObject.text = val;
         }
     }
 
     public get titleColor(): number {
-        return this._titleColor;
+        if(this._titleObject) {
+            return this._titleObject.titleColor;
+        }
+        return 0;
     }
 
     public set titleColor(val: number) {
-        if(this._titleColor != val) {
-            this._titleColor = val;
-
-            if(this._titleObject) {
-                this._titleObject.titleColor = val;
-            }
+        if(this._titleObject) {
+            this._titleObject.titleColor = val;
         }
+    }
+
+    public get text(): string {
+        return this.title;
+    }
+
+    public set text(value: string) {
+        this.title = value;
     }
 
     public get selected(): boolean {

@@ -1,5 +1,5 @@
 import { ViewGroup } from "./ViewGroup";
-import { Scene, Game, Size, Scale, Container } from "../phaser";
+import { Scene, Game, Size, Scale, Container, EventEmitter } from "../phaser";
 import { View } from "./View";
 import { ViewScene } from "./ViewScene";
 import { FocusEvent } from "../events";
@@ -50,6 +50,10 @@ export class ViewRoot extends ViewGroup {
         this.applyOverflow();
     }
 
+    protected get eventOwner(): EventEmitter {
+        return this.scene.input;
+    }
+    
     public get focus(): View {
         if (this._focusedObject && !this._focusedObject.onStage)
             this._focusedObject = null;

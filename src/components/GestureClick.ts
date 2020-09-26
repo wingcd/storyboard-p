@@ -43,7 +43,7 @@ export class GestureClick extends BaseComponent {
         this._pointerId = -1;
 
         // remove click compoment
-        if(!this.owner.hasListener(Events.GestureEvent.Click)) {
+        if(!this.owner.hasListener(Events.GestureEvent.CLICK)) {
             this.owner.removeComponent(this);
         }
     }
@@ -57,7 +57,7 @@ export class GestureClick extends BaseComponent {
             if(this.owner.touchEnableMoved ||
               (Math.abs(this._touchDownPoint.x - pointer.x) <= Settings.touchSensitivity && 
                Math.abs(this._touchDownPoint.y - pointer.y) <= Settings.touchSensitivity)) {
-                this.owner.emit(Events.GestureEvent.Click, pointer);
+                this.owner.emit(Events.GestureEvent.CLICK, pointer);
             }
             this._reset();
         }
@@ -70,4 +70,4 @@ export class GestureClick extends BaseComponent {
     }
 }
 
-ComponentFactory.inst.registEvents(Events.GestureEvent.Click, GestureClick);
+ComponentFactory.inst.registEvents(Events.GestureEvent.CLICK, GestureClick);

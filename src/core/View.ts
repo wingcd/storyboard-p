@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { EDirtyType, ECategoryType } from "./Defines";
-import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask } from "../phaser";
+import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
@@ -701,7 +701,7 @@ export class View {
 
         let pos = this.localToGlobal(x, y);
         target.visible = false;
-        // targetObj.add(target);
+        // this._rootContainer.add(target);
         target.clear();
 
         target.setPosition(pos.x, pos.y);
@@ -804,12 +804,14 @@ export class View {
         if(this._angle == 0 || this._useBorderAsFrame) {
             let width = this.actualWidth;
             let height = this.actualHeight;
+            let x = this._rootContainer.x;
+            let y = this._rootContainer.y;
             if(this._pivotAsAnchor) {
-                this._frame.x = this._x - this.pivotX * width;
-                this._frame.y = this._y - this.pivotY * height;
+                this._frame.x = x - this.pivotX * width;
+                this._frame.y = y - this.pivotY * height;
             }else{
-                this._frame.x = this._x;
-                this._frame.y = this._y;
+                this._frame.x = x;
+                this._frame.y = y;
             }
             this._frame.width = width;
             this._frame.height = height;
@@ -1022,6 +1024,10 @@ export class View {
         return this;
     }
 
+    protected get eventOwner(): EventEmitter {
+        return this._rootContainer;
+    }
+
     public on(type: string, listener: Function, thisObject?: any): this {
         if (type == null) {
             return this;
@@ -1032,7 +1038,7 @@ export class View {
             this.addComponentByType(compType);
         }
 
-        this._rootContainer.on(type, listener, thisObject);
+        this.eventOwner.on(type, listener, thisObject);
         return this;
     }
 
@@ -1041,7 +1047,7 @@ export class View {
             return this;
         }
 
-        this._rootContainer.off(type, listener, thisObject);
+        this.eventOwner.off(type, listener, thisObject);
 
         let events = ComponentFactory.inst.getRelationEvents(type);
         let hasListens = false;
@@ -1064,40 +1070,40 @@ export class View {
 
     public once(type: string, listener: Function, thisObject?: any): this {
         if (type == null) return this;
-        this._rootContainer.once(type, listener, thisObject);
+        this.eventOwner.once(type, listener, thisObject);
         return this;
     }
 
     public hasListener(event: string, handler?:Function): boolean {
         if(!handler)
-            return this._rootContainer.listeners(event).length > 0;
+            return this.eventOwner.listeners(event).length > 0;
         else
-            return this._rootContainer.listeners(event).indexOf(handler) >= 0;
+            return this.eventOwner.listeners(event).indexOf(handler) >= 0;
     }
 
     public emit(event: string, ...args: any[]): boolean {
         args = args || [];
         args.unshift(this);
-        return this._rootContainer.emit(event, ...args);
+        return this.eventOwner.emit(event, ...args);
     }
 
     public removeAllListeners(type?:string): this {
-        this._rootContainer.removeAllListeners(type);
+        this.eventOwner.removeAllListeners(type);
         return this;
     }
 
     public onClick(listener: Function, thisObj?: any): this {
-        this.on(Events.GestureEvent.Click, listener, thisObj);
+        this.on(Events.GestureEvent.CLICK, listener, thisObj);
         return this;
     }
 
     public removeClick(listener: Function, thisObj?: any): this {
-        this.off(Events.GestureEvent.Click, listener, thisObj);
+        this.off(Events.GestureEvent.CLICK, listener, thisObj);
         return this;
     }
 
     public hasClick(fn?:Function): boolean {
-        return this.hasListener(Events.GestureEvent.Click, fn);
+        return this.hasListener(Events.GestureEvent.CLICK, fn);
     }
 
     public get enableBackground(): boolean {

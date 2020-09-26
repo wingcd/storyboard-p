@@ -38,7 +38,7 @@ export class GestureDoubleClick extends BaseComponent {
             this._clickCount++;
         }
         if(this._clickCount >= 2) {
-            this.owner.emit(Events.GestureEvent.DoubleClick, pointer);
+            this.owner.emit(Events.GestureEvent.DOUBLE_CLICK, pointer);
             this._reset();
         }
     }
@@ -48,10 +48,10 @@ export class GestureDoubleClick extends BaseComponent {
         this._pointerId = -1;
 
         // remove double click compoment
-        if(!this.owner.hasListener(Events.GestureEvent.DoubleClick)) {
+        if(!this.owner.hasListener(Events.GestureEvent.DOUBLE_CLICK)) {
             this.owner.removeComponent(this);
         }
     }
 }
 
-ComponentFactory.inst.registEvents(Events.GestureEvent.DoubleClick, GestureDoubleClick);
+ComponentFactory.inst.registEvents(Events.GestureEvent.DOUBLE_CLICK, GestureDoubleClick);

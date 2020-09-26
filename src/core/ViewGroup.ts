@@ -498,7 +498,7 @@ export class ViewGroup extends View {
     }
 
     private _updateHideMask(clear: boolean = false) {
-        this.updateGraphicsMask(this._container, 0, 0, this.width, this.height, clear);
+        this.updateGraphicsMask(this._container, 0, 0, this.actualWidth, this.actualHeight, clear);
     }
 
     /**@internal */

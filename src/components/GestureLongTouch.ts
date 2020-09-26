@@ -34,7 +34,7 @@ export class GestureLongTouch extends BaseComponent {
                     (Math.abs(pointer.x - pointer.downX) <= Settings.touchSensitivity && 
                         Math.abs(pointer.y - pointer.downY) <= Settings.touchSensitivity)) {
                     this._longTouched = true;
-                    this.owner.emit(Events.GestureEvent.LongTouchStart, pointer);
+                    this.owner.emit(Events.GestureEvent.LONG_TOUCH_START, pointer);
                 }
             }
         });
@@ -48,8 +48,8 @@ export class GestureLongTouch extends BaseComponent {
         this._pointerId = -1;
 
         // remove long touch compoment
-        if(!this.owner.hasListener(Events.GestureEvent.LongTouchEnd) &&
-           !this.owner.hasListener(Events.GestureEvent.LongTouchStart)) {
+        if(!this.owner.hasListener(Events.GestureEvent.LONG_TOUCH_END) &&
+           !this.owner.hasListener(Events.GestureEvent.LONG_TOUCH_START)) {
             this.owner.removeComponent(this);
         }
     }
@@ -64,7 +64,7 @@ export class GestureLongTouch extends BaseComponent {
               (Math.abs(pointer.x - pointer.downX) <= Settings.touchSensitivity && 
                Math.abs(pointer.y - pointer.downY) <= Settings.touchSensitivity)) && 
                this._longTouched) {
-                this.owner.emit(Events.GestureEvent.LongTouchEnd, pointer);
+                this.owner.emit(Events.GestureEvent.LONG_TOUCH_END, pointer);
             }
             this._reset();
         }
@@ -81,5 +81,5 @@ export class GestureLongTouch extends BaseComponent {
     }
 }
 
-ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchStart, GestureLongTouch);
-ComponentFactory.inst.registEvents(Events.GestureEvent.LongTouchEnd, GestureLongTouch);
+ComponentFactory.inst.registEvents(Events.GestureEvent.LONG_TOUCH_START, GestureLongTouch);
+ComponentFactory.inst.registEvents(Events.GestureEvent.LONG_TOUCH_END, GestureLongTouch);

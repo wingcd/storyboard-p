@@ -24,6 +24,7 @@ export class UITextInput extends UITextField {
     protected _inputType: EInputType;
     protected _promptText: string;
     protected _promptColor: number;
+    
     private _oldColor: number;
 
     /**@internal */
@@ -122,17 +123,17 @@ export class UITextInput extends UITextField {
                 textAlign: align as any,                
                 onTextChanged: (textObj: any, text: string)=>{
                     textObj.text = text;
-                    textfield.emit(TextEvent.Change, textfield);
+                    textfield.emit(TextEvent.CHANGE, textfield);
                 },
                 onClose:(textObj: any)=>{
                     UITextInput.isTyping = false;
                     this.text = textObj.text;
                     this.render();
 
-                    textfield.emit(TextEvent.Changed, textfield);
+                    textfield.emit(TextEvent.CHANGED, textfield);
 
                     textfield.emit(FocusEvent.CHANGED, "blur", textfield);
-                    textfield.emit(TextEvent.FocusOut, textfield);
+                    textfield.emit(TextEvent.FOCUS_OUT, textfield);
                 },
                 type: this.multipleLine ? "textarea" : "text",
             });
@@ -149,7 +150,7 @@ export class UITextInput extends UITextField {
             }
 
             textfield.emit(FocusEvent.CHANGED, "focus", textfield);
-            textfield.emit(TextEvent.FocusIn, textfield);
+            textfield.emit(TextEvent.FOCUS_IN, textfield);
         }
     }
 
