@@ -18,6 +18,8 @@ export class UIButton extends ViewGroup {
         fields.push(
             {property: "_selected", alias: "selected", default: false},     
             {property: "_mode", alias: "mode", default: EButtonMode.Common},
+            {property: "_relatedPropMgrId", alias: "propMgrId"},
+            {property: "_propertyGroupId", alias: "groupId"},
         );
         return fields;
     }
@@ -34,7 +36,7 @@ export class UIButton extends ViewGroup {
 
     protected _titleObject: UITextField;
     protected _iconObject: UIImage;
-    protected _buttonPropManager: PropertyManager;
+    protected _buttonPropManager: PropertyManager;    
 
     private _down: boolean = false;
     private _over: boolean = false;
@@ -112,8 +114,39 @@ export class UIButton extends ViewGroup {
     }
 
     public set selected(val: boolean) {
-        if(this._selected != val) {
+        if (this._mode == EButtonMode.Common)
+            return;
+
+        if (this._selected != val) {
             this._selected = val;
+            let hasDisable = this._buttonPropManager.has(UIButton.DISABLED);
+            let hasSelectedDisable = this._buttonPropManager.has(UIButton.SELECTED_DISABLED);
+            if (this.grayed && this._buttonPropManager && (hasDisable || hasSelectedDisable)) {
+                if (this._selected && hasSelectedDisable) {
+                    this._buttonPropManager.applyTo(UIButton.SELECTED_DISABLED);
+                }
+                else {
+                    this._buttonPropManager.applyTo(UIButton.DISABLED);
+                }
+            }
+            else {
+                if (this._selected) {
+                    let over = this._over && this._buttonPropManager.has(UIButton.SELECTED_OVER);
+                    this._buttonPropManager.applyTo(over ? UIButton.SELECTED_OVER : UIButton.DOWN);
+                }
+                else {
+                    let over = this._over && this._buttonPropManager.has(UIButton.OVER);
+                    this._buttonPropManager.applyTo(over ? UIButton.OVER : UIButton.UP);
+                }
+            }
+
+            if(val && this._mode == EButtonMode.Radio && this.parent) {
+                for(let p of this.parent.children) {
+                    if(p != this && p instanceof UIButton && p.mode == EButtonMode.Radio) {
+                        p.selected = false;
+                    }
+                }
+            }
         }
     }
 

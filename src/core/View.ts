@@ -35,7 +35,7 @@ export class View {
             {property: "TYPE", alias: "type", static: true, readonly: true},
             {property: "data",default: null},
             {property: "resourceUrl", default: null},
-            {property: "id",importAs: "_id",default: null, readonly: true},
+            {property: "id",importAs: "_id"},
             {property: "name",importAs: "_name",default: ""},
             {property: "visible",importAs: "_visible",default: true},
             {property: "hiddenCollapsed",importAs: "_hiddenCollapsed",default: true},
@@ -88,9 +88,7 @@ export class View {
     public data: any;    
     public resourceUrl: string;
 
-    private _rid: string;
     private _id: string;
-    private _sourceId: string;
     private _name: string = "";
 
     private _visible: boolean = true;
@@ -162,7 +160,7 @@ export class View {
     private _batchAddComponents = false;
 
     constructor(scene: ViewScene) {
-        this._rid = this._id = `${Package.getUniqueID()}`;
+        this._id = `${Package.getUniqueID()}`;
         this._name = `n${this._id}`;
 
         this.addDirty(EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged | EDirtyType.DebugBorderChanged);
@@ -263,11 +261,6 @@ export class View {
 
     public get id(): string {
         return this._id;
-    }
-
-    /**@internal */
-    get rid(): string {
-        return this._rid;
     }
 
     public get name(): string {

@@ -47,6 +47,12 @@ export class PropertyComponent extends SerializableComponent {
         });
     }    
 
+    public getById(id: string) {
+        return this._contollers.find(c=>{
+            return c.id == id;
+        });
+    }
+
     public getAt(index: number): PropertyManager {
         if(index >= 0 && index < this._contollers.length) {
             return this._contollers[index];
@@ -60,6 +66,13 @@ export class PropertyComponent extends SerializableComponent {
                 let pm = this._contollers[key];
                 pm.bindTarget(view);
                 pm.store();
+
+                if(pm.defaultId != undefined) {
+                    let gm = pm.getById(pm.defaultId);
+                    if(gm) {
+                        pm.applyTo(gm.name);
+                    }
+                }
             }
         }
         super.regist(view);

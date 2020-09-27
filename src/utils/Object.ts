@@ -35,7 +35,7 @@ export function GetViewRelativePath(root: IView, target: IView) {
 
     let paths = [];
     while(target && target != root) {
-        paths.push(target.name);
+        paths.push(target.id);
         target = target.parent;
     }
     return paths.reverse().join("/");
@@ -49,12 +49,12 @@ export function GetViewByRelativePath(root: IView, path: string): IView {
     let child = root;
     let paths = path.split("/");
     for(let p of paths) {
-        if(!(child as any).getChild) {
+        if(!(child as any).getChildById) {
             console.error(`invalid path ${path} in ${p}:not group view!`);
             return child;
         }
 
-        let c = (child as any).getChild(p) as IViewGroup;
+        let c = (child as any).getChildById(p) as IViewGroup;
 
         if(!c) {
             console.error(`invalid path ${path} in ${p}:can not find child!`);

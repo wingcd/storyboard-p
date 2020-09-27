@@ -1,1 +1,1 @@
-require('./test/uibutton')
+require('./test/textinput')

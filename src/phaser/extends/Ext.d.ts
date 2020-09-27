@@ -74,9 +74,21 @@ declare interface IInputText {
     width?: number;
     height?: number;
     type?: 'text' | 'textarea';
-    textAlign?: 'left' | 'center' | 'right';
-    paddingTop?: string,
-    style?: any;    
+
+    align?: 'left' | 'center' | 'right';
+    halign?: 'top' | 'middle' | 'bottom';
+    paddingLeft?: string;
+    paddingRight?: string;
+    paddingTop?: string;
+    paddingBottom?: string;
+    fontFamily?: string;
+    fontSize?: string;
+    color?: string;
+    backgroundColor?: string;
+    border?: number;
+    borderColor?: string;
+    outline?: string;
+        
     onTextChanged?: Function;
     onClose?: Function;
 }

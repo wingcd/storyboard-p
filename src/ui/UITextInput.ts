@@ -6,6 +6,8 @@ import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewEvent } from "../events/ViewEvent";
 import { ViewGroup } from "../core/ViewGroup";
+import { ISerializeInfo } from "../annotations/Serialize";
+import * as Events from "../events";
 
 export const enum EInputType {
     TEXT = "text",
@@ -18,13 +20,23 @@ export const enum EInputType {
 
 export class UITextInput extends UITextField { 
     static TYPE = "textinput";
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields = UITextField.SERIALIZABLE_FIELDS;
+        fields.push(            
+            {property: "editable", default: true},
+            {property: "inputType", default: EInputType.TEXT},
+            {property: "promptText"},
+            {property: "promptColor"},
+        );
+        return fields;
+    }
 
-    protected _editable:boolean;
-    protected _editor: TextEdit = null;
-    protected _inputType: EInputType;
+    protected _editable:boolean = true;
+    protected _inputType: EInputType = EInputType.TEXT;
     protected _promptText: string;
     protected _promptColor: number;
-    
+
+    protected _editor: TextEdit = null;    
     private _oldColor: number;
 
     /**@internal */
@@ -33,9 +45,8 @@ export class UITextInput extends UITextField {
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this.focusable = true;
-        this.editable = true;  //init
-        
+        this.focusable = true;        
+        this.opaque = true;
         this.inputType = EInputType.TEXT;
 
         this.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
@@ -86,7 +97,7 @@ export class UITextInput extends UITextField {
 
             textfield.text = this._text;
             this._style.color = this._oldColor || 0;
-            this.updateStyle();
+            // this.updateStyle();
 
             this._editor = new TextEdit(textfield);
             let align = 'left';            
@@ -120,7 +131,10 @@ export class UITextInput extends UITextField {
             this._editor.open({
                 x:0 ,y:0,
                 width: width, height: height,
-                textAlign: align as any,                
+
+                align: align as any,
+                fontSize: this._style.fontSize + "px",
+
                 onTextChanged: (textObj: any, text: string)=>{
                     textObj.text = text;
                     textfield.emit(TextEvent.CHANGE, textfield);
@@ -157,9 +171,11 @@ export class UITextInput extends UITextField {
     protected setDisplayObject(displayObject: GameObject) {
         super.setDisplayObject(displayObject);
 
-        this.on(Phaser.Input.Events.POINTER_DOWN, ()=>{
-            this._initEditor();
-        }, this);
+        this.on(Events.PointerEvent.DOWN, this._onPointerDown, this);
+    }
+
+    private _onPointerDown() {
+        this._initEditor();
     }
 
     private changeToPassText(text:string):string {
@@ -227,7 +243,7 @@ export class UITextInput extends UITextField {
 
             this.touchable = this._editable;
         }
-    }  
+    }
 
     public get password(): boolean {
         return this.inputType == EInputType.PASSWORD;
@@ -258,8 +274,21 @@ export class UITextInput extends UITextField {
         }
     }
 
+    public get promptColor(): number {
+        return this._promptColor;
+    }
+
+    public set promptColor(v: number) {
+        if(this._promptColor != v) {
+            this._promptColor = v;    
+            this.render();        
+        }
+    }
+
     public dispose() {
         super.dispose();
+
+        this.off(Events.PointerEvent.DOWN, this._onPointerDown, this);
 
         if(this._editor) {
             this._editor.destroy();

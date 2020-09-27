@@ -37,9 +37,13 @@ class PropertyGroup {
     private _name: string = null;
     private _store: any = {};
 
+    /**@internal */
+    id: number;
+
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
+            {property: "id"},
             {property: "_name", alias: "name"},
             {property: "_properties", alias: "properties", type: Property, default: []},            
             {property: "_targetPath", alias: "target"},
@@ -226,9 +230,10 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         fields.push(
             {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
 
-            {property: "resourceUrl", default: null},
+            {property: "resourceUrl"},
             {property: "_id", alias: "id", default: ""},  
-            {property: "_name", alias: "name", default: null},
+            {property: "_name", alias: "name"},            
+            {property: "_defaultId", alias: "default"},
             {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
         );
         return fields;
@@ -239,6 +244,10 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
     private _id: string;
+    private _defaultId: number;
+
+    // group base id
+    private _groupId: number = 0;
 
     public resourceUrl: string;
     
@@ -259,6 +268,20 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
 
     public get id(): string {
         return this._id;
+    }
+
+    private _genGroupId() {
+        return this._groupId++;
+    }
+
+    public get defaultId(): number {
+        return this._defaultId;
+    }
+
+    public set defaultId(val: number) {
+        if(this._defaultId != val) {
+            this._defaultId = val;
+        }
     }
 
     public set name(val: string) {
@@ -302,6 +325,12 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         return this._groups.find((g => {
            return g.name == name;
         }));
+    }    
+
+    public getById(id: number): PropertyGroup {
+        return this._groups.find((g => {
+            return g.id == id;
+         }));
     }
 
     /**
@@ -320,6 +349,8 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         let pg = new PropertyGroup(this, name);
         pg.bindTarget(target);
         this._groups.push(pg);
+
+        pg.id = this._genGroupId();
 
         return pg;
     }
@@ -351,6 +382,33 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
             g.store();
         });
         return this;
+    }
+
+    public get currentGroupName(): string {
+        if(this._lastGroup) {
+            return this._lastGroup.name;
+        }
+        return "";
+    }
+
+    public get currentGroupId(): number {
+        if(this._lastGroup) {
+            return this._lastGroup.id;
+        }
+        return -1;
+    }
+
+    public applyById(id: number): boolean {
+        let oldName = this._lastGroup ? this._lastGroup.name : null;
+        let pg = this.getById(id);
+        if(!pg) {
+            return false;
+        }
+
+        pg.applyAll(this._lastGroup);
+        this._lastGroup = pg;
+
+        this._emit(PropertyEvent.CHANGED, oldName, name);
     }
 
     /**

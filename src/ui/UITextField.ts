@@ -1,15 +1,21 @@
 import { View } from "../core/View";
 import { Text, BitmapText, Point, ITextStyle, Color } from "../phaser";
-import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType } from "../core/Defines";
+import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType, ECategoryType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { Templates } from "../core/Templates";
 
 class TextStyle implements ITextStyle {
+    static CATEGORY = ECategoryType.Property;
+    
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(    
+            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
+            {property: "resourceUrl"},
+
             {property: "fontFamily", default: "Arial"},
             {property: "fontSize", default: 16},
             {property: "fontStyle"},
@@ -38,6 +44,8 @@ class TextStyle implements ITextStyle {
         return fields;
     }
 
+    public resourceUrl: string;
+
     /**
      * The font the Text object will render with. This is a Canvas style font string.
      */
@@ -53,6 +61,7 @@ class TextStyle implements ITextStyle {
     lineSpacing?: number = 0;
     letterSpacing?: number = 0;
 }
+Templates.regist(TextStyle.CATEGORY, TextStyle);
 
 
 export class LineInfo {
@@ -154,7 +163,8 @@ export class UITextField extends View {
     protected constructFromJson() {
         super.constructFromJson();
 
-
+        this._updateTextField();
+        this.render();
     }
 
     public get font(): string {
@@ -179,7 +189,7 @@ export class UITextField extends View {
 
     public get fontSize(): number {
         if(typeof(this._style.fontSize) === 'number') {
-            return this._style.fonstSize;
+            return this._style.fontSize;
         }else{
             let size = this._style.fontSize as string || '';
             return parseInt(size.replace('px', ''));

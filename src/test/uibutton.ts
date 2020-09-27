@@ -60,6 +60,7 @@ class UIScene extends ViewScene {
         r.addChild(button);
         r.overflowType = EOverflowType.Scroll;
 
+        button.mode = EButtonMode.Radio;
         button.addChild(img);
 
         let title = this.makeUI.textfield();
@@ -84,6 +85,8 @@ class UIScene extends ViewScene {
         let overStatus = propMgr.add(UIButton.OVER);
         overStatus.add("icon", "hover");
         overStatus.add("title", "移动");
+
+        propMgr.defaultId = overStatus.id;
         
         button.setPivot(0.5, 0.5);
         button.icon = "normal";
@@ -94,8 +97,9 @@ class UIScene extends ViewScene {
 
         console.log(button.toJSON());
         let clone = button.clone() as UIButton;
-        clone.y= 400;
-        clone.mode = EButtonMode.Radio;
+        clone.y= 100;
+        // clone.mode = EButtonMode.Radio;
+        r.addChild(clone);
 
         console.log(1);
     }

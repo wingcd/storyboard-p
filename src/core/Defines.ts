@@ -19,7 +19,8 @@ export enum ECategoryType {
     Animation = "ani",
     Component = "comp",
     Timeline = "timeline",
-    TweenPlugin = "tweenplugin",  
+    TweenPlugin = "tween-plugin",
+    TextStyle = "text-style",
 };
 
 export enum EDirectionType {
