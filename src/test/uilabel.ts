@@ -66,6 +66,8 @@ class UIScene extends ViewScene {
         console.log(label.toJSON());
         label.clone().y= 400;
 
+        // Path2D
+
         console.log(1);
     }
 }

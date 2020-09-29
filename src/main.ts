@@ -1,1 +1,1 @@
-require('./test/textinput')
+require('./test/uirichtext')

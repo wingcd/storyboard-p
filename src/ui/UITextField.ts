@@ -111,7 +111,6 @@ export class UITextField extends View {
             {property: "GUTTER_Y", default: 2, static: true},
 
             {property: "text", default: ""},
-            {property: "rich", default: false},
             {property: "tagMode", default: false},
             {property: "_style", alias: "style", type: TextStyle},            
             {property: "verticalAlign", default: EVertAlignType.Top},
@@ -124,7 +123,8 @@ export class UITextField extends View {
     }
 
     private _textField: Text;
-    private _richTextField: BBCodeText;
+    protected _richTextField: BBCodeText;
+    protected _canUseBitmap = true;
     private _bitmapTextField: BitmapText;
 
     protected _text: string = "";
@@ -232,11 +232,11 @@ export class UITextField extends View {
         }
     }
 
-    public get rich(): boolean {
+    protected get rich(): boolean {
         return this._rich;
     }
 
-    public set rich(val: boolean) {
+    protected set rich(val: boolean) {
         if(val != this._rich) {
             this._rich = val;
 
@@ -244,11 +244,11 @@ export class UITextField extends View {
         }
     }
 
-    public get tagMode(): boolean {
+    protected get tagMode(): boolean {
         return this._tagMode;
     }
 
-    public set tagMode(val: boolean) {
+    protected set tagMode(val: boolean) {
         if(val != this._tagMode) {
             this._tagMode = val;
 
@@ -372,8 +372,8 @@ export class UITextField extends View {
         }
     }
 
-    private switchBitmapMode(val: boolean): void {
-        if(val) {
+    private switchBitmapMode(useBitmap: boolean): void {
+        if(this._canUseBitmap && useBitmap) {
             if(this._textField) {
                 this._textField.destroy();
                 this._textField = null;

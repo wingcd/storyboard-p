@@ -1143,6 +1143,10 @@ export class View {
         }
     }
 
+    protected get hitArea(): Rectangle {
+        return this._hitArea;
+    }
+
     protected applyOpaque() {
         if(!this._opaque && !this._enableBackground && !this._touchable) {
             if(this._hitArea) {

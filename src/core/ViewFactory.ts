@@ -11,6 +11,8 @@ import { UIButton } from "../ui/UIButton";
 import { IUIButton, IUIButtonConfig } from "../types/IUIButton";
 import { IUILabelCOnfig } from "../types/IUILabel";
 import { UILabel } from "../ui/UILabel";
+import { UIRichTextField } from "../ui/UIRichtextField";
+import { IUIRichTextInputConfig } from "../types/UIRichTextField";
 
 export interface IPrefab {
     id: number;
@@ -68,6 +70,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UITextField;
     }
 
+    public richtextfield(config?: IUIRichTextInputConfig, template?: any): UIRichTextField {
+        let type: any = ViewFactory.getType("richtext");
+        return this._add(type, config, template) as UIRichTextField;
+    }
+
     public textinput(config?: IUITextInputConfig, template?: any): UITextInput {
         let type: any = ViewFactory.getType("textinput");
         return this._add(type, config, template) as UITextInput;
@@ -105,4 +112,5 @@ ViewFactory.regist(UIButton);
 ViewFactory.regist(UILabel);
 
 ViewFactory.regist(UITextField);
+ViewFactory.regist(UIRichTextField);
 ViewFactory.regist(UITextInput);

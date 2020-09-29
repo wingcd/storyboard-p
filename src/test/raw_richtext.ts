@@ -24,13 +24,13 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color][size=12][img=smile] is a [color=yellow]fast[/color]', false, {
+        let richText =  this.addExt.richText(0, 0, '[b][i][size=24][color=red]Phaser[/color][size=12][img=smile] is a [area=click-test][color=yellow]fast[/color][/area]', false, {
             color: '#ff0000',
             typing: {
                 speed: 333,
                 start: true,
             } 
-        }).addImage('smile', {key:"smile", width:24, height: 24, left: 5});
+        }).addImage('smile', {key:"smile", width:24, height: 24, left: 5});        
 
         var tags = {
             cap: {
