@@ -3,6 +3,8 @@ import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, ESta
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAutoSizeType, EAlignType, EVertAlignType, EHorAlignType } from "../core/Defines";
+import * as Events from '../events';
+import { View } from "../core/View";
 
 Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -38,6 +40,10 @@ class UIScene extends ViewScene {
         // textfield.horizontalAlign = EHorAlignType.Right;
 
         textfield.setXY(100, 100);
+
+        textfield.on(Events.TextEvent.AREA_UP, (sender: View, key: string, pointer: Pointer)=>{
+            console.log(`click area ${key}`);
+        }, this);
     }
 }
 

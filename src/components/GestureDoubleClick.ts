@@ -1,13 +1,12 @@
 import { BaseComponent } from "./BaseComponent";
 import * as Events from "../events";
-import { Point,Time, Pointer } from "../phaser";
+import { Point,Time, Pointer, EventData } from "../phaser";
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
 import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
 export class GestureDoubleClick extends BaseComponent {
-    protected _touchDownPoint: Point;
     protected _clickCount: number = 0;
     private _pointerId = -1;
     
@@ -19,16 +18,10 @@ export class GestureDoubleClick extends BaseComponent {
         this.owner.removeClick(this._click, this); 
     }
 
-    private _click(sender: View, pointer: Pointer) {
-        if (this._touchDownPoint == null) {
-           this._touchDownPoint = new Point();
-        } 
+    private _click(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData) {
         if(this._clickCount == 0) {
             this._pointerId = pointer.pointerId;
         }
-
-        this._touchDownPoint.x = pointer.x;
-        this._touchDownPoint.y = pointer.y;
 
         this._owner.scene.time.delayedCall(300, ()=>{
             this._clickCount = 0;
@@ -38,7 +31,7 @@ export class GestureDoubleClick extends BaseComponent {
             this._clickCount++;
         }
         if(this._clickCount >= 2) {
-            this.owner.emit(Events.GestureEvent.DOUBLE_CLICK, pointer);
+            this.owner.emit(Events.GestureEvent.DOUBLE_CLICK, pointer, localX, localY, event);
             this._reset();
         }
     }
