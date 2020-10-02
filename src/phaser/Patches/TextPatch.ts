@@ -322,7 +322,8 @@ export interface ITextStyle {
      *  Either `left`, `right`, `center` or `justify` in horizontal model.
      *  Either `top`, `middle`, `bottom` or `justify` in vertical model.
      */
-    align?: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'justify' ;
+    align?: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'justify' ; 
+
     /**
      * The maximum number of lines to display within the Text object.
      */
@@ -384,6 +385,17 @@ export interface ITextStyle {
         // set mini height in vertical mode
         miniHeight?: number,
     };
+
+    // for rich text
+    underline?: {
+        color?: number,
+        thickness?: number,
+        offset?: number,
+    };
+    // in horizontal model 
+    halign?: 'left'|'center'|'right'|'justify',
+    // in vertical model
+    valign?: 'top'|'center'|'bottom'|'justify',
 
     [key:string]:any;
 }

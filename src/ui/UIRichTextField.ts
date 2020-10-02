@@ -4,16 +4,22 @@ import { UITextField } from "./UITextField";
 import * as Events from '../events';
 import { View } from "../core/View";
 import { ViewRoot } from "../core/ViewRoot";
+import { ISerializeInfo } from "../annotations/Serialize";
+import { MultiPointerManager } from "../utils/MultiPointerManager";
 
 export class UIRichTextField extends UITextField { 
     static TYPE = "richtext";
+
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = UITextField.SERIALIZABLE_FIELDS;
+        return fields;
+    }
 
     private static AREA_DOWN_EVENT = "areadown";
     private static AREA_UP_EVENT = "areaup";
 
     private _isDownOnArea = false;
-    private _currentAreaKey = "";
-    private _currentTouchId = -1;
+    private _pointerMgr = new MultiPointerManager();
 
     constructor(scene: ViewScene) {
         super(scene);
@@ -56,31 +62,30 @@ export class UIRichTextField extends UITextField {
     }
 
     private _areaDown(key: string, pointer: Pointer, localX: number, localY: number) {
-        if(this._currentTouchId < 0) {
-            this._currentTouchId = pointer.id;
+        if(!this._pointerMgr.isDown(pointer)) {
             this._isDownOnArea = true;
-            this._currentAreaKey = key;
+            this._pointerMgr.down(pointer, key);
             this.emit(Events.TextEvent.AREA_DOWN, key, pointer);
         }
     }
 
     private _areaUp(key: string, pointer: Pointer, localX: number, localY: number) {
-        if(pointer.id == this._currentTouchId) {
+        if(this._pointerMgr.isDown(pointer)) {
             this.emit(Events.TextEvent.AREA_UP, key, pointer);
         }
     }
 
     private _rootUp(sender: View, pointer: Pointer) {
-        if(this._currentTouchId == pointer.id) { 
+        if(this._pointerMgr.isDown(pointer)) { 
             this._isDownOnArea = false;
-            this._currentTouchId = -1;
+            this._pointerMgr.up(pointer);
         }
     }
 
     private _onClick(sender: View, pointer: Pointer) {
-        if(this._currentTouchId == pointer.id) {
+        if(this._pointerMgr.isDown(pointer)) {
             if(this._isDownOnArea) {
-                this.emit(Events.TextEvent.AREA_CLICK, this._currentAreaKey, pointer);
+                this.emit(Events.TextEvent.AREA_CLICK, this._pointerMgr.getData(pointer), pointer);
             }
         }
     }

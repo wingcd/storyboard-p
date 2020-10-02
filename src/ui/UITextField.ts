@@ -6,9 +6,27 @@ import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Templates } from "../core/Templates";
+import { clone } from "../utils/Serialize";
+import { colorToString } from "../utils/Color";
+
+class UnderlineStyle {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "color", default: 0},
+            {property: "thickness", default: 1},
+            {property: "offset", default: 0},
+        );
+        return fields;
+    }
+
+    color?: number = 0x000;
+    thickness?: number = 1;
+    offset?: number = 0;
+}
 
 class TextStyle implements ITextStyle {
-    static CATEGORY = ECategoryType.Property;
+    static CATEGORY = ECategoryType.TextStyle;
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
@@ -40,6 +58,10 @@ class TextStyle implements ITextStyle {
             {property: "lineSpacing", default: 0},
             {property: "letterSpacing", default: 0},
             {property: "vertical", raw: true},
+            
+            {property: "underline", type: UnderlineStyle},
+            {property: "halign", default: "left"},
+            {property: "valign", default: "top"},
         );
         return fields;
     }
@@ -60,6 +82,12 @@ class TextStyle implements ITextStyle {
     align?: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'justify' = 'left';    
     lineSpacing?: number = 0;
     letterSpacing?: number = 0;
+
+    underline?: UnderlineStyle;
+    // in horizontal model 
+    halign?: 'left'|'center'|'right'|'justify' = 'left';
+    // in vertical model
+    valign?: 'top'|'center'|'bottom'|'justify' = 'top';
 }
 Templates.regist(TextStyle.CATEGORY, TextStyle);
 
@@ -138,8 +166,9 @@ export class UITextField extends View {
     private _singleLine:boolean = true;
     private _autoSize: EAutoSizeType = EAutoSizeType.Both;
 
-    private _widthAutoSize: boolean = true;
-    private _heightAutoSize: boolean = true;
+    // 必须需要初始化为false，否则在一些属性进行计算时，会将width和height进行改变
+    private _widthAutoSize: boolean = false;
+    private _heightAutoSize: boolean = false;
 
     private _requireRender: boolean;
     private _updatingSize: boolean;
@@ -157,6 +186,7 @@ export class UITextField extends View {
         this.touchable = false;  //base GTextField has no interaction
 
         this._updateTextField();
+        this._updateAutoSize();
         this.render();
     }
 
@@ -164,6 +194,7 @@ export class UITextField extends View {
         super.constructFromJson();
 
         this._updateTextField();
+        this._updateAutoSize();
         this.render();
     }
 
@@ -503,7 +534,7 @@ export class UITextField extends View {
         }else if(this._bitmapTextField) {
             this.applyBitmapStyle(style);
         }      
-        textfield.text = this._text;
+        textfield.text = this._text; 
 
         this._textWidth = Math.ceil(textfield.width);
         if (this._textWidth > 0)
@@ -573,8 +604,9 @@ export class UITextField extends View {
             this.setSize(w, h);
             this._updatingSize = false;
         }
-
-        this.layoutAlign();
+       
+        this.handleSizeChanged();
+        this.applyOpaque();
         this.updateMask();
     }
 
@@ -585,20 +617,25 @@ export class UITextField extends View {
             style.fontSize = `${style.fontSize}px`;
         }
         if(typeof(style.color) === 'number') {
-            let color  = Color.IntegerToRGB(style.color);
-            style.color = Color.RGBToString(color.r, color.g, color.b, color.a);
+            style.color = colorToString(style.color);
         }
         if(typeof(style.backgroundColor) == 'number') {
-            let color  = Color.IntegerToRGB(style.backgroundColor);
-            style.backgroundColor = Color.RGBToString(color.r, color.g, color.b, color.a);
+            style.backgroundColor = colorToString(style.backgroundColor);
         }
         if(typeof(style.stroke) == 'number') {
-            let color  = Color.IntegerToRGB(style.stroke);
-            style.stroke = Color.RGBToString(color.r, color.g, color.b, color.a);
+            style.stroke = colorToString(style.stroke);
         }
         if(style.resolution) {
             style.resolution = this.scene.game.config.resolution;
         }
+
+        if(!style.underline) {
+            style.underline = new UnderlineStyle();
+        }
+        if(typeof(style.underline.color) == 'number') {
+            style.underline.color = colorToString(style.underline.color);
+        }
+
         return style;
     }
 
@@ -615,7 +652,7 @@ export class UITextField extends View {
     }
 
     protected applyRichStyle(style: ITextStyle) {
-        if(this._richTextField) {
+        if(this._richTextField) {            
             this._richTextField.setStyle(style);
             let richStyle: any = this._richTextField.style;
             if(!richStyle.resolution) {

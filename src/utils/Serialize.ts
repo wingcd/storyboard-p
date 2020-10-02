@@ -18,7 +18,7 @@ export function clearIgnoreFields(target: any) {
     }
 }
 
-function clone(source: any): any {
+export function clone(source: any): any {
     if(source == null || typeof(source) !== 'object') {
         return source;
     }
