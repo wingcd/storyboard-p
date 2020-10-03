@@ -4,16 +4,10 @@ import { UITextField } from "./UITextField";
 import * as Events from '../events';
 import { View } from "../core/View";
 import { ViewRoot } from "../core/ViewRoot";
-import { ISerializeInfo } from "../annotations/Serialize";
 import { MultiPointerManager } from "../utils/MultiPointerManager";
 
 export class UIRichTextField extends UITextField { 
     static TYPE = "richtext";
-
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = UITextField.SERIALIZABLE_FIELDS;
-        return fields;
-    }
 
     private static AREA_DOWN_EVENT = "areadown";
     private static AREA_UP_EVENT = "areaup";

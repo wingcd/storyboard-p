@@ -38,7 +38,7 @@ export class View {
             {property: "id",importAs: "_id"},
             {property: "name",importAs: "_name",default: ""},
             {property: "visible",importAs: "_visible",default: true},
-            {property: "hiddenCollapsed",importAs: "_hiddenCollapsed",default: true},
+            {property: "hiddenCollapsed",importAs: "_hiddenCollapsed", default: false},
             {property: "x",importAs: "_x",default: 0},
             {property: "y",importAs: "_y",default: 0},
             {property: "width",importAs: "_width",alias: "w",default: 100},

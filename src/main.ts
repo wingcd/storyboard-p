@@ -1,1 +1,1 @@
-require('./test/uirichtext')
+require('./test/image_fillmask')

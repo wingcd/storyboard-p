@@ -20,17 +20,14 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        //todo...
-        // 集成点击事件
-        // 修复multipleLine时，大小不正确的bug
         let textfield = this.addUI.richtextfield();
-        textfield.setSize(500, 100);
-        // textfield.multipleLine = true; //with bug
+        textfield.setSize(200, 100);
+        textfield.multipleLine = false;
         textfield.touchable = true;
         textfield.opaque = true;
         
         textfield.text =  '[b][i][size=24][color=red]Phaser[/color][size=20][img=smile] is a [area=click-test][color=green][u]fast[/u][/color][/area]' //'abcd efaf aefa fasdfaef asdf asf a'// 'آزمایش برای Foo Ltd.‎ و Bar Inc.‎ باشد که آزموده شود.'; //
-        textfield.autoSize = EAutoSizeType.None;
+        textfield.autoSize = EAutoSizeType.Height;
         // textfield.font = "ui://fonts/ice";
         // textfield.verticalMode = true;
         // textfield.rtl = true;

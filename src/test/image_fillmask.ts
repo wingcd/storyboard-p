@@ -8,6 +8,7 @@ import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { EDirectionType } from "../core/Defines";
 import { ETextureScaleType, EFillType } from "../types";
+import { UIImage } from "../ui/UIImage";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -58,6 +59,13 @@ class UIScene extends ViewScene {
         let view2 = this.addUI.image(json);
         view2.x = 200;
 
+        console.log(view2.toJSON());
+        
+        let view3 = view.clone() as UIImage;
+        view3.x = 400;
+        view3.fillMask.fillType = EFillType.Horizontal;
+        view3.fillMask.value = 1;
+
         this.tweens.add({
             targets: [view.fillMask, view2.fillMask],
             repeat: Infinity,
@@ -67,6 +75,19 @@ class UIScene extends ViewScene {
                 value: {
                     from: 0,
                     to: 1,
+                },
+            },
+        })
+
+        this.tweens.add({
+            targets: [view3],
+            repeat: Infinity,
+            ease: 'Power1',
+            duration: 3000,
+            props: {
+                width: {
+                    from: 50,
+                    to: 100,
                 },
             },
         })

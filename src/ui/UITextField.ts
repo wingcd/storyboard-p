@@ -72,7 +72,7 @@ class TextStyle implements ITextStyle {
      * The font the Text object will render with. This is a Canvas style font string.
      */
     fontFamily?: string = "Arial";    
-    fontSize?: number = 16;
+    fontSize?: number = 20;
     color?: number = 0;
     /**
      * The alignment of the Text. This only impacts multi-line text.
@@ -144,7 +144,7 @@ export class UITextField extends View {
             {property: "verticalAlign", default: EVertAlignType.Top},
             {property: "horizontalAlign", default: EHorAlignType.Left},
             {property: "offset", type: Point},            
-            {property: "singleLine", default: true},
+            {property: "_singleLine", default: true},
             {property: "autoSize", default: EAutoSizeType.Both},
         );
         return fields;
@@ -508,14 +508,14 @@ export class UITextField extends View {
         let style = this._getStyle();            
         if(this.verticalMode) {
             let wordHeightWrap = !this._heightAutoSize && this.multipleLine;
-            let warpHeight = (wordHeightWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.height) : 10000;
+            let warpHeight = (wordHeightWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.height) : 100000;
             style.wordWrap = {
                 width: warpHeight,         
                 useAdvancedWrap: this.multipleLine,           
             };
         }else {
             let wordWidthWrap = !this._widthAutoSize && this.multipleLine;
-            let warpWidth = (wordWidthWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.width) : 10000;
+            let warpWidth = (wordWidthWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.width) : 100000;
             style.wordWrap = {
                 width: warpWidth,        
                 useAdvancedWrap: this.multipleLine,      
@@ -658,7 +658,7 @@ export class UITextField extends View {
             if(!richStyle.resolution) {
                 richStyle.resolution = this.scene.game.config.resolution;
             }
-            this._richTextField.setWrapMode('char');
+            this._richTextField.setWrapMode(this._singleLine ? 'none' : 'char');
             this._richTextField.setWrapWidth(style.wordWrap.width);
             this._richTextField.updateText();
         }

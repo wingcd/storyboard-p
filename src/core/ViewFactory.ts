@@ -8,8 +8,8 @@ import { UITextField } from "../ui/UITextField";
 import { ObjectFactory } from "./ObjectFactory";
 import { ECategoryType } from "./Defines";
 import { UIButton } from "../ui/UIButton";
-import { IUIButton, IUIButtonConfig } from "../types/IUIButton";
-import { IUILabelCOnfig } from "../types/IUILabel";
+import { IUIButtonConfig } from "../types/IUIButton";
+import { IUILabelConfig } from "../types/IUILabel";
 import { UILabel } from "../ui/UILabel";
 import { UIRichTextField } from "../ui/UIRichtextField";
 import { IUIRichTextInputConfig } from "../types/UIRichTextField";
@@ -85,7 +85,7 @@ export class ViewFactory {
         return this._add(type, config, template) as UIButton;
     }
 
-    public label(config?: IUILabelCOnfig, template?: any): UILabel {
+    public label(config?: IUILabelConfig, template?: any): UILabel {
         let type: any = ViewFactory.getType("label");
         return this._add(type, config, template) as UILabel;
     }

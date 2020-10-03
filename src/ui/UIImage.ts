@@ -7,6 +7,19 @@ import { FillMask } from "./FillMask";
 import { ETextureScaleType, INinePatchInfo, ITileInfo } from "../types";
 
 export class NinePatchInfo {
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "left", default: 0},
+            {property: "right", default: 1},
+            {property: "top", default: 0},
+            {property: "bottom", default: 1},
+
+            {property: "stretchMode", raw: true},
+        );
+        return fields;
+    }
+
     public left?: number = 0;
     public right?: number = 1;
     public top?: number = 0;
@@ -28,7 +41,7 @@ export class UIImage extends View {
             {property: "textureFrame", importAs: "_textureFrame", alias:"frame", type: String},
             {property: "scaleType", importAs: "_scaleType", type: ETextureScaleType, default: ETextureScaleType.None},
             {property: "tile", importAs: "_tile", default: null},
-            {property: "ninePatch", importAs: "_ninePatch", default: null},
+            {property: "ninePatch", importAs: "_ninePatch", default: null, type: NinePatchInfo},
             {property: "flipX", importAs: "_flipX", default: false},
             {property: "flipY", importAs: "_flipY", default: false},
             {property: "fillMask", importAs: "_fillMask", type:FillMask, default: null},
@@ -173,6 +186,13 @@ export class UIImage extends View {
         }
     }
 
+    private _getFrame() {        
+        let texture = this.scene.textures.get(this._textureKey);
+        let frameName = this._textureFrame === undefined ? "__BASE" : this._textureFrame;
+        let frame = texture.get(frameName);
+        return frame;
+    }
+
     private _updateSize() {
         if(this._disp) {
             if(this._disp instanceof Sprite) {
@@ -213,8 +233,8 @@ export class UIImage extends View {
         }
     }
 
-    private _updateTexture() {
-        if(this._disp) {
+    private _updateTexture(rebuild: boolean = true) {
+        if(rebuild && this._disp) {
             this._disp.destroy();
             this._disp = null;
         }
@@ -222,16 +242,19 @@ export class UIImage extends View {
 
         let width = this.width;
         let height = this.height;
-        let texture = this.scene.textures.get(this._textureKey);
-        let frameName = this._textureFrame === undefined ? "__BASE" : this._textureFrame;
-        let frame = texture.get(frameName);
+        let frame = this._getFrame();
         if(!frame) {
             console.error(`can not find texture named ${this._textureKey}`);
             return;
         }
         switch(this._scaleType){
             case ETextureScaleType.Tile:
-                this._disp = this.scene.add.tileSprite(0, 0, width, height, this._textureKey, this._textureFrame);
+                if(this._disp instanceof TileSprite) {
+                    this._disp.setSize(width, height);
+                    this._disp.setTexture(this._textureKey, this._textureFrame);
+                }else{
+                    this._disp = this.scene.add.tileSprite(0, 0, width, height, this._textureKey, this._textureFrame);
+                }
                 break;
             case ETextureScaleType.NinePatch:
                 let columns: number[] = [], rows: number[] = [];
@@ -242,7 +265,16 @@ export class UIImage extends View {
                 let bottom = MathUtils.isNumber(ninePatch.bottom) ? ninePatch.bottom : 1;
                 if(!ninePatch 
                     || (top == 0 && left == 0 && right == 1 && bottom == 1)) {
-                        this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame);    
+                        if(this._disp instanceof NinePatch) {
+                            this._disp.destroy();
+                            this._disp = null;
+                        }
+
+                        if(this._disp instanceof Sprite) {
+                            this._disp.setTexture(this._textureKey, this._textureFrame);
+                        }else{
+                            this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame); 
+                        }
                 }else {
                     let hl = left * frame.width || 1;
                     let hr = frame.width - frame.width * right || 1;
@@ -259,12 +291,21 @@ export class UIImage extends View {
                         cfg.stretchMode = ninePatch.stretchMode;
                     }
 
-                    this._disp = this.scene.addExt.ninePatchTexture(0, 0, width || frame.width, height || frame.width, 
-                        this._textureKey, this._textureFrame as any, columns, rows, cfg);
+                    if(this._disp instanceof NinePatch) { 
+                        this._disp.setSize(width || frame.width, height || frame.width);
+                        (this._disp as any).setTexture(this._textureKey, this._textureFrame, columns, rows);
+                    }else{
+                        this._disp = this.scene.addExt.ninePatchTexture(0, 0, width || frame.width, height || frame.width, 
+                            this._textureKey, this._textureFrame as any, columns, rows, cfg);
+                    }
                 }
                 break;            
             default:
-                this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame);
+                if(this._disp instanceof Sprite) {
+                    this._disp.setTexture(this._textureKey, this._textureFrame);
+                }else{
+                    this._disp = this.scene.add.sprite(0, 0, this._textureKey, this._textureFrame);
+                }
                 break;
         }
 
@@ -282,7 +323,7 @@ export class UIImage extends View {
         }
         super.fromJSON(config, template);
 
-        this.render();
+        this._updateTexture();
 
         return this;
     }

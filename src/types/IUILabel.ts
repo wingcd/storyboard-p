@@ -1,12 +1,10 @@
-import { IView } from ".";
-import { ISelectable, IIcon, ITitle } from "./ViewTypes";
-import { ITileInfo } from "./IUIImage";
+import { IIcon, ITitle } from "./ViewTypes";
 import { IViewGroupConfig } from "./IViewGroup";
 
-export interface IUILabelCOnfig extends IViewGroupConfig, ISelectable, IIcon, ITileInfo, ITitle{
+export interface IUILabelConfig extends IViewGroupConfig, IIcon, ITitle{
     editable?: boolean;
 }
 
-export interface IUILabel extends IUILabelCOnfig{
+export interface IUILabel extends IUILabelConfig{
 
 }
