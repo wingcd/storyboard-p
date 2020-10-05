@@ -284,7 +284,7 @@ export class UIProgressBar extends ViewGroup {
                 this._barMaxHeightDelta = this.height - this._hBar.height;
             }
         }else{
-            this._barStartX = 0;
+            this._barStartY = 0;
             this._barMaxHeight = this.height;
             this._barMaxHeightDelta = 0;
         }
