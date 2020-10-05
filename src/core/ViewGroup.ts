@@ -292,8 +292,8 @@ export class ViewGroup extends View {
         return child;
     }
 
-    _clear() {
-        super._clear();
+    protected clear() {
+        super.clear();
 
         if(this._gBounds) {
             this._gBounds.destroy();
@@ -315,7 +315,7 @@ export class ViewGroup extends View {
                 child.dispose(toPool);
             }
 
-            this._clear();
+            this.clear();
 
             this.addDirty(EDirtyType.BoundsChanged);
             

@@ -1,7 +1,9 @@
+import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
+import { Tween } from "../phaser";
 import { EFillType } from "../types";
 import { EProgressTitleType } from "../types/IUIProgressBar";
 import { UIImage } from "./UIImage";
@@ -10,6 +12,18 @@ require("../components");
                     
 export class UIProgressBar extends ViewGroup {
     static TYPE = "progress";
+    
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields = ViewGroup.SERIALIZABLE_FIELDS;
+        fields.push(  
+            {property: "min", default: 0},
+            {property: "max", default: 100},
+            {property: "titleType", default: EProgressTitleType.Percent},
+            {property: "value", default: 0},
+            {property: "reverse", default: false},
+        );
+        return fields;
+    }
 
     protected _titleObject: UITextField;
     protected _hBar: View;
@@ -31,7 +45,7 @@ export class UIProgressBar extends ViewGroup {
     private _barStartX: number;
     private _barStartY: number;
 
-    private _tweenValue: number = 0;
+    private _tweener: Tween;
     
     public constructor(scene: ViewScene) {
         super(scene);
@@ -100,10 +114,20 @@ export class UIProgressBar extends ViewGroup {
     }
 
     public set value(val: number) {
+        this._clearTween();
+
         if(val != this._value) {
             this._value = val;
 
             this._update(this._value);
+        }
+    }
+
+    private _clearTween() {
+        if(this._tweener) {
+            this._tweener.removeAllListeners();
+            this._tweener.remove();
+            this._tweener = null;
         }
     }
 
@@ -198,6 +222,37 @@ export class UIProgressBar extends ViewGroup {
         }
     }
 
+    /**
+     * 
+     * @param value target value
+     * @param duration duration in seconds
+     */
+    public tweenValue(value: number, duration: number): Tween {
+        if (this._value != value) {
+            this._clearTween();
+
+            this._tweener = this.scene.add.tween({
+                targets: {value: this._value},
+                ease: Phaser.Math.Easing.Linear,      
+                duration: duration * 1000,      
+                props: {
+                    value: value,         
+                },
+                onUpdate: (tween, target)=>{
+                    this._update(target.value);
+                },
+                onComplete: ()=>{
+                    this._clearTween();
+                }
+            });
+            
+            this._value = value;
+            return this._tweener;
+        }
+        else
+            return null;
+    }
+
     protected onChildrenChanged() {
         super.onChildrenChanged();
 
@@ -247,5 +302,11 @@ export class UIProgressBar extends ViewGroup {
         }
 
         this._update(this._value);
+    }
+
+    public dispose(toPool?: boolean) {
+        super.dispose(toPool);
+
+        this._clearTween();
     }
 }

@@ -972,7 +972,7 @@ export class View {
     }
 
     /**@internal */
-    _clear() {
+    protected clear() {
         if(this._gFrame) {
             this._gFrame.destroy();
             this._gFrame = null;
@@ -986,10 +986,16 @@ export class View {
     }
 
     public dispose(toPool?: boolean) {
+        this.removeAllListeners();
+
+        if(this._relations) {
+            this._relations.dispose();
+        }
+
         this.parent = null;
         this._isDisposed = true;
 
-        this._clear();
+        this.clear();
 
         // if(toPool) {
         //     PoolManager.inst.put(this);

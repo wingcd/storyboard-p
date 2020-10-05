@@ -21,8 +21,8 @@ import { EFillType, ETextureScaleType } from "../types";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { UIImage } from "../ui/UIImage";
 
-Settings.showDebugBorder = true;
-Settings.showDebugFrame = true;
+// Settings.showDebugBorder = true;
+// Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -85,6 +85,42 @@ class UIScene extends ViewScene {
         img.fillMask.origin = EDirectionType.Left;
         pg.reverse = false;
         pg.titleType = EProgressTitleType.ValueAndMax;
+
+        let pg1 = pg.clone() as UIProgressBar;
+        pg1.removeComponentByType(AnimationComponent);
+        pg1.y = 300;
+        img = pg1.getChild('bar') as UIImage;
+        img.fillMask.fillType = EFillType.None;
+        
+        let button = this.addUI.button({
+            x: 50,
+            y: 300,
+            width: 100,
+            height: 30,
+            enableBackground: true,
+            backgroundColor: 0xffff00,
+        });
+        let bg = this.addUI.image({
+            name: "bg",
+            textureKey: "normal",
+            width: 100,
+            height: 30,
+        });
+        button.addChild(bg);
+
+        title = this.makeUI.textField({
+            name: "title",
+            x: 20,
+        });
+        button.addChild(title);
+        button.title = "开始";
+        button.onClick(()=>{
+            let value = pg1.value + 100;
+            if(value > 100) {
+                value = 0;
+            }
+            pg1.tweenValue(value, 2);
+        }, this);
 
         console.log(1);
     }
