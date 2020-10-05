@@ -20,7 +20,7 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let textfield = this.addUI.richtextfield();
+        let textfield = this.addUI.richTextField();
         textfield.setSize(200, 100);
         textfield.multipleLine = false;
         textfield.touchable = true;

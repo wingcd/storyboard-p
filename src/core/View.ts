@@ -5,7 +5,7 @@ import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskTy
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
-import { ViewEvent } from "../events/ViewEvent";
+import { DisplayObjectEvent } from "../events";
 import { IComponent, ComponentOptions } from "../types/IComponent";
 import { BaseComponent } from "../components/BaseComponent";
 import { ViewScene } from "./ViewScene";
@@ -81,8 +81,9 @@ export class View {
         
     }
 
-    protected constructFromJson() {
+    protected constructFromJson(config: any, tpl?:any) {
         this.reconstruct();
+        this._inBuilding = false;
     }
 
     public data: any;    
@@ -158,6 +159,8 @@ export class View {
     private _animationComponent: AnimationComponent;
 
     private _batchAddComponents = false;
+    // in json building view
+    private _inBuilding = false;
 
     constructor(scene: ViewScene) {
         this._id = `${Package.getUniqueID()}`;
@@ -200,6 +203,9 @@ export class View {
     /**@internal */
     clearParent() {
         this._parent = null;
+        if(this._rootContainer.parentContainer) {
+            this._rootContainer.parentContainer.remove(this._rootContainer);
+        }
     }
 
     public get root(): ViewRoot {
@@ -212,6 +218,10 @@ export class View {
 
     public get scene(): ViewScene {
         return this._scene;
+    }
+
+    public get inBuilding(): boolean {
+        return this._inBuilding;
     }
 
     protected get dirty(): boolean {
@@ -350,7 +360,7 @@ export class View {
             if(parent) {
                 this.setRoot(parent.root);
             }
-            this.emit(ViewEvent.PARENT_CHANGED, oldParent, parent);
+            this.emit(DisplayObjectEvent.PARENT_CHANGED, oldParent, parent);
         }
     }
 
@@ -372,6 +382,8 @@ export class View {
 
     public updateMask() {
         this._updateRootMask();
+
+        this.emit(DisplayObjectEvent.UPDATE_MASK, this);
     }
 
     protected handleXYChanged() {
@@ -1549,8 +1561,8 @@ export class View {
 
     public fromJSON(config: any, template?: any): this {
         if(config || template) {
+            this._inBuilding = true;
             Deserialize(this, config, template);
-            this.reconstruct();
         }        
 
         return this;

@@ -8,7 +8,9 @@ import { EFillType, IFillMask } from "../types";
 import { View } from "../core/View";
 
 interface IMaskable {
-    mask: MaskType;
+    mask: MaskType;    
+    clearMask(): void;
+    setMask(mask: MaskType): this;
 }
 
 export class FillMask {
@@ -54,13 +56,21 @@ export class FillMask {
         }
     }
 
-    private _onXYChanged() {
+    private _updateMask() {
         let pos = this._owner.localToGlobal(0, 0);
         this._mask.setPosition(pos.x, pos.y);
     }
 
+    private _onXYChanged() {
+        this._updateMask();
+    }
+
     private _onSizeChanged() {
         this._update();
+    }
+
+    private _onParentChanged() {
+        this._updateMask();
     }
 
     public toJSON(): any {
@@ -84,18 +94,18 @@ export class FillMask {
 
         this._dettach();
         this._owner.on(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
-        this._owner.on(DisplayObjectEvent.XY_CHANGED, this._onXYChanged, this);
+        this._owner.on(DisplayObjectEvent.UPDATE_MASK, this._updateMask, this);
 
         if(this._target) {
             if(!this._mask) {
                 let mask = this._mask = this._owner.scene.make.graphics({});
-                let pos = this._owner.localToGlobal(0, 0);
-                mask.setPosition(pos.x, pos.y);
                 mask.visible = false;
-
                 this._owner.rootContainer.add(mask);
+
+                this._updateMask();
             }
-            this._target.mask = this._mask.createGeometryMask();
+            this._target.clearMask();            
+            this._target.setMask(this._mask.createGeometryMask());
             this._mask.clear();
         }
 
@@ -118,7 +128,7 @@ export class FillMask {
         }
 
         this._owner.off(DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
-        this._owner.off(DisplayObjectEvent.XY_CHANGED, this._onXYChanged, this);
+        this._owner.off(DisplayObjectEvent.UPDATE_MASK, this._updateMask, this);
 
         this._attached = false;
     }
@@ -128,6 +138,10 @@ export class FillMask {
     }
 
     private _update() {
+        if(this._owner.inBuilding) {
+            return;
+        }
+
         if(this._fillType == EFillType.None) {
             this._dettach();
         }else{

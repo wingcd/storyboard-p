@@ -8,7 +8,7 @@ export enum EProgressTitleType {
 }
 
 export interface IUIProgressBarConfig extends IViewGroupConfig {
-    titleType: EProgressTitleType;
+    titleType?: EProgressTitleType;
 }
 
 export interface IUIProgressBar extends IUIProgressBarConfig{

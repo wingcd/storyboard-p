@@ -6,9 +6,10 @@ import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 import { TimelineManager } from "../tween/Timeline";
 import { SerializableComponent } from "./SerializableComponent";
+import { IComponent } from "../types";
 
  @disallow_multiple_component()
-export class AnimationComponent extends SerializableComponent {
+export class AnimationComponent extends SerializableComponent implements IComponent{
     public static TYPE = "animation";
 
     private _timelines: TimelineManager[] = [];

@@ -66,8 +66,8 @@ export class UIImage extends View {
         super(scene);
     }
 
-    protected constructFromJson() {
-        super.constructFromJson();
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
 
         this._updateTexture();
     }
@@ -234,6 +234,10 @@ export class UIImage extends View {
     }
 
     private _updateTexture(rebuild: boolean = true) {
+        if(this.inBuilding) {
+            return;
+        }
+
         if(rebuild && this._disp) {
             this._disp.destroy();
             this._disp = null;

@@ -93,7 +93,7 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
 
     let sourceData = source[sourceProp];
     if(!done) {
-        if(typeof(sourceData) == 'function' || sourceData == undefined || sourceData == info.default || (!sourceData && !info.default)) {
+        if(typeof(sourceData) == 'function' || sourceData == undefined || sourceData == info.default || (undefined == sourceData && info.default == undefined)) {
             done = true;
         }
     }
@@ -355,7 +355,7 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
     }          
 
     if(target && target.constructFromJson) {
-        target.constructFromJson();
+        target.constructFromJson(config, tpl);
     }
 
     return true;

@@ -190,8 +190,8 @@ export class UITextField extends View {
         this.render();
     }
 
-    protected constructFromJson() {
-        super.constructFromJson();
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
 
         this._updateTextField();
         this._updateAutoSize();
@@ -488,6 +488,10 @@ export class UITextField extends View {
     }
 
     protected renderNow(updateBounds: boolean = true) {
+        if(this.inBuilding) {
+            return;
+        }
+
         this._requireRender = false;
         this._sizeDirty = false;
 

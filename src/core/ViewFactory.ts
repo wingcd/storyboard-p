@@ -11,8 +11,10 @@ import { UIButton } from "../ui/UIButton";
 import { IUIButtonConfig } from "../types/IUIButton";
 import { IUILabelConfig } from "../types/IUILabel";
 import { UILabel } from "../ui/UILabel";
-import { UIRichTextField } from "../ui/UIRichtextField";
+import { UIRichTextField } from "../ui/UIRichTextField";
 import { IUIRichTextInputConfig } from "../types/UIRichTextField";
+import { IUIProgressBar, IUIProgressBarConfig } from "../types/IUIProgressBar";
+import { UIProgressBar } from "../ui/UIProgressBar";
 
 export interface IPrefab {
     id: number;
@@ -65,17 +67,17 @@ export class ViewFactory {
         return this._add(type, config, template) as UIImage;
     }
 
-    public textfield(config?: IUITextFieldConfig, template?: any): UITextField {
+    public textField(config?: IUITextFieldConfig, template?: any): UITextField {
         let type: any = ViewFactory.getType("textfield");
         return this._add(type, config, template) as UITextField;
     }
 
-    public richtextfield(config?: IUIRichTextInputConfig, template?: any): UIRichTextField {
+    public richTextField(config?: IUIRichTextInputConfig, template?: any): UIRichTextField {
         let type: any = ViewFactory.getType("richtext");
         return this._add(type, config, template) as UIRichTextField;
     }
 
-    public textinput(config?: IUITextInputConfig, template?: any): UITextInput {
+    public textInput(config?: IUITextInputConfig, template?: any): UITextInput {
         let type: any = ViewFactory.getType("textinput");
         return this._add(type, config, template) as UITextInput;
     }
@@ -89,6 +91,11 @@ export class ViewFactory {
         let type: any = ViewFactory.getType("label");
         return this._add(type, config, template) as UILabel;
     }
+
+    public progressBar(config?: IUIProgressBarConfig, template?: any): UIProgressBar {
+        let type: any = ViewFactory.getType("progress");
+        return this._add(type, config, template) as UIProgressBar;
+    } 
 
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
@@ -110,6 +117,7 @@ ViewFactory.regist(ViewGroup);
 ViewFactory.regist(UIImage);
 ViewFactory.regist(UIButton);
 ViewFactory.regist(UILabel);
+ViewFactory.regist(UIProgressBar);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UIRichTextField);

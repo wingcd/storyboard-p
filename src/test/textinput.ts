@@ -18,7 +18,7 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let textfield = this.addUI.textinput();
+        let textfield = this.addUI.textInput();
         textfield.setXY(300, 100);
         textfield.setSize(300, 60);   
         textfield.fontSize = 30;     

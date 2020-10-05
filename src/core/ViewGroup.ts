@@ -35,8 +35,8 @@ export class ViewGroup extends View {
         super(scene);
     }
 
-    protected constructFromJson() {
-        super.constructFromJson();
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
         this.updateMask();
     }
 
@@ -239,8 +239,8 @@ export class ViewGroup extends View {
         if(index >= 0 && index <= cnt) {
             if(child.parent == this) {
                 this.setChildIndex(child, index);
-            }else{ 
-                child.parent = this;
+            }else{
+                child.clearParent();
 
                 if(index == cnt){
                     this._children.push(child);
@@ -249,6 +249,9 @@ export class ViewGroup extends View {
                 }
 
                 this.childStateChanged(child);
+                
+                child.parent = this;
+
                 this.addDirty(EDirtyType.BoundsChanged | EDirtyType.DebugBoundsChanged | EDirtyType.DebugFrameChanged);
 
                 this.onChildrenChanged();
@@ -486,6 +489,8 @@ export class ViewGroup extends View {
     }
 
     public updateMask() {
+        super.updateMask();
+
         for(let c of this._children) {
             c.updateMask();
         }
@@ -541,7 +546,7 @@ export class ViewGroup extends View {
 
         for(let c of this._children) {
             c.relations.focusUpdateOwner(c);
-        }   
+        }
         this.onChildrenChanged();
     }
 }

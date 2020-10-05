@@ -63,7 +63,7 @@ class UIScene extends ViewScene {
         button.mode = EButtonMode.Radio;
         button.addChild(img);
 
-        let title = this.makeUI.textfield();
+        let title = this.makeUI.textField();
         title.setSize(100, 40);
         title.autoSize = EAutoSizeType.None;
         title.textAlign = EAlignType.Center;

@@ -4,7 +4,6 @@ import { GameObject, Color } from "../phaser";
 import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
-import { ViewEvent } from "../events/ViewEvent";
 import { ViewGroup } from "../core/ViewGroup";
 import { ISerializeInfo } from "../annotations/Serialize";
 import * as Events from "../events";
@@ -49,7 +48,7 @@ export class UITextInput extends UITextField {
         this.opaque = true;
         this.inputType = EInputType.TEXT;
 
-        this.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+        this.on(DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);
         this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
 
         this.render();

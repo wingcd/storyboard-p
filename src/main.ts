@@ -1,1 +1,1 @@
-require('./test/image_fillmask')
+require('./test/uiprogress')

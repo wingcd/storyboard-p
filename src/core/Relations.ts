@@ -1,5 +1,4 @@
 import * as Events from "../events";
-import { ViewEvent } from "../events/ViewEvent";
 import { ViewGroup } from "./ViewGroup";
 import { View } from "./View";
 import { ERelationPinType } from "../types";
@@ -89,8 +88,8 @@ class RelationPin {
         this._calcIntrinsic();
         this._to.owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
         this._to.owner.on(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
-        this._to.owner.on(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
-        this.owner.on(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+        this._to.owner.on(Events.DisplayObjectEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
+        this.owner.on(Events.DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);
 
         return this;
     }
@@ -99,11 +98,11 @@ class RelationPin {
         if(this._to && this._to.owner) {
             this._to.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onTargetChanged, this);
             this._to.owner.off(Events.DisplayObjectEvent.XY_CHANGED, this._onTargetChanged, this);
-            this._to.owner.off(ViewEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
+            this._to.owner.off(Events.DisplayObjectEvent.PARENT_CHANGED, this._onTargetParentChanged, this);
         }
         
         if(this.owner) {
-            this.owner.off(ViewEvent.PARENT_CHANGED, this._onParentChanged, this);
+            this.owner.off(Events.DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);
         }
     }
 
