@@ -1,1 +1,1 @@
-require('./test/uiprogress')
+require('./test/properties')

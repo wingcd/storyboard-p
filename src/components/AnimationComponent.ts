@@ -82,6 +82,15 @@ export class AnimationComponent extends SerializableComponent implements ICompon
             }
         }  
     }
+
+    private onDispose() {
+        if(this._timelines) {
+            for(let t of this._timelines) {
+                t.destroy();
+            }
+            this._timelines.length = 0;
+        }
+    }
 }
 
 ComponentFactory.regist(AnimationComponent);

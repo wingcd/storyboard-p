@@ -4,6 +4,8 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EFillType } from "../types";
 import { PropertyManager } from "../tween/Property";
+import { TweenInfo } from "../tween/TweenInfo";
+import { EEaseType } from "../core/Defines";
 require("../components");
 
 class UIScene extends ViewScene {
@@ -26,15 +28,14 @@ class UIScene extends ViewScene {
         propertyManager.bindTarget(target);
         propertyManager.add("s1");
         propertyManager.add("s2")
-            .add('width', 200)
-            .add('angle', 45);
+            .add('width', 200, null, {type: EEaseType.Linear, duration: 200})
+            .add('angle', 45, null, {type: EEaseType.Linear, duration: 200});
         propertyManager.add("s3")
             .add('width', 100)
-            .add('tint', 0xff0000)   
+            .add('tint', 0xff0000, null, {type: EEaseType.Linear, duration: 200})   
             .add('fillMask.fillType', EFillType.Horizontal)      
             .add('fillMask.value', 0.5);
-
-            propertyManager.store();
+        propertyManager.store();
 
         let state1 = this.addUI.view();
         state1.setBackgroundColor(0xc0c0c0, true);

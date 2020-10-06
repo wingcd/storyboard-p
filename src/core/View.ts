@@ -372,6 +372,32 @@ export class View {
         this.setXY(val, this._y);
     }
 
+    public get px(): number {
+        if(this._parent && this._parent.width > 0) {
+            return this._x / this._parent.width;
+        }
+        return 0;
+    }
+
+    public set px(val: number) {
+        if(this._parent && this._parent.width > 0) {
+            this.x = val * this._parent.width;
+        }
+    }
+
+    public get py(): number {
+        if(this._parent && this._parent.height > 0) {
+            return this._y / this._parent.height;
+        }
+        return 0;
+    }
+
+    public set py(val: number) {
+        if(this._parent && this._parent.height > 0) {
+            this.y = val * this._parent.height;
+        }
+    }
+
     public get y(): number {
         return this._y;
     }

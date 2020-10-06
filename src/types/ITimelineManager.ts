@@ -1,11 +1,11 @@
 import { Tween, Timeline, Types } from "../phaser";
 import { EEaseType } from "../core/Defines";
-import { Property } from "../tween/Property";
+import { KFProperty } from "../tween/Timeline";
 
 export interface IKeyFrame {
     tag: string;
     time: number;
-    property: Property;
+    property: KFProperty;
     tweenInfo?: ITweenInfo;
 }
 

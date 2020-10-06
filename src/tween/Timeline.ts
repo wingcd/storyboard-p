@@ -1,4 +1,3 @@
-import { Property } from "./Property";
 import { Tweens, Tween, EventEmitter, Timeline, Scene, Types, Time, Easing } from "../phaser";
 import { EEaseType, ParseEaseType, ECategoryType } from "../core/Defines";
 import * as Events from "../events";
@@ -14,13 +13,29 @@ import { Package } from "../core/Package";
 import { ITemplatable } from "../types/ITemplatable";
 import { Templates } from "../core/Templates";
 
+export class KFProperty {
+    _name: string = null;
+    name: string = null;
+    value: any = null;
+    target: any = null;
+
+    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
+        let fields:ISerializeInfo[] = [];
+        fields.push(
+            {property: "name"},
+            {property: "value"},
+        );
+        return fields;
+    }
+}
+
 export class KeyFrame {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
         fields.push(
             {property: "tag", default: ""},
             {property: "time", default: 0},            
-            {property: "property", alias: "prop", type: Property, default: null},
+            {property: "property", alias: "prop", type: KFProperty, default: null},
             {property: "tweenInfo", alias: "tween", default: null, raw: true},
         );
         return fields;
@@ -28,7 +43,7 @@ export class KeyFrame {
     
     tag: string = "";
     time: number = 0;
-    property: Property = null;
+    property: KFProperty = null;
     tweenInfo?: ITweenInfo = null;
 
     static sort(k1: KeyFrame, k2: KeyFrame): number {
@@ -74,7 +89,7 @@ export class KeyFrameGroup {
         this._propName = this._propPath || "";
         this._keyName = this._propName.replace('.', '$');
         if(this._propName.indexOf('.') >= 0) {
-            let names = this._propName.split('.'); 
+            let names = this._propName.split('.');
             this._propName = names[names.length - 1];
         }
         return this;
@@ -181,7 +196,7 @@ export class KeyFrameGroup {
 
         if(!kf) {
             kf = new KeyFrame();
-            kf.property = new Property();
+            kf.property = new KFProperty();
             kf.property.name = this._propName;
             kf.property._name = this._keyName;
             kf.property.target = this._realTarget;
@@ -402,10 +417,14 @@ export class KeyFrameGroup {
         return this._createTween(index, false, true);
     }
 
-    setParent(parent: TimelineManager): this {
+    public setParent(parent: TimelineManager): this {
         this._parent = parent;
         this.onParentTargetChanged();
         return this;
+    }
+
+    public destory() {
+        this._keyframes.length = 0;
     }
 }
 
@@ -489,7 +508,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
 
     /**
      * add property's group
-     * @param name property name
+     * @param name property name, must start with [A-z, 0-9]
      * @param target target object
      * @returns new group when name is not exist, or old group by name
      */
@@ -630,6 +649,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
     public reset(reverse?:boolean): this {  
         this._reverse = reverse;
         if(this._timeline) {
+            this._timeline.removeAllListeners();
             this._timeline.stop();
             this._timeline = null;
         }    
@@ -889,6 +909,19 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         });
 
         return this;
+    }
+
+    public destroy() {
+        if(this._timeline) {
+            this._timeline.removeAllListeners();
+            this._timeline.stop();
+            this._timeline = null;
+        }
+
+        this._groups.forEach(g=>{
+            g.destory();
+        });
+        this._groups.length = 0;
     }
 }
 

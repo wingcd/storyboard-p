@@ -77,6 +77,15 @@ export class PropertyComponent extends SerializableComponent {
         }
         super.regist(view);
     }
+
+    private onDispose() {
+        if(this._contollers) {
+            for(let t of this._contollers) {
+                t.destroy();
+            }
+            this._contollers.length = 0;
+        }
+    }
 }
 
 ComponentFactory.regist(PropertyComponent);

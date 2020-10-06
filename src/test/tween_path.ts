@@ -20,7 +20,7 @@ class UIScene extends ViewScene {
     create(): void {       
         let obj = this.addUI.view();
         obj.setPivot(0.5, 0.5, true);
-        let path = new TweenPath(obj)
+        let path = new TweenPath()
             .splineTo([ 164, 446, 274, 542, 412, 457, 522, 541, 664, 464 ] as any)
             .lineTo(700, 300)
             .lineTo(600, 350)
@@ -33,7 +33,7 @@ class UIScene extends ViewScene {
         path.draw(g);
         let timeline = new TimelineManager();
         timeline.bindTarget(this, obj);
-        timeline.add("p___path___", {})
+        timeline.add("path__")
             .add(0, 0, {
                 repeat: -1,
                 yoyo: true,

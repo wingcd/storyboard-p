@@ -2,14 +2,15 @@ import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild, SetV
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
-import { ViewGroup } from "../core/ViewGroup";
-import { ECategoryType } from "../core/Defines";
+import { ECategoryType, EEaseType, ParseEaseType } from "../core/Defines";
 import { ITemplatable } from "../types/ITemplatable";
 import { Package } from "../core/Package";
 import { Templates } from "../core/Templates";
-import { SerializeFactory } from "../utils/SerializeFactory";
-import { EventEmitter } from "../phaser";
+import { EventEmitter, Tween, Types } from "../phaser";
 import { PropertyEvent } from "../events";
+import { ITweenInfo } from "../types";
+import { installTweenPlugin } from "./TweenInfo";
+import TweenStep from "./TweenStep";
 
 export class Property {
     _name: string = null;
@@ -17,6 +18,7 @@ export class Property {
     value: any = null;
     target: any = null;
     targetPath: string = null;
+    tweenInfo?: ITweenInfo = null;
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields:ISerializeInfo[] = [];
@@ -24,6 +26,7 @@ export class Property {
             {property: "name"},
             {property: "value"},
             {property: "targetPath"},
+            {property: "tweenInfo", alias: "tween", default: null, raw: true},
         );
         return fields;
     }
@@ -118,20 +121,71 @@ class PropertyGroup {
             if(p === undefined) {
                 continue;
             }
+            
+            let tween: Tween = (p as any).__tween__;
+            if(tween) {
+                tween.remove();
+                tween.removeAllListeners();
+                (p as any).__tween__ = null;
+            }
 
-            p.target[p.name] = p.value;
+            if(!p.tweenInfo) {
+                p.target[p.name] = p.value;
+            }else{
+                this._tweenTo(p);
+            }
         }
 
         return this;
     }
 
-    public add(propName: string, value: any, target?: View): PropertyGroup {
+    private _tweenTo(p: Property) {
+        let tweenData: Types.Tweens.TweenBuilderConfig = {
+            targets: p.target,
+            duration: p.tweenInfo.duration,
+            yoyo: p.tweenInfo.yoyo || false,
+            repeat: p.tweenInfo.repeat ? (p.tweenInfo.repeat < 0 ? Infinity : p.tweenInfo.repeat) : 0,
+            delay: p.tweenInfo.delay || 0,
+            repeatDelay: p.tweenInfo.repeatDelay || 0,
+            ease: (t: number)=>{
+                return t < 1 ? 0 : 1;
+            },
+            onComplete: ()=>{
+                (p as any).__tween__ = null;
+            },
+        };
+        if(p.tweenInfo.type == null || (p.tweenInfo.type != EEaseType.Known)) {
+            tweenData.ease = ParseEaseType(p.tweenInfo.type);
+        }
+
+        if(p.tweenInfo.plugin) {
+            installTweenPlugin(tweenData, p.tweenInfo.plugin);
+        }else if(typeof(p.value) !== 'number') {
+            installTweenPlugin(tweenData, new TweenStep(this._target));
+        }
+
+        tweenData.props = {};
+        tweenData.props[p.name] = p.value;
+
+        let tween = this._target.scene.add.tween(tweenData);
+        (p as any).__tween__ = tween;
+    }
+
+    /**
+     * 
+     * @param propName property name, must start with [A-z, 0-9]
+     * @param value 
+     * @param target 
+     * @param tweenInfo 
+     */
+    public add(propName: string, value: any, target?: View, tweenInfo?: ITweenInfo): PropertyGroup {
         target = target || this._target;
         let prop = this.getByName(propName);
         if(!prop) {
             prop = new Property();
             prop._name = prop.name = propName;
             prop.target = target;
+            prop.tweenInfo = tweenInfo;
             prop.targetPath = GetViewRelativePath(this._target, target);
             this._properties.push(prop);
 
@@ -220,6 +274,18 @@ class PropertyGroup {
 
         return this;
     }
+
+    public destory() {
+        for(let p of this._properties) {
+            let tween: Tween = (p as any).__tween__;
+            if(tween) {
+                tween.remove();
+                tween.removeAllListeners();
+                (p as any).__tween__ = null;
+            }
+        }
+        this._properties.length = 0;
+    }
 }
 
 export class PropertyManager extends EventEmitter implements ITemplatable {
@@ -301,7 +367,10 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
     }
 
     public destory() {
-        
+        this._groups.forEach(g=>{
+            g.destory();
+        })
+        this._groups.length = 0;
     }
 
     /**
@@ -405,10 +474,10 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
             return false;
         }
 
-        pg.applyAll(this._lastGroup);
-        this._lastGroup = pg;
-
-        this._emit(PropertyEvent.CHANGED, oldName, name);
+        if(this._lastGroup != pg) {
+            this._lastGroup = pg.applyAll(this._lastGroup);
+            this._emit(PropertyEvent.CHANGED, oldName, name);
+        }
     }
 
     /**
@@ -423,10 +492,10 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
             return false;
         }
 
-        pg.applyAll(this._lastGroup);
-        this._lastGroup = pg;
-
-        this._emit(PropertyEvent.CHANGED, oldName, name);
+        if(this._lastGroup != pg) {
+            this._lastGroup = pg.applyAll(this._lastGroup);
+            this._emit(PropertyEvent.CHANGED, oldName, name);
+        }
     }
 
     public bindTarget(target: View): this {
