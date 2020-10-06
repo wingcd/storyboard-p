@@ -1,12 +1,12 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EDirectionType, EEaseType, EHorAlignType, EOverflowType, EVertAlignType } from "../core/Defines";
 import { AnimationComponent } from "../components/AnimationComponent";
 import * as Events from "../events";
 import { EProgressTitleType } from "../types/IUIProgressBar";
-import { EFillType, ETextureScaleType } from "../types";
+import { EFillType } from "../types";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { UIImage } from "../ui/UIImage";
 
@@ -24,13 +24,13 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let progress = this.addUI.progressBar({
+        let slider = this.addUI.slider({
             x: 250,
             y: 25,
             width: 200,
             height: 40,
         });  
-        progress.setBackgroundColor(0xffff00, true);        
+        slider.setBackgroundColor(0xffff00, true);        
 
         let bar = this.addUI.image({
             name: "bar",
@@ -39,10 +39,18 @@ class UIScene extends ViewScene {
             height: 40,
         });
         bar.fillMask.fillType = EFillType.Horizontal;
-        bar.fillMask.origin = EDirectionType.Right;
-        bar.fillMask.value = 1;        
-        progress.addChild(bar);
-        progress.reverse = true;
+        bar.fillMask.origin = EDirectionType.Right;           
+        slider.addChild(bar);
+        slider.reverse = true;
+
+        let grip = this.addUI.image({
+            name: "grip",
+            textureKey: "nine",
+            width: 15,
+            height: 60,
+            y: -10,
+        });
+        slider.addChild(grip);
 
         let title = this.makeUI.textField();
         title.x = 40;
@@ -52,74 +60,34 @@ class UIScene extends ViewScene {
         title.horizontalAlign = EHorAlignType.Center;
         title.name = "title";
         title.fontSize = 24;
-        progress.addChild(title);
+        slider.addChild(title);
+        slider.ensureAllCorrect();
 
-        progress.ensureAllCorrect();
-
-
-        progress.value = 100;
-        let animComp = new AnimationComponent();
-        let timeline = animComp.add("t1");
-        timeline.add('value').
-            add(0, 0, {type: EEaseType.Linear, yoyo: true, repeat: -1}).
-            add(2000, 100);
-        timeline.playOnEnable = true;
-        progress.addComponent(animComp);
-
-        console.log(progress.toJSON());
+        console.log(slider.toJSON());
         
-        let pg = progress.clone() as UIProgressBar;
+        let pg = slider.clone() as UIProgressBar;
         pg.y = 200;
         let img = pg.getChild('bar') as UIImage;
         img.fillMask.origin = EDirectionType.Left;
         pg.reverse = false;
         pg.titleType = EProgressTitleType.ValueAndMax;
+        pg.value = 100;
 
         let pg1 = pg.clone() as UIProgressBar;
         pg1.removeComponentByType(AnimationComponent);
         pg1.y = 300;
         img = pg1.getChild('bar') as UIImage;
         img.fillMask.fillType = EFillType.None;
-        
-        let button = this.addUI.button({
-            x: 50,
-            y: 300,
-            width: 100,
-            height: 30,
-            enableBackground: true,
-            backgroundColor: 0xffff00,
-        });
-        let bg = this.addUI.image({
-            name: "bg",
-            textureKey: "normal",
-            width: 100,
-            height: 30,
-        });
-        button.addChild(bg);
 
-        title = this.makeUI.textField({
-            name: "title",
-            x: 20,
-        });
-        button.addChild(title);
-        button.title = "开始";
-        button.onClick(()=>{
-            let value = pg1.value + 100;
-            if(value > 100) {
-                value = 0;
-            }
-            pg1.tweenValue(value, 2);
-        }, this);
 
-         //v-progress
-         let vprogress = this.addUI.progressBar({
+        //v-slider
+        let vslider = this.addUI.slider({
             x: 600,
             y: 25,
             width: 40,
             height: 200,
-            titleType: EProgressTitleType.Percent,
         });  
-        vprogress.setBackgroundColor(0xffff00, true);        
+        vslider.setBackgroundColor(0xffff00, true);        
 
         let vbar = this.addUI.image({
             name: "bar_v",
@@ -129,12 +97,22 @@ class UIScene extends ViewScene {
         });
         vbar.fillMask.fillType = EFillType.Vertical;
         vbar.fillMask.origin = EDirectionType.Top;           
-        vprogress.addChild(vbar);
-        vprogress.value = 100;
+        vslider.addChild(vbar);
+        vslider.value = 100;
+
+        let vgrip = this.addUI.image({
+            name: "grip_v",
+            textureKey: "nine",
+            width: 60,
+            height: 15,
+            x: -10,
+        });
+        vslider.addChild(vgrip);
 
         let vtitle = this.makeUI.textField();
+        vtitle.y = 40;
         vtitle.x = 10;
-        vtitle.setSize(40, 200);
+        vtitle.setSize(40, 120);
         vtitle.autoSize = EAutoSizeType.None;
         vtitle.textAlign = EAlignType.Middle;
         vtitle.horizontalAlign = EHorAlignType.Center;
@@ -142,9 +120,8 @@ class UIScene extends ViewScene {
         vtitle.name = "title";
         vtitle.fontSize = 24;
         vtitle.verticalMode = true;
-        vprogress.addChild(vtitle);
-        vprogress.ensureAllCorrect();
-        vprogress.addComponent(animComp.clone());
+        vslider.addChild(vtitle);
+        vslider.ensureAllCorrect();
 
         console.log(1);
     }

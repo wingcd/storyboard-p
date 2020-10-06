@@ -394,6 +394,11 @@ export class ViewGroup extends View {
     public dispose(toPool?: boolean) {
         super.dispose(toPool);
 
+        this._children.forEach(c=>{
+            c.dispose(toPool);
+        })
+        this._children.length = 0;
+
         if(this._gBounds) {
             this._gBounds.destroy();
             this._gBounds = null;

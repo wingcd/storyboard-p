@@ -15,7 +15,7 @@ export class RemapEventComponent extends BaseComponent {
     }
 
     private _onEvent() {
-        let args = [this.owner];
+        let args = [];
         for(let a of arguments) {            
             args.push(a);
         }

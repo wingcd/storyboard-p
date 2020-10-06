@@ -5,6 +5,8 @@ import { ECategoryType } from "./Defines";
 import { ViewScene } from "./ViewScene";
 import { PropertyManager } from "../tween/Property";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { TimelineManager } from "../tween/Timeline";
+import { TextStyle } from "../ui/UITextField";
 
 export class Package {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -55,7 +57,7 @@ export class Package {
         }
     }    
 
-    public getTemplateUrl(pkgName: string, tempName: string) {
+    public getTemplateUrl(pkgName: string, tempName: string): string {
         let pkg = this._packagesByName[pkgName];
         if(!pkg) {
             return null;
@@ -106,6 +108,9 @@ export class Package {
             case ECategoryType.Property:
                 result = new PropertyManager().fromJSON(data);
                 break;
+            case ECategoryType.Timeline:
+                result = new TimelineManager().fromJSON(data);
+                break;
         }
 
         if(result) {
@@ -130,6 +135,8 @@ export class Package {
                 return scene.addUI.create(data, tpl);
             case ECategoryType.Property:
                 return new PropertyManager().fromJSON(data, tpl);
+            case ECategoryType.Timeline:
+                return new TimelineManager().fromJSON(data, tpl);
         }
     }
 

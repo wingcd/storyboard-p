@@ -17,8 +17,10 @@ export class ComponentFactory {
        [key: string] : any[]
     } = {};
 
-    public create(config?: any): IComponent {
-        return ObjectFactory.create(ECategoryType.Component, config);
+    public create(config?: any, template?: any): IComponent {
+        let comp = ObjectFactory.create(ECategoryType.Component, config) as IComponent;
+        comp.fromJSON(config, template);
+        return comp;
     }
 
     public static regist(viewType: Function) {

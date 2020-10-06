@@ -48,10 +48,10 @@ export default class TweenPath extends Phaser.Curves.Path implements ITweenPlugi
       if(this._precentData && target.parent) {
         let parent = target.parent;
         if(parent.width > 0) {
-          pos.x *= parent.width;
+          pos.x = pos.x / parent.initWidth * parent.width;
         }
         if(parent.height > 0) {
-          pos.y *= parent.height;
+          pos.y = pos.y / parent.initHeight * parent.height;
         }
       }
 

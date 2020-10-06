@@ -171,6 +171,7 @@ export class DragComponent extends SerializableComponent {
       if(pointer.button != 0) {
          return;
       }
+      pointer.event.stopPropagation();
 
       DragComponent._sStatus = EDragStatus.TOUCH_DOWN;
       this.owner.scene.input.on(Input.Events.POINTER_MOVE, this._moving, this);

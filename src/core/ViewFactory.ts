@@ -15,6 +15,8 @@ import { UIRichTextField } from "../ui/UIRichTextField";
 import { IUIRichTextInputConfig } from "../types/UIRichTextField";
 import { IUIProgressBar, IUIProgressBarConfig } from "../types/IUIProgressBar";
 import { UIProgressBar } from "../ui/UIProgressBar";
+import { IUISliderConfig } from "../types/IUISlider";
+import { UISlider } from "../ui/UISlider";
 
 export interface IPrefab {
     id: number;
@@ -97,6 +99,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UIProgressBar;
     } 
 
+    public slider(config?: IUISliderConfig, template?: any): UISlider {
+        let type: any = ViewFactory.getType("slider");
+        return this._add(type, config, template) as UISlider;
+    } 
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
         if(!viewType) {
@@ -118,6 +125,7 @@ ViewFactory.regist(UIImage);
 ViewFactory.regist(UIButton);
 ViewFactory.regist(UILabel);
 ViewFactory.regist(UIProgressBar);
+ViewFactory.regist(UISlider);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UIRichTextField);

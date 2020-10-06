@@ -5,15 +5,17 @@ import { Serialize, Deserialize } from "../utils/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 
 export class BaseComponent implements IComponent {
-    protected _owner: View;
-    protected _enable: boolean = true;
-
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         return [
             {property: "TYPE", alias: "type", static: true, readonly: true, must: true},
             {property: "enable",importAs: "_enable",default: true}
         ];
     }
+
+    protected _owner: View;
+    protected _enable: boolean = true;
+
+    private _inBuilding = false;
 
     static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
         return ComponentFactory.inst.create(config);
@@ -25,6 +27,14 @@ export class BaseComponent implements IComponent {
         if(that.awake) {
             that.awake();
         }
+    }
+
+    protected constructFromJson(config: any, tpl?:any) {
+        this._inBuilding = false;
+    }
+
+    public get inBuilding(): boolean {
+        return this._inBuilding;
     }
 
     public get owner(): View {
@@ -104,7 +114,12 @@ export class BaseComponent implements IComponent {
         return json;
     }
 
-    public fromJSON(config: any): void {
-        Deserialize(this, config);
+    public fromJSON(config: any, template?: any): this {
+        if(config || template) {
+            this._inBuilding = true;
+            Deserialize(this, config, template);
+        }        
+
+        return this;
     }
 }

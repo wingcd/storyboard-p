@@ -1192,7 +1192,7 @@ export class View {
     }
 
     protected applyOpaque() {
-        if(!this._opaque && !this._enableBackground && !this._touchable) {
+        if(!this._touchable || !this._opaque && !this._enableBackground && !this._touchable) {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
@@ -1575,6 +1575,8 @@ export class View {
     protected setDefaultValues() {
         this._rawWidth = this._width;
         this._rawHeight = this._height;
+        this._initWidth = this._width;
+        this._initHeight = this._height;
     }
 
     protected reconstruct() {   

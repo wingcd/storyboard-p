@@ -1,16 +1,20 @@
 import { ISerializeInfo } from "../annotations/Serialize";
+import { EDragType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
-import { Tween } from "../phaser";
+import * as Events from "../events";
+import { EventEmitter, Point, Pointer, Rectangle, Tween } from "../phaser";
 import { EFillType } from "../types";
 import { EProgressTitleType } from "../types/IUIProgressBar";
+import { MathUtils } from "../utils/Math";
+import { PoolManager } from "../utils/PoolManager";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
 require("../components");
                     
-export class UIProgressBar extends ViewGroup {
-    static TYPE = "progress";
+export class UISlider extends ViewGroup {
+    static TYPE = "slider";
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = ViewGroup.SERIALIZABLE_FIELDS;
@@ -22,13 +26,15 @@ export class UIProgressBar extends ViewGroup {
             {property: "reverse", default: false},
         );
         return fields;
-    }
+    }    
+
+    public changeOnClick: boolean = true;
 
     protected _titleObject: UITextField;
     protected _hBar: View;
     protected _vBar: View;
-    protected _hAnchor: View;
-    protected _vAnchor: View;
+    protected _hGrip: View;
+    protected _vGrip: View;
     // protected _aniView: View;
 
     private _min: number = 0;
@@ -45,9 +51,13 @@ export class UIProgressBar extends ViewGroup {
     private _barStartY: number;
 
     private _tweener: Tween;
+    private _canDrag: boolean = true;
+    private _clickPercent: number = 0;
     
     public constructor(scene: ViewScene) {
         super(scene);
+
+        this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
     } 
 
     /**
@@ -130,7 +140,7 @@ export class UIProgressBar extends ViewGroup {
         }
     }
 
-    private _update(val: number) {
+    private _update(val: number, pointer?: Pointer) {
         if(this.inBuilding) {
             return;
         }
@@ -169,8 +179,8 @@ export class UIProgressBar extends ViewGroup {
                     this._hBar.width = w;
                 }
             }
-            if(this._hAnchor) {
-                this._hAnchor.x = this._barStartX + w;
+            if(this._hGrip) {
+                this._hGrip.x = this._barStartX + w;
             }
             
             let h = fullHeight * percent;
@@ -179,8 +189,8 @@ export class UIProgressBar extends ViewGroup {
                     this._vBar.height = fullHeight * percent;
                 }
             }
-            if(this._vAnchor) {
-                this._vAnchor.y = this._barStartX + h;
+            if(this._vGrip) {
+                this._vGrip.y = this._barStartX + h;
             }
         }else {            
             let w = fullWidth * percent;
@@ -191,8 +201,8 @@ export class UIProgressBar extends ViewGroup {
                     this._hBar.x = newx;
                 }
             }
-            if(this._hAnchor) {
-                this._hAnchor.x = newx;
+            if(this._hGrip) {
+                this._hGrip.x = newx;
             }
             
             let h = fullHeight * percent;
@@ -203,12 +213,17 @@ export class UIProgressBar extends ViewGroup {
                     this._vBar.y = newy;
                 }
             }
-            if(this._vAnchor) {
-                this._vAnchor.y = newy;
+            if(this._vGrip) {
+                this._vGrip.y = newy;
             }
-        }
+        }   
 
-        //add anim view?
+        //add anim view?            
+
+        if(pointer) {
+            this._value = val;
+            this.emit(Events.StateChangeEvent.CHANGED, pointer);
+        }
     }
 
     private setFillAmount(bar: View, percent: number): boolean {
@@ -261,14 +276,15 @@ export class UIProgressBar extends ViewGroup {
 
         let oldHBar = this._hBar;
         let oldVBar = this._vBar;
-        let oldHAnchor = this._hAnchor;
-        let oldVAnchor = this._vAnchor;
+        let oldHGrip = this._hGrip;
+        let oldVGrip = this._vGrip;
+        let oldTitle = this._titleObject;
 
         this._hBar = this.getChild("bar");
         this._vBar = this.getChild("bar_v");
         this._titleObject = this.getChild("title") as UITextField;
-        this._hAnchor = this.getChild('anchor');
-        this._vAnchor = this.getChild('anchor_v');
+        this._hGrip = this.getChild('grip');
+        this._vGrip = this.getChild('grip_v');
 
         if(this._hBar) {
             if(oldHBar != this._hBar) {
@@ -294,7 +310,21 @@ export class UIProgressBar extends ViewGroup {
             this._barMaxHeightDelta = 0;
         }
 
-        let changed = oldHBar != this._hBar || oldVBar != this._vBar || oldHAnchor != this._hAnchor || oldVAnchor != this._vAnchor;
+        if(this._hGrip != oldHGrip) {
+            if(oldHGrip) {
+                oldHGrip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+            }
+            this._hGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+        }      
+        
+        if(this._vGrip != oldVGrip) {
+            if(oldVGrip) {
+                oldVGrip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+            }
+            this._vGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+        } 
+
+        let changed = oldHBar != this._hBar || oldVBar != this._vBar || oldHGrip != this._hGrip || oldVGrip != this._vGrip || this._titleObject != oldTitle;
         if(changed) {
             this.update();
         }
@@ -318,5 +348,72 @@ export class UIProgressBar extends ViewGroup {
         super.dispose(toPool);
 
         this._clearTween();
+
+        this.root.off(Events.PointerEvent.MOVE, this.__gripMouseMove, this);
+        this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);
+    }
+
+    private __gripMouseDown(sender: View, pointer: Pointer): void {
+        this._canDrag = true;
+        pointer.event.stopPropagation();
+
+        this._clickPercent = MathUtils.clamp01((this._value - this._min) / (this._max - this._min));
+
+        this.root.on(Events.PointerEvent.MOVE, this.__gripMouseMove, this);
+        this.root.on(Events.PointerEvent.UP, this.__gripMouseUp, this);
+    }
+
+    private __gripMouseMove(sender: View, pointer: Pointer): void {
+        if (!this._canDrag) {
+            return;
+        }
+        var deltaX: number = pointer.x - pointer.downX;
+        var deltaY: number = pointer.y - pointer.downY;
+        if (this._reverse) {
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
+        var percent: number;
+        if (this._hBar) {
+            percent = this._clickPercent + deltaX / this._barMaxWidth;
+        } else {
+            percent = this._clickPercent + deltaY / this._barMaxHeight;
+        }
+        percent = MathUtils.clamp01(percent);
+
+        let newValue = this._min + (this._max - this._min) * percent;
+        this._update(newValue, pointer);
+    }
+
+    private __gripMouseUp(sender: View, pointer: Pointer): void {
+        this.root.off(Events.PointerEvent.MOVE, this.__gripMouseMove, this);
+        this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);
+    }
+
+    private __barMouseDown(sender: View, pointer: Pointer): void {
+        if (!this.changeOnClick)
+            return;
+
+        var percent: number;            
+        let pt = PoolManager.inst.get(Point);
+        if (this._hBar) {
+            this._hBar.globalToLocal(pointer.x, pointer.y, pt);
+            percent = pt.x / this._barMaxWidth;
+        }
+        if (this._vBar) {
+            this._vBar.globalToLocal(pointer.x, pointer.y, pt);
+            percent = pt.y / this._barMaxHeight;
+        }
+        PoolManager.inst.put(pt);
+
+        if(percent != undefined) {
+            percent = MathUtils.clamp01(percent);
+            if(this._reverse) {
+                percent = 1 - percent;
+            }
+
+            let newValue = this._min + (this._max - this._min) * percent;
+            this._update(newValue, pointer);
+        }
     }
 }

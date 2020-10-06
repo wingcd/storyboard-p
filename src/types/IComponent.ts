@@ -14,7 +14,7 @@ export interface IComponent {
     unRegist(): void;
     dispose(): void;
     toJSON(): any;
-    fromJSON(config: any): void;
+    fromJSON(config?: any, tpl?: any): void;
 
     // awake?(): void;
     // onEnable?(): void;

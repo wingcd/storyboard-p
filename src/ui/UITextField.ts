@@ -25,7 +25,7 @@ class UnderlineStyle {
     offset?: number = 0;
 }
 
-class TextStyle implements ITextStyle {
+export class TextStyle implements ITextStyle {
     static CATEGORY = ECategoryType.TextStyle;
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {

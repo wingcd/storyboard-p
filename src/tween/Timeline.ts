@@ -12,6 +12,7 @@ import { ISerializeInfo } from "../annotations/Serialize";
 import { Package } from "../core/Package";
 import { ITemplatable } from "../types/ITemplatable";
 import { Templates } from "../core/Templates";
+import { Deserialize, Serialize } from "../utils/Serialize";
 
 export class KFProperty {
     _name: string = null;
@@ -922,6 +923,22 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
             g.destory();
         });
         this._groups.length = 0;
+    }
+
+    public toJSON(): any {
+        let temp = null;
+        if(this.resourceUrl) {
+            temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
+        }
+        return Serialize(this, temp);
+    }
+
+    public fromJSON(config: any, template?: any): this {
+        if(config || template) {
+            Deserialize(this, config, template);
+        }        
+
+        return this;
     }
 }
 
