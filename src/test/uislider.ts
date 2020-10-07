@@ -110,11 +110,10 @@ class UIScene extends ViewScene {
         vslider.addChild(vgrip);
 
         let vtitle = this.makeUI.textField();
-        vtitle.y = 40;
-        vtitle.x = 10;
-        vtitle.setSize(40, 120);
+        // vtitle.y = 40;
+        // vtitle.x = 10;
+        vtitle.setSize(40, 200);
         vtitle.autoSize = EAutoSizeType.None;
-        vtitle.textAlign = EAlignType.Middle;
         vtitle.horizontalAlign = EHorAlignType.Center;
         vtitle.verticalAlign = EVertAlignType.Middle;
         vtitle.name = "title";

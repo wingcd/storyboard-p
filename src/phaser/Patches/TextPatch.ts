@@ -63,6 +63,7 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
     var style = text.style;
 
     var lineWidths = [];
+    var lineHeights = [];
     var maxLineWidth = 0;
     var drawnLines = lines.length;
 
@@ -75,20 +76,31 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
 
     //  Text Width
 
+    let height = 0;
     for (var i = 0; i < drawnLines; i++)
     {
         var lineWidth = style.strokeThickness;
         let line = lines[i];
         let strArr = Array.from ? Array.from(line) : line.split('')
-        let letterSpacing = (style as any).letterSpacing || 0;
+        let letterSpacing = (style as any).letterSpacing || 0;        
+
+        let maxLineHeight = 0;
         if(letterSpacing) {
             if(line) {
                 for(let char of line) {
-                    lineWidth += context.measureText(char).width + (char != ' ' ? letterSpacing : 0);
+                    let measure = context.measureText(char);
+                    lineWidth += measure.width + (char != ' ' ? letterSpacing : 0);
+                    maxLineHeight = Math.max(measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent, maxLineHeight, size.fontSize);
                 }
             }
-        }else{            
-            lineWidth += context.measureText(lines[i]).width;
+        }else{       
+            let measure = context.measureText(lines[i]);     
+            lineWidth += measure.width;
+            maxLineHeight =  Math.max(measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent, size.fontSize);
+        }
+
+        if(style.strokeThickness) {
+            maxLineHeight += + style.strokeThickness;
         }
 
         // Adjust for wrapped text
@@ -98,11 +110,14 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
         }
 
         lineWidths[i] = Math.ceil(lineWidth);
+        lineHeights[i] = maxLineHeight;
         
         if(style.shadowOffsetX) {
             maxLineWidth += style.shadowOffsetX;
-        }
+        }  
+
         maxLineWidth = Math.max(maxLineWidth, lineWidths[i]);
+        height += maxLineHeight;
     }
 
     if((style as any).minWidth) {
@@ -111,18 +126,21 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
 
     //  Text Height
 
-    var lineHeight = size.fontSize + style.strokeThickness;
-    var height = lineHeight * drawnLines;
+    // var lineHeight = size.fontSize + style.strokeThickness;
     var lineSpacing = text.lineSpacing;
 
     //  Adjust for line spacing
     if (drawnLines > 1)
     {
         height += lineSpacing * (drawnLines - 1);
-    }
+    }      
 
     if(style.shadowOffsetY) {
         height += style.shadowOffsetY;
+    }
+
+    if(style.fontStyle == 'italic' || style.fontStyle == "oblique") {
+        maxLineWidth += size.fontSize * Math.sin(MathUtils.angleToRadian(15)) * 0.5;
     }
 
     return {
@@ -131,7 +149,7 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
         lines: drawnLines,
         lineWidths: lineWidths,
         lineSpacing: lineSpacing,
-        lineHeight: lineHeight
+        lineHeights: lineHeights,
     };
 }
 
@@ -146,6 +164,7 @@ type VerticalLine = {
     text: string,
     charInfo: CharInfo[],
     height: number,
+    width: number,
 };
 
 type VerticalLineInfo = {
@@ -179,6 +198,7 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
  
     // 计算每一列
     let lineInfo = [];
+    let width = 0;
     for(let line of lines) {
         let lineChars: Array<CharInfo> = [];
         var stringArray = Array.from ? Array.from(line) : line.split('');
@@ -186,6 +206,7 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
         let indexInLine = 0;   
         let spliteLine = '';
 
+        let maxLineWidth = 0;
         for (let i=0;i<stringArray.length;i++) {
             if(style.maxLines) {
                 if(charInfo.length < style.maxLines) {
@@ -214,19 +235,29 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
             } else {
                 [cInfo.width, cInfo.height] = [matrics.width, size.fontSize];
             }
+            maxLineWidth = Math.max(cInfo.width, maxLineWidth);
 
             let curHeight = curLineHeight + cInfo.height;
             if(indexInLine > 0) {
                 curHeight += style.letterSpacing;
-            }
+            }            
             
-            if(warpHeight && curHeight > warpHeight || i == line.length - 1) {
+            spliteLine += cInfo.char;
+            curLineHeight += cInfo.height; // + matrics.actualBoundingBoxDescent            
+            lineChars.push(cInfo);
+            if(indexInLine > 0) {
+                curHeight += style.letterSpacing;
+            }
+            indexInLine++;
+            
+            if(warpHeight && curHeight > warpHeight || i == stringArray.length - 1) {
                 (lineChars as any).text = spliteLine;            
                 charInfo.push(lineChars);
                 lineInfo.push({
                     text: spliteLine,
                     charInfo: lineChars,
-                    height: curLineHeight
+                    height: curLineHeight,
+                    width: maxLineWidth,
                 });
 
                 maxLineHeight = Math.max(maxLineHeight, curLineHeight);
@@ -237,15 +268,9 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
                 indexInLine = 0;
                 spliteLine = "";
             }
-            
-            spliteLine += cInfo.char;
-            curLineHeight += cInfo.height; // + matrics.actualBoundingBoxDescent            
-            lineChars.push(cInfo);
-            if(indexInLine > 0) {
-                curHeight += style.letterSpacing;
-            }
-            indexInLine++;
         }   
+
+        width += maxLineWidth + style.strokeThickness + lineSpacing;
     }
     drawnLines = lineInfo.length;
 
@@ -260,7 +285,7 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
     var height = maxLineHeight;
 
     var lineWidth: number = size.fontSize + style.strokeThickness + lineSpacing;
-    var width = size.fontSize + ((drawnLines - 1) * lineWidth);
+    // var width = size.fontSize + ((drawnLines - 1) * lineWidth);
     if (style.shadowOffsetX)
     {
         width += style.shadowOffsetX;
@@ -278,7 +303,6 @@ var GetTextSizeVertical = function (text: Phaser.GameObjects.Text, size:Phaser.T
         lineSpacing,
         lines: drawnLines,
         lineInfo,
-        lineWidth,
     };
 }
 
@@ -452,6 +476,16 @@ export class Text extends Phaser.GameObjects.Text {
          * set mini height in vertical mode
          */
         customStyle.miniHeight = style.vertical.miniHeight;
+
+        customStyle.halign = style.halign || style.align;
+        if(['left', 'center', 'right', 'justify'].indexOf(customStyle.halign) < 0) {
+            customStyle.halign = 'left';
+        }
+
+        customStyle.valign = style.valign || style.align;
+        if(['top','center','bottom','justify']. indexOf(customStyle.valign) < 0) {
+            customStyle.valign = 'top';
+        }
         
         this._lock = false;
         this.updateText();
@@ -806,10 +840,12 @@ export class Text extends Phaser.GameObjects.Text {
         var linePositionY;
 
         //  Draw text line by line
+        let sumY = 0;
         for (var i = 0; i < textSize.lines; i++)
         {
             linePositionX = style.strokeThickness / 2;
-            linePositionY = (style.strokeThickness / 2 + i * textSize.lineHeight) + size.ascent;
+            linePositionY = (style.strokeThickness / 2 + sumY) + size.ascent;
+            sumY += textSize.lineHeights[i];
 
             if (i > 0)
             {
@@ -821,12 +857,12 @@ export class Text extends Phaser.GameObjects.Text {
             //     linePositionX = w - linePositionX;
             // } //else  
             
-            if(style.align === 'left') {
+            if(style.halign === 'left') {
                 if (this._useCanvasRTL && style.rtl) {
                     linePositionX = textSize.lineWidths[i] - linePositionX;
                 }
             }
-            else if (style.align === 'right')
+            else if (style.halign === 'right')
             {
                 if (this._useCanvasRTL && style.rtl) {
                     linePositionX = w - linePositionX;
@@ -834,7 +870,7 @@ export class Text extends Phaser.GameObjects.Text {
                     linePositionX += textWidth - textSize.lineWidths[i];
                 }
             }
-            else if (style.align === 'center')
+            else if (style.halign === 'center')
             {
                 if (this._useCanvasRTL && style.rtl) {
                     linePositionX = w - (textWidth - textSize.lineWidths[i]) / 2 - linePositionX;
@@ -842,7 +878,7 @@ export class Text extends Phaser.GameObjects.Text {
                     linePositionX += (textWidth - textSize.lineWidths[i]) / 2;
                 }
             }
-            else if (style.align === 'justify')
+            else if (style.halign === 'justify')
             {
                 if (this._useCanvasRTL && style.rtl) {
                     linePositionX = w - linePositionX;
@@ -1020,10 +1056,12 @@ export class Text extends Phaser.GameObjects.Text {
         var linePositionY;
 
         //  Draw text line by line
+        let sumX = 0;
         for (var i = 0; i < textSize.lines; i++)
         {
-            linePositionX = (style.strokeThickness / 2) + (i * textSize.lineWidth);
+            linePositionX = (style.strokeThickness / 2) + sumX;
             linePositionY = (style.strokeThickness / 2) + size.ascent;
+            sumX += textSize.lineInfo[i].width;
 
             if (i > 0)
             {
@@ -1036,15 +1074,15 @@ export class Text extends Phaser.GameObjects.Text {
             // }
             
             
-            if (style.align === 'bottom')
+            if (style.valign === 'bottom')
             {
                 linePositionY += height - textSize.lineInfo[i].height;
             }
-            else if (style.align === 'middle')
+            else if (style.valign === 'middle')
             {
                 linePositionY += (height - textSize.lineInfo[i].height) / 2;
             }
-            else if (style.align === 'justify')
+            else if (style.valign === 'justify')
             {
                 //  To justify text line its width must be no less than 85% of defined width
                 var minimumLengthToApplyJustification = 0.85;
@@ -1212,17 +1250,19 @@ export class Text extends Phaser.GameObjects.Text {
             //     this.context.fillStyle = this._generateFillStyleVertical(style, lines, cInfo.rotate);
             // }
             // lastRotated = cInfo.rotate;
+
+            let newX = x + (line.width - cInfo.width) * 0.5;
     
             if (cInfo.rotate) {    
-                this.context.translate(x, currentPosition);            
+                this.context.translate(newX, currentPosition);            
                 this.context.rotate(Math.PI / 2);
-                this.context.translate(-x - size.ascent, -currentPosition - size.descent);
+                this.context.translate(-newX - size.ascent, -currentPosition - size.descent);
             }
             // 画一个字符
             if (isStroke) {
-                this.context.strokeText(cInfo.char, x, currentPosition);
+                this.context.strokeText(cInfo.char, newX, currentPosition);
             }else{
-                this.context.fillText(cInfo.char, x, currentPosition);
+                this.context.fillText(cInfo.char, newX, currentPosition);
             }
             if (cInfo.rotate) {
                 this.context.setTransform(resolution, 0, 0, resolution, 0, 0);

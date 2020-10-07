@@ -1,1 +1,1 @@
-require('./test/raw_text')
+require('./test/uislider')

@@ -361,6 +361,9 @@ export class UITextField extends View {
         }
     }
 
+    /**
+     * must fixed view's height
+     */
     public get verticalAlign(): EVertAlignType {
         return this._verticalAlign;
     }
@@ -372,6 +375,9 @@ export class UITextField extends View {
         }
     }
 
+    /**
+     * must fixed view's width
+     */
     public get horizontalAlign(): EHorAlignType {
         return this._horizontalAlign;
     }
@@ -383,6 +389,9 @@ export class UITextField extends View {
         }
     }
 
+    /**
+     * when fixed text's width or height, align of vertical or horizontal
+     */
     public get textAlign(): EAlignType {
         return this._style.align as EAlignType;
     }

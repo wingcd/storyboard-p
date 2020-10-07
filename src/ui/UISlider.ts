@@ -24,6 +24,7 @@ export class UISlider extends ViewGroup {
             {property: "titleType", default: EProgressTitleType.Percent},
             {property: "value", default: 0},
             {property: "reverse", default: false},
+            {property: "changeOnClick", default: true},
         );
         return fields;
     }    
