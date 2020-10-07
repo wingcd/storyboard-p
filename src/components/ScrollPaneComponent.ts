@@ -553,6 +553,56 @@ export class ScrollPaneComponent extends SerializableComponent {
            this._scrollEnd();
         }
      }
+
+     public get scrollingPosX(): number {
+        return MathUtils.clamp(-this._owner.x, 0, this._overlapSize.x);
+    }
+
+    public get scrollingPosY(): number {
+        return MathUtils.clamp(-this._owner.y, 0, this._overlapSize.y);
+    }
+
+    public scrollTop(ani?: boolean): void {
+        this.setPercY(0, ani);
+    }
+
+    public scrollBottom(ani?: boolean): void {
+        this.setPercY(1, ani);
+    }
+
+    public scrollUp(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
+        // if (this._pageMode)
+        //     this.setPosY(this._yPos - this._pageSize.y * ratio, ani);
+        // else
+        //     this.setPosY(this._yPos - this._scrollStep * ratio, ani);;
+    }
+
+    public scrollDown(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
+        // if (this._pageMode)
+        //     this.setPosY(this._yPos + this._pageSize.y * ratio, ani);
+        // else
+        //     this.setPosY(this._yPos + this._scrollStep * ratio, ani);
+    }
+
+    public scrollLeft(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
+        // if (this._pageMode)
+        //     this.setPosX(this._xPos - this._pageSize.x * ratio, ani);
+        // else
+        //     this.setPosX(this._xPos - this._scrollStep * ratio, ani);
+    }
+
+    public scrollRight(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
+        // if (this._pageMode)
+        //     this.setPosX(this._xPos + this._pageSize.x * ratio, ani);
+        // else
+        //     this.setPosX(this._xPos + this._scrollStep * ratio, ani);
+    }
+
 }
 
+export type ScrollPane = ScrollPaneComponent;
 ComponentFactory.regist(ScrollPaneComponent);

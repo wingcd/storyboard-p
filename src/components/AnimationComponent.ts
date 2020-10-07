@@ -93,4 +93,5 @@ export class AnimationComponent extends SerializableComponent implements ICompon
     }
 }
 
+export type Animation = AnimationComponent;
 ComponentFactory.regist(AnimationComponent);

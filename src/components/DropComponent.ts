@@ -26,7 +26,6 @@ export class DropComponent extends BaseComponent {
                 this._draggingObject = DragComponent.draggingObject;
                 this._draggingObject.on(Events.DragEvent.END, this._dragEnd, this);
             }
-            PoolManager.inst.put(pos);
         }
     }
 

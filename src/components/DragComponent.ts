@@ -113,7 +113,6 @@ export class DragComponent extends SerializableComponent {
 
          let pt = this.owner.parent.localToGlobal(this.owner.x, this.owner.y);
          this.owner.setXY(pt.x, pt.y);
-         PoolManager.inst.put(pt);
 
          this.owner.root.addChildAt(this.owner, this._parent.children.length);   
       }
@@ -138,6 +137,7 @@ export class DragComponent extends SerializableComponent {
 
       DragComponent.sStartXY.x = this.owner.x;
       DragComponent.sStartXY.y = this.owner.y;      
+      PoolManager.inst.put(pos);
    }   
 
    private _reset() {      
@@ -221,7 +221,8 @@ export class DragComponent extends SerializableComponent {
          }
 
          let nx: number = pos.x - DragComponent.sGlobalDragStart.x + DragComponent.sStartXY.x;
-         let ny: number = pos.y - DragComponent.sGlobalDragStart.y + DragComponent.sStartXY.y;
+         let ny: number = pos.y - DragComponent.sGlobalDragStart.y + DragComponent.sStartXY.y;           
+         PoolManager.inst.put(pos);
          
          //clamp to drag bound
          if(this.dragBounds) {

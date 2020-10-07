@@ -31,12 +31,12 @@ export class UISlider extends ViewGroup {
 
     public changeOnClick: boolean = true;
 
-    protected _titleObject: UITextField;
-    protected _hBar: View;
-    protected _vBar: View;
-    protected _hGrip: View;
-    protected _vGrip: View;
-    // protected _aniView: View;
+    private _titleObject: UITextField;
+    private _hBar: View;
+    private _vBar: View;
+    private _hGrip: View;
+    private _vGrip: View;
+    // private _aniView: View;
 
     private _min: number = 0;
     private _max: number = 100;
@@ -315,15 +315,19 @@ export class UISlider extends ViewGroup {
             if(oldHGrip) {
                 oldHGrip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
             }
-            this._hGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+            if(this._hGrip) {
+                this._hGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+            }
         }      
         
         if(this._vGrip != oldVGrip) {
             if(oldVGrip) {
                 oldVGrip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
             }
-            this._vGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
-        } 
+            if(this._vGrip) {
+                this._vGrip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+            }
+        }
 
         let changed = oldHBar != this._hBar || oldVBar != this._vBar || oldHGrip != this._hGrip || oldVGrip != this._vGrip || this._titleObject != oldTitle;
         if(changed) {

@@ -24,12 +24,12 @@ export class UIProgressBar extends ViewGroup {
         return fields;
     }
 
-    protected _titleObject: UITextField;
-    protected _hBar: View;
-    protected _vBar: View;
-    protected _hAnchor: View;
-    protected _vAnchor: View;
-    // protected _aniView: View;
+    private _titleObject: UITextField;
+    private _hBar: View;
+    private _vBar: View;
+    private _hAnchor: View;
+    private _vAnchor: View;
+    // private _aniView: View;
 
     private _min: number = 0;
     private _max: number = 100;

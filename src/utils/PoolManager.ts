@@ -45,8 +45,10 @@ export class PoolManager {
         array.push(inst);
     }
 
-    public put(inst: any) {
-        let name = "_sb_pool_" + inst.constructor.name;
-        this.putByName(name, inst);
+    public put(...insts: any[]) {
+        for(let inst of insts) {
+            let name = "_sb_pool_" + inst.constructor.name;
+            this.putByName(name, inst);
+        }
     }
 }

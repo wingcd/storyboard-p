@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { EDirtyType, ECategoryType } from "./Defines";
-import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter } from "../phaser";
+import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter, Pointer } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
@@ -80,6 +80,9 @@ export class View {
     static SERIALIZE_COMPLETED(source: any, target: any, tpl: any) {
         
     }
+
+    protected static sHelperPoint: Point = new Point();
+    protected static sHelperRect: Rectangle = new Rectangle();
 
     protected constructFromJson(config: any, tpl?:any) {
         this.reconstruct();
@@ -536,7 +539,7 @@ export class View {
             let dx = this.mapPivotWidth(this.pivotX);
             let dy = this.mapPivotHeight(this.pivotY);
 
-            let pos = PoolManager.inst.get(Point) as Point;
+            let pos = View.sHelperPoint;
             pos.setTo(dx, dy);
             // need update transform, 
             // do not use localtransform directly
@@ -547,7 +550,6 @@ export class View {
             pos.x -= trans.tx;
             pos.y -= trans.ty;
             this._pivotOffset.setTo(this.pivotX*this._width - pos.x, this.pivotY*this._height - pos.y);
-            PoolManager.inst.put(pos);
         }
     }
 
@@ -739,7 +741,6 @@ export class View {
         target.fillStyle(0x1, 1);
         target.fillRect(0, 0, width, height);
         this.setMask(targetObj, mask, true);
-        PoolManager.inst.put(pos);
     }
 
     public static setMaskPosition(mask: MaskType, x: number, y: number) {
@@ -786,8 +787,6 @@ export class View {
         }
         obj.setPosition(pos.x, pos.y);
         obj.visible = false;
-
-        PoolManager.inst.put(pos);
     }
 
     private _updateRootMask() {
@@ -856,7 +855,7 @@ export class View {
             let yy = [];
 
             let trans = this._rootContainer.getLocalTransformMatrix();            
-            let pos = PoolManager.inst.get(Point) as Point;
+            let pos = View.sHelperPoint;
             pos.setTo(0, 0);
             trans.transformPoint(pos.x, pos.y, pos);
             xx.push(pos.x);
@@ -1203,7 +1202,7 @@ export class View {
         }
 
         if (!this._hitArea) {
-            this._hitArea = PoolManager.inst.get(Rectangle) as Rectangle;
+            this._hitArea = new Rectangle();
             this._rootContainer.setInteractive(this._hitArea, Rectangle.Contains);
         }
         this._rootContainer.input.enabled = true;
@@ -1257,7 +1256,7 @@ export class View {
             ay += this._pivot.y * this._height;
         }
         if (!resultPoint) {
-            resultPoint = PoolManager.inst.get(Point) as Point;
+            resultPoint = View.sHelperPoint;
         }
         this._rootContainer.getWorldTransformMatrix().transformPoint(ax, ay, resultPoint);
         return resultPoint;
@@ -1265,7 +1264,7 @@ export class View {
 
     public globalToLocal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
         if (!resultPoint) {
-            resultPoint = PoolManager.inst.get(Point) as Point;
+            resultPoint = View.sHelperPoint;
         }
         this._rootContainer.getWorldTransformMatrix().invert().transformPoint(ax, ay, resultPoint);
         if (this._pivotAsAnchor) {
@@ -1277,7 +1276,7 @@ export class View {
 
     public localToGlobalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
         if (resultRect == null) {
-            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+            resultRect = View.sHelperRect;
         }
 
         let pt: Point = this.localToGlobal(ax, ay);
@@ -1290,7 +1289,7 @@ export class View {
 
     public globalToLocalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
         if (resultRect == null) {
-            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+            resultRect = View.sHelperRect;
         }
 
         let pt: Point = this.globalToLocal(ax, ay);
@@ -1309,7 +1308,7 @@ export class View {
      */
     public localToDOM(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
         if (!resultPoint) {
-            resultPoint = PoolManager.inst.get(Point) as Point;
+            resultPoint = View.sHelperPoint;
         }
 
         resultPoint = this.localToGlobal(ax, ay, resultPoint);
@@ -1327,7 +1326,7 @@ export class View {
      */
     public domToLocal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
         if (!resultPoint) {
-            resultPoint = PoolManager.inst.get(Point) as Point;
+            resultPoint = View.sHelperPoint;
         }
 
         resultPoint = this.globalToLocal(ax, ay, resultPoint);
@@ -1339,7 +1338,7 @@ export class View {
 
     public localToDOMRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
         if (resultRect == null) {
-            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+            resultRect = View.sHelperRect;
         }
 
         let pt: Point = new Point();
@@ -1356,19 +1355,20 @@ export class View {
 
     public domToLocalRect(ax: number = 0, ay: number = 0, aWidth: number = 0, aHeight: number = 0, resultRect?: Rectangle): Rectangle {
         if (resultRect == null) {
-            resultRect = PoolManager.inst.get(Rectangle) as Rectangle;
+            resultRect = View.sHelperRect;
         }
 
-        let pt: Point = new Point();
+        let pt: Point = PoolManager.inst.get(Point) as Point;
         this.domToLocal(ax, ay, pt);
         resultRect.x = pt.x;
-        resultRect.y = pt.y;
+        resultRect.y = pt.y;        
 
-        let pt1: Point = new Point();
+        let pt1: Point = PoolManager.inst.get(Point) as Point;
         this.domToLocal(ax + aWidth, ay + aHeight, pt1);  
         resultRect.width = Math.abs(pt1.x - pt.x);
         resultRect.height = Math.abs(pt1.y - pt.y);
 
+        PoolManager.inst.put(pt, pt1);
         return resultRect;
     }
 
