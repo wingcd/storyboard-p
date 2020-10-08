@@ -24,7 +24,8 @@ export class UISlider extends ViewGroup {
             {property: "titleType", default: EProgressTitleType.Percent},
             {property: "value", default: 0},
             {property: "reverse", default: false},
-            {property: "changeOnClick", default: true},
+            {property: "changeOnClick", default: true},            
+            {property: "autoSetGripPos", default: true},
         );
         return fields;
     }    
@@ -43,6 +44,7 @@ export class UISlider extends ViewGroup {
     private _titleType: EProgressTitleType = EProgressTitleType.Percent;
     private _value: number = 0;
     private _reverse: boolean = false;
+    private _autoSetGripPos: boolean = true;
 
     private _barMaxWidth: number;
     private _barMaxHeight: number;
@@ -120,6 +122,18 @@ export class UISlider extends ViewGroup {
         }
     }
 
+    public get autoSetGripPos(): boolean {
+        return this._autoSetGripPos;
+    }
+
+    public set autoSetGripPos(val: boolean) {
+        if(this._autoSetGripPos != val) {
+            this._autoSetGripPos = val;
+
+            this.update();
+        }
+    }
+
     public get value(): number {
         return this._value;
     }
@@ -181,7 +195,7 @@ export class UISlider extends ViewGroup {
                     this._hBar.width = w;
                 }
             }
-            if(this._hGrip) {
+            if(this._autoSetGripPos && this._hGrip) {
                 this._hGrip.x = this._barStartX + w - this._hGrip.width * 0.5;
             }
             
@@ -191,7 +205,7 @@ export class UISlider extends ViewGroup {
                     this._vBar.height = fullHeight * percent;
                 }
             }
-            if(this._vGrip) {
+            if(this._autoSetGripPos && this._vGrip) {
                 this._vGrip.y = this._barStartX + h - this._vGrip.height * 0.5;
             }
         }else {            
@@ -203,7 +217,7 @@ export class UISlider extends ViewGroup {
                     this._hBar.x = newx;
                 }
             }
-            if(this._hGrip) {
+            if(this._autoSetGripPos && this._hGrip) {
                 this._hGrip.x = newx - this._hGrip.width * 0.5;
             }
             
@@ -215,7 +229,7 @@ export class UISlider extends ViewGroup {
                     this._vBar.y = newy;
                 }
             }
-            if(this._vGrip) {
+            if(this._autoSetGripPos && this._vGrip) {
                 this._vGrip.y = newy - this._vGrip.height * 0.5;
             }
         }   

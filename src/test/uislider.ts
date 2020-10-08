@@ -6,7 +6,7 @@ import { EAlignType, EAutoSizeType, EDirectionType, EEaseType, EHorAlignType, EO
 import { AnimationComponent } from "../components/AnimationComponent";
 import * as Events from "../events";
 import { EProgressTitleType } from "../types/IUIProgressBar";
-import { EFillType } from "../types";
+import { EFillType, ERelationPinType } from "../types";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { UIImage } from "../ui/UIImage";
 import { UISlider } from "../ui/UISlider";
@@ -31,7 +31,7 @@ class UIScene extends ViewScene {
             width: 200,
             height: 40,
         });  
-        // slider.setBackgroundColor(0xffff00, true);        
+        slider.setBackgroundColor(0xffff00, true);        
 
         let bar = this.addUI.image({
             name: "bar",
@@ -52,6 +52,7 @@ class UIScene extends ViewScene {
             y: -10,
         });
         slider.addChild(grip);
+        grip.relations.set(ERelationPinType.LEFT, bar);
 
         let title = this.makeUI.textField();
         title.x = 40;
@@ -63,7 +64,6 @@ class UIScene extends ViewScene {
         title.fontSize = 24;
         slider.addChild(title);
         slider.ensureAllCorrect();
-
         console.log(slider.toJSON());
         
         let pg = slider.clone() as UIProgressBar;
