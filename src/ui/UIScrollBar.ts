@@ -44,6 +44,7 @@ export class UIScrollBar extends ViewGroup {
         super(scene);
 
         this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
+        this.opaque = true;
     } 
 
     public setScrollPane(target: ScrollPane, vertical: boolean): this {

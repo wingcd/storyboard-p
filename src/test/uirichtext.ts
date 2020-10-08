@@ -24,7 +24,6 @@ class UIScene extends ViewScene {
         textfield.setSize(200, 100);
         textfield.multipleLine = false;
         textfield.touchable = true;
-        textfield.opaque = true;
         
         textfield.text =  '[b][i][size=24][color=red]Phaser[/color][size=20][img=smile] is a [area=click-test][color=green][u]fast[/u][/color][/area]' //'abcd efaf aefa fasdfaef asdf asf a'// 'آزمایش برای Foo Ltd.‎ و Bar Inc.‎ باشد که آزموده شود.'; //
         textfield.autoSize = EAutoSizeType.Height;

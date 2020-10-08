@@ -59,6 +59,7 @@ export class UISlider extends ViewGroup {
         super(scene);
 
         this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
+        this.opaque = true;
     } 
 
     /**
@@ -181,7 +182,7 @@ export class UISlider extends ViewGroup {
                 }
             }
             if(this._hGrip) {
-                this._hGrip.x = this._barStartX + w;
+                this._hGrip.x = this._barStartX + w - this._hGrip.width * 0.5;
             }
             
             let h = fullHeight * percent;
@@ -191,7 +192,7 @@ export class UISlider extends ViewGroup {
                 }
             }
             if(this._vGrip) {
-                this._vGrip.y = this._barStartX + h;
+                this._vGrip.y = this._barStartX + h - this._vGrip.height * 0.5;
             }
         }else {            
             let w = fullWidth * percent;
@@ -203,7 +204,7 @@ export class UISlider extends ViewGroup {
                 }
             }
             if(this._hGrip) {
-                this._hGrip.x = newx;
+                this._hGrip.x = newx - this._hGrip.width * 0.5;
             }
             
             let h = fullHeight * percent;
@@ -215,7 +216,7 @@ export class UISlider extends ViewGroup {
                 }
             }
             if(this._vGrip) {
-                this._vGrip.y = newy;
+                this._vGrip.y = newy - this._vGrip.height * 0.5;
             }
         }   
 

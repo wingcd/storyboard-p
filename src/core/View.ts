@@ -53,7 +53,6 @@ export class View implements IView{
             {property: "touchable",importAs: "_touchable",default: true},
             {property: "touchEnableMoved",default: true},
             {property: "draggable",importAs: "_draggable",default: false},
-            {property: "opaque",importAs: "_opaque",default: false},
             {property: "enableBackground",importAs: "_enableBackground",default: false},
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
             {property: "tint", importAs: "_tint", default: 0xffffff},            
@@ -122,7 +121,6 @@ export class View implements IView{
     private _focusable: boolean = false;
     private _touchable: boolean = true;    
     private _draggable: boolean = false;
-    private _opaque: boolean = false;
     private _enableBackground: boolean = false;
     private _backgroundColor: number = 0xffffff;   
     private _tint: number = 0xffffff;
@@ -1151,7 +1149,7 @@ export class View implements IView{
         if(this._enableBackground != val) {
             this._enableBackground = val;
             this.applyBackgroundChange();
-            this.applyOpaque();
+            this.applyHitArea();
         }
     }
 
@@ -1168,31 +1166,17 @@ export class View implements IView{
             this._enableBackground = enable;
             this._backgroundColor = color;
             this.applyBackgroundChange();
-            this.applyOpaque();
+            this.applyHitArea();
         }
         return this;
-    }
-
-    /**
-     * @description if enable touch in empty area, default is false
-     */
-    public get opaque(): boolean {
-        return this._opaque;
-    }
-
-    public set opaque(value: boolean) {
-        if (this._opaque != value) {
-            this._opaque = value;
-            this.applyOpaque();
-        }
     }
 
     protected get hitArea(): Rectangle {
         return this._hitArea;
     }
 
-    protected applyOpaque() {
-        if(!this._touchable || !this._opaque && !this._enableBackground && !this._touchable) {
+    protected applyHitArea() {
+        if(!this._touchable) {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
@@ -1206,6 +1190,7 @@ export class View implements IView{
             this._hitArea = new Rectangle();
             this._rootContainer.setInteractive(this._hitArea, Rectangle.Contains);
         }
+
         this._rootContainer.input.enabled = true;
 
         let h: Rectangle = this._hitArea;
@@ -1216,7 +1201,7 @@ export class View implements IView{
 
     protected handleBorderChange() {
         this.applyBackgroundChange();
-        this.applyOpaque();
+        this.applyHitArea();
     }
 
     protected handleSizeChanged() {
@@ -1540,7 +1525,7 @@ export class View implements IView{
         this.handleSizeChanged();
         this.updatePivotOffset();
         this.applyBackgroundChange();
-        this.applyOpaque();
+        this.applyHitArea();
         this.applayProperties();
         this.applyDraggable();
         this.checkDirty();
@@ -1651,7 +1636,7 @@ export class View implements IView{
     public set touchable(val: boolean) {
         if(this._touchable != val) {
             this._touchable = val;
-            this.applyOpaque();
+            this.applyHitArea();
         }
     }
 

@@ -9,6 +9,7 @@ import { EProgressTitleType } from "../types/IUIProgressBar";
 import { EFillType } from "../types";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { UIImage } from "../ui/UIImage";
+import { UISlider } from "../ui/UISlider";
 
 // Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -30,7 +31,7 @@ class UIScene extends ViewScene {
             width: 200,
             height: 40,
         });  
-        slider.setBackgroundColor(0xffff00, true);        
+        // slider.setBackgroundColor(0xffff00, true);        
 
         let bar = this.addUI.image({
             name: "bar",
@@ -121,6 +122,11 @@ class UIScene extends ViewScene {
         vtitle.verticalMode = true;
         vslider.addChild(vtitle);
         vslider.ensureAllCorrect();
+
+        let vs = vslider.clone() as UISlider;
+        vs.x = 700;
+        vs.reverse = true;
+        (vs.getChild("bar_v") as UIImage).fillMask.origin = EDirectionType.Bottom;
 
         console.log(1);
     }

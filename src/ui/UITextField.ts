@@ -653,7 +653,7 @@ export class UITextField extends View {
         }
        
         this.handleSizeChanged();
-        this.applyOpaque();
+        this.applyHitArea();
         this.updateMask();
     }
 

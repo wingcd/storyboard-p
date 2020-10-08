@@ -13,17 +13,19 @@ export class ViewGroup extends View {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "children",importAs: "_children",default: [], type: View},
             {property: "overflowType", default: EOverflowType.Visible},
+            {property: "opaque",importAs: "_opaque",default: false},
+            {property: "children",importAs: "_children",default: [], type: View},
         );
         return fields;
     }
 
-    protected _container: Container;
-    protected _children: View[] = [];  
-    protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
-
+    protected _opaque: boolean = false;
     protected _overflowType: EOverflowType = EOverflowType.Visible;
+    protected _children: View[] = []; 
+
+    protected _container: Container;
+    protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
     private _scrollPane: ScrollPaneComponent = null;
 
     private _batchProcessing = false;
@@ -33,6 +35,7 @@ export class ViewGroup extends View {
 
     constructor(scene: ViewScene) {
         super(scene);
+        
     }
 
     protected constructFromJson(config: any, tpl?:any) {
@@ -54,6 +57,29 @@ export class ViewGroup extends View {
     /**@internal */
     get container(): Container {
         return this._container;
+    }    
+
+    /**
+     * @description if enable touch in empty area, default is false
+     */
+    public get opaque(): boolean {
+        return this._opaque;
+    }
+
+    public set opaque(value: boolean) {
+        if (this._opaque != value) {
+            this._opaque = value;
+            this.applyHitArea();
+        }
+    }
+
+    protected applyHitArea() {
+        super.applyHitArea();
+
+        if(this.rootContainer.input && this.rootContainer.input.enabled) {            
+            // 是否把自身过滤掉
+            (this.rootContainer.input as any).___filter_self__ = !this._opaque && !this.enableBackground;
+        }
     }
 
     /**

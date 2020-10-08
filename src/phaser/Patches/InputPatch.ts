@@ -14,6 +14,20 @@ function searchAllInputChildren(result: any[], gameObject: Phaser.GameObjects.Ga
     }
 }
 
+function searchInputParent(result: any[], gameObject: Phaser.GameObjects.GameObject,  camera: Phaser.Cameras.Scene2D.Camera, dropZone: boolean = false) {
+    let parent = gameObject.parentContainer;
+    if(parent) {
+        if(parent.input && (parent.input as any).___filter_self__) {
+            if(result.indexOf(parent) < 0) {
+                searchInputParent(result, parent, camera, dropZone);
+                result.push(parent);
+            }
+        }else{
+            searchInputParent(result, parent, camera, dropZone);
+        }
+    }
+}
+
 /**
  * 主要修复父节点有Input时并且子节点超出范围后还能继续响应事件的问题
  */
@@ -84,7 +98,11 @@ Phaser.Input.InputManager.prototype.hitTest = function (pointer, gameObjects, ca
 
         if (this.pointWithinHitArea(gameObject, point.x, point.y) )
         {
-            output.push(gameObject);
+            // 虽然通过测试，但需要通过标记过滤掉自身
+            if(!gameObject.input.___filter_self__) {
+                searchInputParent(output, gameObject, camera, false);
+                output.push(gameObject);
+            }
         }
         else if(gameObject.list && gameObject.input.___filter_input__)
         {

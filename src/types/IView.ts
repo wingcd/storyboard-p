@@ -35,7 +35,6 @@ export interface IViewConfig extends IColorable {
     touchable?:boolean,
     touchEnableMoved?:boolean,
     draggable?:boolean,
-    opaque?:boolean,
     enableBackground?:boolean,
     backgroundColor?:number;
 }

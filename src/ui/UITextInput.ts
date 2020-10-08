@@ -44,8 +44,7 @@ export class UITextInput extends UITextField {
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this.focusable = true;        
-        this.opaque = true;
+        this.focusable = true;
         this.inputType = EInputType.TEXT;
 
         this.on(DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);

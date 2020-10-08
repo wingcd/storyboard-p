@@ -6,6 +6,7 @@ export interface IViewGroupConfig extends IViewConfig{
     overflowType?: EOverflowType;
 
     children?: IView[];
+    opaque?:boolean,
 }
 
 export interface IViewGroup extends IView, IViewGroupConfig{

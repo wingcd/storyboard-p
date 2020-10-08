@@ -40,8 +40,8 @@ export class UIRichTextField extends UITextField {
         super.tagMode = val;
     }
 
-    protected applyOpaque() {
-        super.applyOpaque();
+    protected applyHitArea() {
+        super.applyHitArea();
 
         if(this.rootContainer.input) {
             if(this._richTextField) {
