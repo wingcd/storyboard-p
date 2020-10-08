@@ -116,11 +116,11 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                             let item = store(sourceData[i], info, t);
 
                             // 不添加0属性对象
-                            if(item && Object.getOwnPropertyNames(item).length > 0) {    
-                                if(raw.constructor.CATEGORY != undefined && raw.constructor.CATEGORY == sourceData[i].constructor.CATEGORY) {
-                                    delete item.__category__;
-                                }
+                            if(raw.constructor.CATEGORY != undefined && raw.constructor.CATEGORY == sourceData[i].constructor.CATEGORY) {
+                                delete item.__category__;
+                            }
 
+                            if(item && Object.getOwnPropertyNames(item).length > 0) { 
                                 if(isarray) {
                                     rets.push(item);
                                 }else{
@@ -230,8 +230,13 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         }
 
                         let ritem = null;
+                        let needRestore = true;
                         if(info.type.DESERIALIZE) {
                             ritem = info.type.DESERIALIZE(cfgData[i], target, cfgProp, targetProp, t, i);
+                            if(Array.isArray(ritem)) {
+                                needRestore = ritem[1];
+                                ritem = ritem[0];
+                            }
                         }else{                        
                             let parms = [];
                             if(info.parms) {
@@ -242,7 +247,9 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             ritem = new info.type(...parms);
                         }
 
-                        restore(ritem, i, cfgData[i], t, info, depth);
+                        if(needRestore) {
+                            restore(ritem, i, cfgData[i], t, info, depth);
+                        }
 
                         if(isarray) {
                             target[targetProp].push(ritem);
@@ -254,11 +261,16 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                     if(!info.type && cfgData.__category__) {
                         info.type = Templates.get(cfgData.__category__);
                     }
-
+                    
+                    let needRestore = true;
                     if(!info.raw && typeof(cfgData) == "object" && info.type) {
                         let ritem = target[targetProp];
                         if(info.type.DESERIALIZE) {
                             ritem = info.type.DESERIALIZE(cfgData, target, cfgProp, targetProp, tpl);
+                            if(Array.isArray(ritem)) {
+                                needRestore = ritem[1];
+                                ritem = ritem[0];
+                            }
                         }else{                            
                             if(ritem == undefined) {
                                 let parms = [];
@@ -271,7 +283,9 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                             }
                         }
 
-                        restore(ritem, targetProp, cfgData, tpl, info, depth);
+                        if(needRestore) {
+                            restore(ritem, targetProp, cfgData, tpl, info, depth);
+                        }
 
                         target[targetProp] = ritem;
                     }else{      

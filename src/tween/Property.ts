@@ -17,7 +17,7 @@ export class Property {
     name: string = null;
     value: any = null;
     target: any = null;
-    targetPath: string = null;
+    targetPath: string = "";
     tweenInfo?: ITweenInfo = null;
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -25,7 +25,7 @@ export class Property {
         fields.push(
             {property: "name"},
             {property: "value"},
-            {property: "targetPath"},
+            {property: "targetPath", default: ""},
             {property: "tweenInfo", alias: "tween", default: null, raw: true},
         );
         return fields;
@@ -33,7 +33,7 @@ export class Property {
 }
 
 class PropertyGroup {
-    private _targetPath: string;
+    private _targetPath: string = "";
     private _target: View;
     private _parent: PropertyManager;
     private _properties:Property[] = [];
@@ -49,7 +49,7 @@ class PropertyGroup {
             {property: "id"},
             {property: "_name", alias: "name"},
             {property: "_properties", alias: "properties", type: Property, default: []},            
-            {property: "_targetPath", alias: "target"},
+            {property: "_targetPath", alias: "target", default: ""},
         );
         return fields;
     }
@@ -297,15 +297,15 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
             {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
 
             {property: "resourceUrl"},
-            {property: "_id", alias: "id", default: ""},  
-            {property: "_name", alias: "name"},            
+            {property: "_id", alias: "id"},  
+            {property: "_name", alias: "name"},       
             {property: "_defaultId", alias: "default"},
             {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
         );
         return fields;
     } 
 
-    private _name: string = "";
+    private _name: string;
     private _target: View;
     private _groups: PropertyGroup[] = [];
     private _lastGroup: PropertyGroup = null;
@@ -521,6 +521,11 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         }        
 
         return this;
+    }
+
+    public clone(): PropertyManager {
+        let json = this.toJSON();
+        return new PropertyManager().fromJSON(json);
     }
 }
 

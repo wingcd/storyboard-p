@@ -1,4 +1,4 @@
-import { IComponent } from "../types";
+import { ISerializableCompoent } from "../types";
 import { ObjectFactory } from "../core/ObjectFactory";
 import { ECategoryType } from "../core/Defines";
 
@@ -17,8 +17,8 @@ export class ComponentFactory {
        [key: string] : any[]
     } = {};
 
-    public create(config?: any, template?: any): IComponent {
-        let comp = ObjectFactory.create(ECategoryType.Component, config) as IComponent;
+    public create(config?: any, template?: any): ISerializableCompoent {
+        let comp = ObjectFactory.create(ECategoryType.Component, config) as ISerializableCompoent;
         comp.fromJSON(config, template);
         return comp;
     }

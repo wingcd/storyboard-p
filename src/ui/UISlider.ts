@@ -1,10 +1,10 @@
 import { ISerializeInfo } from "../annotations/Serialize";
-import { EDragType } from "../core/Defines";
+import { EDragType, EOverflowType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
-import { EventEmitter, Point, Pointer, Rectangle, Tween } from "../phaser";
+import { EventData, EventEmitter, Input, Point, Pointer, Rectangle, Tween } from "../phaser";
 import { EFillType } from "../types";
 import { EProgressTitleType } from "../types/IUIProgressBar";
 import { MathUtils } from "../utils/Math";
@@ -358,9 +358,9 @@ export class UISlider extends ViewGroup {
         this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);
     }
 
-    private __gripMouseDown(sender: View, pointer: Pointer): void {
+    private __gripMouseDown(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
         this._canDrag = true;
-        pointer.event.stopPropagation();
+        event.stopPropagation();
 
         this._clickPercent = MathUtils.clamp01((this._value - this._min) / (this._max - this._min));
 

@@ -485,8 +485,7 @@ export class ViewGroup extends View {
 
             this.applyOverflow();
         }
-    }
-    
+    }    
 
     protected handleXYChanged() {
         super.handleXYChanged();
@@ -502,7 +501,7 @@ export class ViewGroup extends View {
 
         this._container.width = this.width;
         this._container.height = this.height;
-        if(this._overflowType == EOverflowType.Hidden) {
+        if(this._overflowType == EOverflowType.Hidden || this._overflowType == EOverflowType.Scroll) {
             this._updateHideMask();
         }
     }
@@ -537,6 +536,12 @@ export class ViewGroup extends View {
 
     protected onChildrenChanged() {
 
+    }
+
+    protected relayout() {
+        super.relayout();
+
+        this.applyOverflow();
     }
 
     protected reconstruct() {        

@@ -1,12 +1,9 @@
 import { PackageItem } from "./PackageItem";
 import { randomString } from "../utils/String";
 import { ITemplatable } from "../types/ITemplatable";
-import { ECategoryType } from "./Defines";
 import { ViewScene } from "./ViewScene";
-import { PropertyManager } from "../tween/Property";
 import { ISerializeInfo } from "../annotations/Serialize";
-import { TimelineManager } from "../tween/Timeline";
-import { TextStyle } from "../ui/UITextField";
+import { Templates } from "./Templates";
 
 export class Package {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -95,23 +92,12 @@ export class Package {
             return null;
         }
 
-        let data = this.getTemplateFromUrl(url) as any;
-        if(!data) {
+        let tpl = this.getTemplateFromUrl(url) as any;
+        if(!tpl) {
             return null;
         }
 
-        let result: any;
-        switch(data.__category__) {
-            case ECategoryType.UI:
-                result = scene.addUI.create(data);
-                break;
-            case ECategoryType.Property:
-                result = new PropertyManager().fromJSON(data);
-                break;
-            case ECategoryType.Timeline:
-                result = new TimelineManager().fromJSON(data);
-                break;
-        }
+        let result = Templates.createFromData(scene, tpl);
 
         if(result) {
             result.resourceUrl = url;
@@ -129,15 +115,7 @@ export class Package {
             tpl = this.getTemplateFromUrl(data.resourceUrl);
         }
 
-        let category = data.__category__ || (tpl ? tpl.__category__ : null);
-        switch(category) {
-            case ECategoryType.UI:
-                return scene.addUI.create(data, tpl);
-            case ECategoryType.Property:
-                return new PropertyManager().fromJSON(data, tpl);
-            case ECategoryType.Timeline:
-                return new TimelineManager().fromJSON(data, tpl);
-        }
+        return Templates.createFromData(scene, data, tpl);
     }
 
     public createObject(scene:ViewScene, data: string|object): ITemplatable {

@@ -1,6 +1,6 @@
 import { BaseComponent } from "./BaseComponent";
 import * as Events from "../events";
-import { Point, Time, Input, Pointer, EventData } from "../phaser";
+import { Input, Pointer, EventData } from "../phaser";
 import { Settings } from "../core/Setting";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ComponentFactory } from "./ComponentFactory";

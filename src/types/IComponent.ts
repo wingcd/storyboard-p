@@ -1,5 +1,6 @@
 import { Property } from "../tween/Property";
 import { View } from "../core/View";
+import { ITemplatable } from "./ITemplatable";
 
 export interface ComponentOptions {
     containsParentType?: boolean; 
@@ -13,14 +14,16 @@ export interface IComponent {
     regist(obj: View): void;
     unRegist(): void;
     dispose(): void;
-    toJSON(): any;
-    fromJSON(config?: any, tpl?: any): void;
 
     // awake?(): void;
     // onEnable?(): void;
     // onDisable?(): void;
     // onDispose?(): void;
     // update?(): void;
+}
+
+export interface ISerializableCompoent extends IComponent, ITemplatable{
+
 }
 
 export interface IComponentable {    

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { EDirtyType, ECategoryType } from "./Defines";
-import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter, Pointer } from "../phaser";
+import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
@@ -19,12 +19,11 @@ import { ViewGroup } from "./ViewGroup";
 import { ViewRoot } from "./ViewRoot";
 import { Package } from "./Package";
 import { Templates } from "./Templates";
-import { PropertyManager } from "../tween/Property";
 import { PropertyComponent } from "../components/PropertyComponent";
-import { TimelineManager } from "../tween/Timeline";
 import { AnimationComponent } from "../components/AnimationComponent";
+import { IView } from "../types";
 
-export class View {  
+export class View implements IView{
     static CATEGORY = ECategoryType.UI;
     static TYPE = "view";
 
@@ -66,7 +65,7 @@ export class View {
     }
 
     static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
-        return target.scene.addUI.create(config, tpl);
+        return [target.scene.addUI.create(config, tpl), false];
     }
 
     static DESERIALIZE_FIELD_START(config: any, target: View, configProp: string, targetProp: string, tpl: any): boolean {
@@ -712,7 +711,9 @@ export class View {
     protected updateGraphicsMask(targetObj: Phaser.GameObjects.Components.Mask, x?: number, y?: number, width?: number, height?: number, clear: boolean = false) {
         if(clear) {
             this.setMask(targetObj, null, true);
+            return;
         }
+        
         let mask = targetObj.mask;
         let target: Graphics;
         if(!mask) {
@@ -800,7 +801,7 @@ export class View {
     protected setMask(container: Phaser.GameObjects.Components.Mask, mask: MaskType, dispose: boolean = false) {
         if(mask != container.mask) {
             if(container.mask && dispose) {
-                let mk = mask as any;
+                let mk = container.mask as any;
                 delete mk.__mask_raw_x;
                 delete mk.__mask_raw_y;
                 container.clearMask(true);
@@ -1529,11 +1530,6 @@ export class View {
         return comps;
     }
 
-    public clone(): View {
-        let json = this.toJSON();
-        return this.scene.addUI.create(json);
-    }
-
     protected applayProperties() {
         this._rootContainer.angle = this._angle;
     }
@@ -1583,6 +1579,11 @@ export class View {
         this.setDefaultValues();
         this.relayout();
         this.updateComponents();
+    }    
+
+    public clone(): View {
+        let json = this.toJSON();
+        return this.scene.addUI.create(json);
     }
 
     public toJSON(): any {
@@ -1739,4 +1740,6 @@ export class View {
     }
 }
 
-Templates.regist(View.CATEGORY, View);
+Templates.regist(View.CATEGORY, null, (scene: ViewScene, data: any, tpl: any)=>{
+    return scene.addUI.create(data, tpl);
+});

@@ -43,7 +43,7 @@ export enum EDirtyType {
     DebugBorderChanged = 1 << 7,
 }
 
-export enum EOverflowType { Visible, Hidden, Scroll, Scale, ScaleFree };
+export enum EOverflowType { Visible, Hidden, Scroll };
 export enum EScrollType { Horizontal, Vertical, Both };
 export enum EDragType { Horizontal, Vertical, Both };
 export enum EVertAlignType { Top, Middle, Bottom };

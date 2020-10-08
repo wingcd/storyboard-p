@@ -57,7 +57,7 @@ export class KeyFrameGroup {
         let fields:ISerializeInfo[] = [];
         fields.push(
             {property: "_propPath", alias: "prop"},
-            {property: "_targetPath", alias: "path"},
+            {property: "_targetPath", alias: "path", default: ""},
             {property: "_keyframes", alias: "frames", type: KeyFrame},
         );
         return fields;
@@ -71,7 +71,7 @@ export class KeyFrameGroup {
     private _keyName: string;
     private _propName: string;    
     private _propPath: string;
-    private _targetPath: string;
+    private _targetPath: string = "";
     private _target: View;
     private _realTarget: any;
     private _store: any = {};
@@ -438,8 +438,8 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
             {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
 
             {property: "resourceUrl", default: null},
-            {property: "_id", alias: "id", default: null},
-            {property: "_name", alias: "name", default: null},
+            {property: "_id", alias: "id"},
+            {property: "_name", alias: "name"},
             {property: "playOnEnable", default: false},
             {property: "_groups", alias: "groups", type: KeyFrameGroup, default: []},
         );
@@ -939,6 +939,11 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         }        
 
         return this;
+    }
+
+    public clone(): TimelineManager {
+        let json = this.toJSON();
+        return new TimelineManager().fromJSON(json);
     }
 }
 

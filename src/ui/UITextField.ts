@@ -6,8 +6,11 @@ import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { Templates } from "../core/Templates";
-import { clone } from "../utils/Serialize";
+import { clone, Deserialize, Serialize } from "../utils/Serialize";
 import { colorToString } from "../utils/Color";
+import { ComponentFactory } from "../components";
+import { Package } from "../core/Package";
+import { ITemplatable } from "../types/ITemplatable";
 
 class UnderlineStyle {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -25,7 +28,7 @@ class UnderlineStyle {
     offset?: number = 0;
 }
 
-export class TextStyle implements ITextStyle {
+export class TextStyle implements ITextStyle, ITemplatable {
     static CATEGORY = ECategoryType.TextStyle;
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -33,6 +36,7 @@ export class TextStyle implements ITextStyle {
         fields.push(    
             {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
             {property: "resourceUrl"},
+            {property: "_id", alias: "id"}, 
 
             {property: "fontFamily", default: "Arial"},
             {property: "fontSize", default: 16},
@@ -66,7 +70,16 @@ export class TextStyle implements ITextStyle {
         return fields;
     }
 
+    private _id: string;
     public resourceUrl: string;
+
+    public constructor() {
+        this._id = `${Package.getUniqueID()}`;        
+    }
+
+    public get id(): string {
+        return this._id;
+    }
 
     /**
      * The font the Text object will render with. This is a Canvas style font string.
@@ -88,6 +101,27 @@ export class TextStyle implements ITextStyle {
     halign?: 'left'|'center'|'right'|'justify' = 'left';
     // in vertical model
     valign?: 'top'|'center'|'bottom'|'justify' = 'top';
+
+    public clone(): TextStyle {
+        let json = this.toJSON();
+        return new TextStyle().fromJSON(json);
+    }   
+
+    public toJSON(): any {
+        let temp = null;
+        if(this.resourceUrl) {
+            temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
+        }
+        return Serialize(this, temp);
+    }
+
+    public fromJSON(config: any, template?: any): this {
+        if(config || template) {
+            Deserialize(this, config, template);
+        }
+
+        return this;
+    }
 }
 Templates.regist(TextStyle.CATEGORY, TextStyle);
 

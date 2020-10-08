@@ -7,7 +7,7 @@ import { Deserialize, Serialize } from "../utils/Serialize";
 import { DragComponent } from "../components/DragComponent";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ViewGroup } from "../core/ViewGroup";
-import { EEaseType, EOverflowType } from "../core/Defines";
+import { EDirtyType, EEaseType, EOverflowType } from "../core/Defines";
 import { Package } from "../core/Package";
 import { PackageItem } from "../core/PackageItem";
 import { View } from "../core/View";
@@ -39,12 +39,18 @@ class UIScene extends ViewScene {
         g.setXY(-5, -5);
         r.addChild(g);
 
+        let c = r.clone() as ViewGroup;
+        c.y = 200;
+        let cc = c.getChildAt(0);
+
         let path = GetViewRelativePath(r, g);
         console.log(path);
         let g1 = GetViewByRelativePath(r, path);
         console.log(g1);
 
         let json = r.toJSON();
+        console.log(json);
+
         let pkgItem = new PackageItem();        
         Package.inst.addPackage(pkgItem);
         let temp = pkgItem.addTemplate(json);
@@ -58,6 +64,9 @@ class UIScene extends ViewScene {
 
         let clone = Package.inst.createObjectFromUrl(this, temp) as View;
         clone.x = 200;
+
+        console.log(clone);
+        console.log(clone.toJSON());
 
         let clone1 = Package.inst.createObjectFromUrl(this, propTemp) as PropertyManager;
         clone1.bindTarget(clone);

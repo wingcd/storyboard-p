@@ -1,9 +1,7 @@
-import { BaseComponent } from "./BaseComponent";
 import * as Events from "../events";
-import { Point, Tween, Input, EventData, Pointer, GameObject, Easing } from "../phaser";
-import { EOverflowType, EScrollType, ECategoryType } from "../core/Defines";
+import { Point, Tween, Input, EventData, Pointer, Easing } from "../phaser";
+import { EScrollType } from "../core/Defines";
 import { MathUtils } from "../utils/Math";
-import { DisplayObjectEvent, GestureEvent } from "../events";
 import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
@@ -11,7 +9,6 @@ import { ViewGroup } from "../core/ViewGroup";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
-import { ObjectFactory } from "../core/ObjectFactory";
 import { SerializableComponent } from "./SerializableComponent";
 
 const enum EScrollStatus {
@@ -36,7 +33,7 @@ export class ScrollPaneComponent extends SerializableComponent {
     public static TYPE = "scroll";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        let fields = SerializableComponent.SERIALIZABLE_FIELDS;
         fields.push(
            {property: "scrollType",default: EScrollType.Both,type: EScrollType},
            {property: "scrollSpeed",alias: "speed",default: Settings.defaultScrollSpeed},

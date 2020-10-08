@@ -5,7 +5,7 @@ import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
-import { EventEmitter, Point, Pointer, Rectangle, Tween } from "../phaser";
+import { EventData, EventEmitter, Point, Pointer, Rectangle, Tween } from "../phaser";
 import { EFillType } from "../types";
 import { EProgressTitleType } from "../types/IUIProgressBar";
 import { MathUtils } from "../utils/Math";
@@ -160,8 +160,8 @@ export class UIScrollBar extends ViewGroup {
         this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);
     }
 
-    private __gripMouseDown(sender: View, pointer: Pointer): void {
-        pointer.event.stopPropagation();
+    private __gripMouseDown(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
+        event.stopPropagation();
 
         this._gripDragging = true;
         
@@ -199,8 +199,8 @@ export class UIScrollBar extends ViewGroup {
         this._gripDragging = false;
     }
 
-    private __arrow1Click(sender: View, pointer: Pointer): void {
-        pointer.event.stopPropagation();
+    private __arrow1Click(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
+        event.stopPropagation();
 
         if (this._vertical)
             this._target.scrollUp();
@@ -208,8 +208,8 @@ export class UIScrollBar extends ViewGroup {
             this._target.scrollLeft();
     }
 
-    private __arrow2Click(sender: View, pointer: Pointer): void {
-        pointer.event.stopPropagation();
+    private __arrow2Click(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
+        event.stopPropagation();
 
         if (this._vertical)
             this._target.scrollDown();

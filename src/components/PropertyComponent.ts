@@ -1,5 +1,3 @@
-import { BaseComponent } from "./BaseComponent";
-import { ECategoryType } from "../core/Defines";
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
@@ -13,7 +11,7 @@ export class PropertyComponent extends SerializableComponent {
 
     private _contollers: PropertyManager[] = [];
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
+        let fields = SerializableComponent.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "_contollers", alias: "contollers", type: PropertyManager, default: []},
         );

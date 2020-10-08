@@ -2,7 +2,6 @@ import { BaseComponent } from "./BaseComponent";
 import * as Events from "../events";
 import { Point, Input, Pointer, EventData } from "../phaser";
 import { Settings } from "../core/Setting";
-import { GestureEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { DragComponent } from "./DragComponent";
 import { ComponentFactory } from "./ComponentFactory";

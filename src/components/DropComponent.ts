@@ -4,7 +4,6 @@ import { View } from "../core/View";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { Input, Pointer } from "../phaser";
-import { PoolManager } from "../utils/PoolManager";
 import { ComponentFactory } from "./ComponentFactory";
 
 @disallow_multiple_component()
