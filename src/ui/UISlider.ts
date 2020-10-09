@@ -37,6 +37,8 @@ export class UISlider extends ViewGroup {
     private _vBar: View;
     private _hGrip: View;
     private _vGrip: View;
+    private _hAnchor: View;
+    private _vAnchor: View;
     // private _aniView: View;
 
     private _min: number = 0;
@@ -126,6 +128,9 @@ export class UISlider extends ViewGroup {
         return this._autoSetGripPos;
     }
 
+    /**
+     * 如果为false时，需要添加水平(anchor)或竖直(anchor_v)锚点，并进行设置关联,否则grip组件不会移动
+     */
     public set autoSetGripPos(val: boolean) {
         if(this._autoSetGripPos != val) {
             this._autoSetGripPos = val;
@@ -198,6 +203,9 @@ export class UISlider extends ViewGroup {
             if(this._autoSetGripPos && this._hGrip) {
                 this._hGrip.x = this._barStartX + w - this._hGrip.width * 0.5;
             }
+            if(this._hAnchor) {
+                this._hAnchor.x = this._barStartX + w;
+            }
             
             let h = fullHeight * percent;
             if(this._vBar) {
@@ -207,6 +215,9 @@ export class UISlider extends ViewGroup {
             }
             if(this._autoSetGripPos && this._vGrip) {
                 this._vGrip.y = this._barStartX + h - this._vGrip.height * 0.5;
+            }
+            if(this._vAnchor) {
+                this._vAnchor.y = this._barStartX + h;
             }
         }else {            
             let w = fullWidth * percent;
@@ -220,6 +231,9 @@ export class UISlider extends ViewGroup {
             if(this._autoSetGripPos && this._hGrip) {
                 this._hGrip.x = newx - this._hGrip.width * 0.5;
             }
+            if(this._hAnchor) {
+                this._hAnchor.x = newx;
+            }
             
             let h = fullHeight * percent;
             let newy = this._barStartY + (fullHeight - h);
@@ -231,6 +245,9 @@ export class UISlider extends ViewGroup {
             }
             if(this._autoSetGripPos && this._vGrip) {
                 this._vGrip.y = newy - this._vGrip.height * 0.5;
+            }
+            if(this._vAnchor) {
+                this._vAnchor.y = newy;
             }
         }   
 
@@ -294,13 +311,17 @@ export class UISlider extends ViewGroup {
         let oldVBar = this._vBar;
         let oldHGrip = this._hGrip;
         let oldVGrip = this._vGrip;
-        let oldTitle = this._titleObject;
+        let oldTitle = this._titleObject;        
+        let oldHAnchor = this._hAnchor;
+        let oldVAnchor = this._vAnchor;
 
         this._hBar = this.getChild("bar");
         this._vBar = this.getChild("bar_v");
         this._titleObject = this.getChild("title") as UITextField;
         this._hGrip = this.getChild('grip');
         this._vGrip = this.getChild('grip_v');
+        this._hAnchor = this.getChild('anchor');
+        this._vAnchor = this.getChild('anchor_v');
 
         if(this._hBar) {
             if(oldHBar != this._hBar) {
@@ -344,7 +365,10 @@ export class UISlider extends ViewGroup {
             }
         }
 
-        let changed = oldHBar != this._hBar || oldVBar != this._vBar || oldHGrip != this._hGrip || oldVGrip != this._vGrip || this._titleObject != oldTitle;
+        let changed = oldHBar != this._hBar || oldVBar != this._vBar || 
+                    oldHGrip != this._hGrip || oldVGrip != this._vGrip || this._titleObject != oldTitle ||
+                    oldHAnchor != this._hAnchor || oldVAnchor != this._vAnchor;
+        
         if(changed) {
             this.update();
         }

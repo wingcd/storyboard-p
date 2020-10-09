@@ -1,4 +1,4 @@
-import { Container, Scene, Rectangle, Graphics, GeometryMask } from "../phaser";
+import { Container, Scene, Rectangle, Graphics, GeometryMask, Point } from "../phaser";
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
@@ -6,6 +6,7 @@ import { ViewScene } from "./ViewScene";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { View } from "./View";
+import { Margin } from "../utils/Margin";
 
 export class ViewGroup extends View {
     static TYPE = "group";
@@ -20,12 +21,16 @@ export class ViewGroup extends View {
         return fields;
     }
 
-    protected _opaque: boolean = false;
-    protected _overflowType: EOverflowType = EOverflowType.Visible;
-    protected _children: View[] = []; 
+    private _opaque: boolean = false;
+    private _overflowType: EOverflowType = EOverflowType.Visible;
+    private _children: View[] = []; 
+    private _margin: Margin = new Margin();
+    private _alignOffset: Point = new Point();
+    private _scrollRect: Rectangle = new Rectangle();
 
-    protected _container: Container;
-    protected _bounds: Rectangle = new Rectangle(0, 0, 0, 0);
+    private _scrollContainer: Container;
+    private _container: Container;
+    private _bounds: Rectangle = new Rectangle(0, 0, 100, 100);
     private _scrollPane: ScrollPaneComponent = null;
 
     private _batchProcessing = false;
@@ -35,11 +40,12 @@ export class ViewGroup extends View {
 
     constructor(scene: ViewScene) {
         super(scene);
-        
     }
 
     protected constructFromJson(config: any, tpl?:any) {
         super.constructFromJson(config, tpl);
+        
+        this.updateScrollRect();
         this.updateMask();
     }
 
@@ -76,7 +82,7 @@ export class ViewGroup extends View {
     protected applyHitArea() {
         super.applyHitArea();
 
-        if(this.rootContainer.input && this.rootContainer.input.enabled) {            
+        if(this.rootContainer.input && this.rootContainer.input.enabled) {
             // 是否把自身过滤掉
             (this.rootContainer.input as any).___filter_self__ = !this._opaque && !this.enableBackground;
         }
@@ -132,7 +138,7 @@ export class ViewGroup extends View {
         this._gBounds.clear();
         let rect = this.bounds;
         this._gBounds.lineStyle(2/Math.min(this.scaleX, this.scaleY), 0x00ff00, 1);
-        this._gBounds.strokeRect(rect.x + this._container.x, rect.y + this._container.y, rect.width, rect.height); 
+        this._gBounds.strokeRect(rect.x + this._container.x + this._scrollRect.x, rect.y + this._container.y + this._scrollRect.y, rect.width, rect.height); 
      
         this.removeDirty(EDirtyType.DebugBoundsChanged);   
     }
@@ -487,6 +493,18 @@ export class ViewGroup extends View {
                         this._scrollPane = this.addComponentByType(ScrollPaneComponent) as ScrollPaneComponent;
                     }
                 }
+
+                if(!this._scrollContainer) {
+                    this._scrollContainer = this.scene.make.container({});
+                    this.rootContainer.add(this._scrollContainer);
+                    this._scrollContainer.add(this._container);
+
+                    this._scrollContainer.setPosition(this._scrollRect.x, this.scrollRect.y);
+                    this._scrollContainer.setSize(this._scrollRect.width, this._scrollRect.height);
+
+                    this._container.setPosition(0, 0);
+                }
+
                 filterInput = true;
                 this._updateHideMask();
             break;
@@ -497,6 +515,12 @@ export class ViewGroup extends View {
 
         if(this._overflowType != EOverflowType.Scroll) {
             this.removeComponent(this._scrollPane);
+
+            if(this._scrollContainer) {
+                this.rootContainer.add(this._container);
+                this._scrollContainer.destroy();
+                this._scrollContainer = null;
+            }
         }
         
         if(this.rootContainer.input) {
@@ -525,15 +549,71 @@ export class ViewGroup extends View {
             c.updateMask();
         }
 
-        this._container.width = this.width;
-        this._container.height = this.height;
+        this._container.width = this._scrollRect.width;
+        this._container.height = this._scrollRect.height;
         if(this._overflowType == EOverflowType.Hidden || this._overflowType == EOverflowType.Scroll) {
             this._updateHideMask();
         }
     }
 
     private _updateHideMask(clear: boolean = false) {
-        this.updateGraphicsMask(this._container, 0, 0, this.actualWidth, this.actualHeight, clear);
+        this.updateGraphicsMask(this._container, this._scrollRect.x, this._scrollRect.y,
+                                this.actualWidth - this._margin.left - this._margin.right, 
+                                this.actualHeight - this._margin.top - this._margin.bottom, clear);
+    }
+
+    /**@internal */
+    get alignOffset(): Point {
+        return this._alignOffset;
+    }
+
+    set alignOffset(val: Point) {
+        if(val.x != this._alignOffset.x || val.y != this._alignOffset.y) {
+            this._alignOffset.setTo(val.x, val.y);
+            this.handleSizeChanged();
+        }
+    }
+
+    /**@internal */
+    get scrollRect(): Rectangle {
+        return this._scrollRect;
+    }
+
+    public get margin(): Margin {
+        return this._margin;
+    }
+
+    public set margin(value: Margin) {
+        if(this._margin.left != value.left ||
+            this._margin.right != value.right ||
+            this._margin.top != value.top ||
+            this._margin.bottom != value.bottom) {
+            this._margin.copy(value);
+            this.updateScrollRect();
+            this.handleSizeChanged();
+        }
+    }
+
+    protected updateScrollRect() {
+        this._scrollRect.setTo(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y, 
+            this.width - this._margin.left - this._margin.right, this.height - this._margin.top - this._margin.bottom);
+        
+        if(this._scrollContainer) {
+            this._scrollContainer.x = this._scrollRect.x;
+            this._scrollContainer.y = this._scrollRect.y;
+            this._scrollContainer.width = this._scrollRect.width;
+            this._scrollContainer.height = this._scrollRect.height;
+        }
+    }
+    
+    protected handleSizeChanged() {
+        super.handleSizeChanged();
+
+        this.updateScrollRect();
+        if(this._scrollPane) {
+            this._scrollPane.onOwnSizeChanged();
+        }
+        this.applyHitArea();
     }
 
     /**@internal */

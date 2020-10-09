@@ -1,8 +1,9 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Point } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EOverflowType } from "../core/Defines";
+import { EOverflowType, EScrollType } from "../core/Defines";
+import { Margin } from "../utils/Margin";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -18,11 +19,15 @@ class UIScene extends ViewScene {
         view.setBackgroundColor(0xa0a0a0, true);
         view.setXY(100, 50);
         view.setSize(450, 400);
-        view.overflowType = EOverflowType.Hidden;
+        view.margin = new Margin(100, 100, 0, 0);
+        view.overflowType = EOverflowType.Scroll;
+        // view.scrollPane.inertanceEffect = true;
+        view.scrollPane.scrollType = EScrollType.Horizontal;
+        view.scrollPane.bouncebackEffect = true;
         
         let child1 = this.makeUI.view();
         child1.setBackgroundColor(0x00ff00, true);
-        child1.setXY(200, 200);
+        child1.setXY(100, 200);
         child1.angle = 45;
         child1.useBorderAsFrame = false;
         view.addChild(child1);
@@ -32,7 +37,7 @@ class UIScene extends ViewScene {
 
         let child2 = this.makeUI.view();
         child2.setBackgroundColor(0xffff00, true);
-        child2.setXY(400, 100);
+        child2.setXY(700, 100);
         view.addChild(child2);
     }
 

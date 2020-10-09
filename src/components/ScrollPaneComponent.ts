@@ -97,7 +97,6 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private onEnable() {
-        this.owner.on(Events.DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
         this.owner.on(Input.Events.POINTER_WHEEL, this._mouseWheel, this);
 
         this.owner.on(Input.Events.POINTER_DOWN, this._touchDown, this);
@@ -106,21 +105,20 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private onDisable() {
-        this.owner.off(Events.DisplayObjectEvent.SIZE_CHANGED, this._onSizeChanged, this);
         this.owner.off(Input.Events.POINTER_WHEEL, this._mouseWheel, this);   
 
         this.owner.off(Input.Events.POINTER_DOWN, this._touchDown, this);
-
+        
         this.owner.container.setPosition(0, 0);
     }
 
     private _init() {
         this.owner.container.setPosition(0, 0);
-        this._viewSize.setTo(this.owner.width, this.owner.height);
+        this._viewSize.setTo(this.owner.scrollRect.width, this.owner.scrollRect.height);
         this._contentSize.setTo(this.owner.bounds.width + this.owner.bounds.x, this.owner.bounds.height + this.owner.bounds.y);
         this._updateOverlap();
     }
-
+    
     private _updateOverlap() {
         if (this.scrollType == EScrollType.Horizontal || this.scrollType == EScrollType.Both) {
             this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
@@ -136,8 +134,8 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
     }
 
-    private _onSizeChanged(sender: View, oldWidth:number, oldHeight:number, newWidth:number, newHeight:number) {
-        this._viewSize.setTo(this.owner.width, this.owner.height);
+    public onOwnSizeChanged() {
+        this._viewSize.setTo(this.owner.scrollRect.width, this.owner.scrollRect.height);
         this._handleSizeChanged();
     }
 
@@ -317,12 +315,6 @@ export class ScrollPaneComponent extends SerializableComponent {
             
             this._moveOffset.x = pointer.worldX - ScrollPaneComponent.sLastScrollPt.x;
             this._moveOffset.y = pointer.worldY - ScrollPaneComponent.sLastScrollPt.y;
-
-            //simulate drag force
-            let sx = 1 - Math.abs(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / this._viewSize.x;
-            let sy = 1 - Math.abs(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / this._viewSize.y;          
-            this._moveOffset.x *= sx;
-            this._moveOffset.y *= sy;
                         
             let newPosX = Math.round(this.owner.container.x + this._moveOffset.x);
             let newPosY = Math.round(this.owner.container.y + this._moveOffset.y);
@@ -427,7 +419,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         this._clearAnimation();
 
         if(status != EScrollAnimStatus.NONE) { 
-            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 200);
+            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 100);
             let easing: any = Easing.Linear;
             let tween = this._owner.scene.tweens.create({
                 targets: {
@@ -552,11 +544,11 @@ export class ScrollPaneComponent extends SerializableComponent {
      }
 
      public get scrollingPosX(): number {
-        return MathUtils.clamp(-this._owner.x, 0, this._overlapSize.x);
+        return MathUtils.clamp(-this._group.container.x, 0, this._overlapSize.x);
     }
 
     public get scrollingPosY(): number {
-        return MathUtils.clamp(-this._owner.y, 0, this._overlapSize.y);
+        return MathUtils.clamp(-this._group.container.y, 0, this._overlapSize.y);
     }
 
     public scrollTop(ani?: boolean): void {
