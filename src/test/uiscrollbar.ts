@@ -19,84 +19,81 @@ class UIScene extends ViewScene {
     preload() {
         this.load.image('nine', './res/44.png');
         this.load.image('normal', './res/ui/normal.png');
+        this.load.image('up', './res/ui/up.png');
+        this.load.image('down', './res/ui/down.png');
+        this.load.image('left', './res/ui/left.png');
+        this.load.image('right', './res/ui/right.png');
     }
 
     create(): void {
-        let slider = this.addUI.slider({
+        let scroll = this.addUI.scrollBar({
             x: 250,
             y: 25,
             width: 200,
             height: 40,
         });  
-        slider.setBackgroundColor(0xffff00, true);        
+        scroll.setBackgroundColor(0xffff00, true);        
 
         let bar = this.addUI.image({
             name: "bar",
             textureKey: "normal",
-            width: 200,
+            width: 160,
             height: 40,
+            x: 20,
         });
         bar.fillMask.fillType = EFillType.Horizontal;
-        bar.fillMask.origin = EDirectionType.Right;           
-        slider.addChild(bar);
-        slider.reverse = true;
+        bar.fillMask.origin = EDirectionType.Right;
+        bar.fillMask.value = 1;           
+        scroll.addChild(bar);
 
         let grip = this.addUI.image({
             name: "grip",
             textureKey: "nine",
-            width: 15,
-            height: 60,
-            y: -10,
+            width: 20,
+            height: 40,
+            x: 20,
         });
-        slider.addChild(grip);
-        grip.relations.set(ERelationPinType.LEFT, bar);
+        scroll.addChild(grip);
 
-        let title = this.makeUI.textField();
-        title.x = 40;
-        title.setSize(120, 40);
-        title.autoSize = EAutoSizeType.None;
-        title.textAlign = EAlignType.Center;
-        title.horizontalAlign = EHorAlignType.Center;
-        title.name = "title";
-        title.fontSize = 24;
-        slider.addChild(title);
-        slider.ensureAllCorrect();
-        console.log(slider.toJSON());
-        
-        let pg = slider.clone() as UIProgressBar;
-        pg.y = 200;
-        let img = pg.getChild('bar') as UIImage;
-        img.fillMask.origin = EDirectionType.Left;
-        pg.reverse = false;
-        pg.titleType = EProgressTitleType.ValueAndMax;
-        pg.value = 100;
+        let lbtn = this.addUI.image({
+            name: "arrow1",
+            textureKey: 'left',
+            width: 20,
+            height: 40,
+            enableBackground: true,
+            backgroundColor: 0x00ff00,
+        });
+        lbtn.touchable = true;
+        scroll.addChild(lbtn);
 
-        let pg1 = pg.clone() as UIProgressBar;
-        pg1.removeComponentByType(AnimationComponent);
-        pg1.y = 300;
-        img = pg1.getChild('bar') as UIImage;
-        img.fillMask.fillType = EFillType.None;
-
+        let rbtn = this.addUI.image({
+            name: "arrow2",
+            textureKey: 'right',
+            x: 180,
+            width: 20,
+            height: 40,
+            enableBackground: true,
+            backgroundColor: 0x00ff00,
+        });
+        rbtn.touchable = true;
+        scroll.addChild(rbtn);
 
         //v-slider
-        let vslider = this.addUI.slider({
+        let vscroll = this.addUI.scrollBar({
             x: 600,
             y: 25,
             width: 40,
             height: 200,
         });  
-        vslider.setBackgroundColor(0xffff00, true);        
+        vscroll.setBackgroundColor(0xffff00, true);        
 
         let vbar = this.addUI.image({
             name: "bar_v",
             textureKey: "normal",
             width: 40,
             height: 200,
-        });
-        vbar.fillMask.fillType = EFillType.Vertical;
-        vbar.fillMask.origin = EDirectionType.Top;           
-        vslider.addChild(vbar);
-        vslider.value = 100;
+        });        
+        vscroll.addChild(vbar);
 
         let vgrip = this.addUI.image({
             name: "grip_v",
@@ -105,7 +102,7 @@ class UIScene extends ViewScene {
             height: 15,
             x: -10,
         });
-        vslider.addChild(vgrip);
+        vscroll.addChild(vgrip);
 
         let vtitle = this.makeUI.textField();
         // vtitle.y = 40;
@@ -117,13 +114,8 @@ class UIScene extends ViewScene {
         vtitle.name = "title";
         vtitle.fontSize = 24;
         vtitle.verticalMode = true;
-        vslider.addChild(vtitle);
-        vslider.ensureAllCorrect();
-
-        let vs = vslider.clone() as UISlider;
-        vs.x = 700;
-        vs.reverse = true;
-        (vs.getChild("bar_v") as UIImage).fillMask.origin = EDirectionType.Bottom;
+        vscroll.addChild(vtitle);
+        vscroll.ensureAllCorrect();
 
         console.log(1);
     }

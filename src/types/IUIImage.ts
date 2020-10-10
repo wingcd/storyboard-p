@@ -1,14 +1,5 @@
-import { EDirectionType } from "../core/Defines";
-import { IView, IViewConfig } from ".";
-
-export const enum EFillType {
-    None,
-    Horizontal,
-    Vertical,
-    Rotate90,
-    Rotate180,
-    Rotate360,
-}
+import { EDirectionType, EFillType, ETextureScaleType, } from "../core/Defines";
+import { IViewConfig } from "./IView";
 
 export interface IFillMask {
     fillType?: EFillType;
@@ -17,12 +8,6 @@ export interface IFillMask {
     anticlockwise?: boolean;
     outterRadius?: number;
     innerRadius?: number;
-}
-
-export enum ETextureScaleType {
-    None,
-    Tile,
-    NinePatch,    
 }
 
 export interface ITileInfo {

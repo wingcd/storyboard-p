@@ -1,9 +1,9 @@
 import * as Events from "../events";
 import { ViewGroup } from "./ViewGroup";
 import { View } from "./View";
-import { ERelationPinType } from "../types";
 import { GetViewByRelativePath, GetViewRelativePath, IsViewChild } from "../utils/Object";
 import { ISerializeInfo } from "../annotations/Serialize";
+import { ERelationPinType } from "./Defines";
 
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
 

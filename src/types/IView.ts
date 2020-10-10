@@ -10,8 +10,6 @@ import { IDraggable } from "./IDraggable";
 import { IFocusable } from "./IFocusable";
 import { IViewGroup } from "./IViewGroup";
 import { ISerialable } from "./ISerialable";
-import { TimelineManager } from "../tween/Timeline";
-import { PropertyManager } from "../tween/Property";
 import { Relations } from "../core/Relations";
 import { ITemplatable } from "./ITemplatable";
 

@@ -5,9 +5,9 @@ import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
 import { Input } from "../phaser";
 import { PropertyManager } from "../tween/Property";
-import { EButtonMode } from "../types/IUIButton";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
+import { EButtonMode } from "../core/Defines";
 require("../components");
                     
 export class UIButton extends ViewGroup {

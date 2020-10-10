@@ -1,11 +1,5 @@
+import { EProgressTitleType } from "../core/Defines";
 import { IViewGroupConfig } from "./IViewGroup";
-
-export enum EProgressTitleType {
-    Percent,
-    ValueAndMax,
-    Value,
-    Custom,
-}
 
 export interface IUIProgressBarConfig extends IViewGroupConfig {
     titleType?: EProgressTitleType;

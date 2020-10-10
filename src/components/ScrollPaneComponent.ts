@@ -1,6 +1,6 @@
 import * as Events from "../events";
-import { Point, Tween, Input, EventData, Pointer, Easing } from "../phaser";
-import { EScrollType } from "../core/Defines";
+import { Point, Tween, Input, EventData, Pointer, Easing, Rectangle } from "../phaser";
+import { EScrollbarDisplayType as EScrollBarDisplayType, EScrollType } from "../core/Defines";
 import { MathUtils } from "../utils/Math";
 import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
@@ -10,6 +10,9 @@ import { View } from "../core/View";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 import { SerializableComponent } from "./SerializableComponent";
+import { UIScrollBar } from "../ui/UIScrollBar";
+import { Package } from "../core/Package";
+import { Margin } from "../utils/Margin";
 
 const enum EScrollStatus {
     NONE,
@@ -63,6 +66,14 @@ export class ScrollPaneComponent extends SerializableComponent {
     public touchEffect: boolean = true;
     public inertanceEffect: boolean = false;
     public bouncebackEffect: boolean = false;
+    public scrollBarDisplay: EScrollBarDisplayType = EScrollBarDisplayType.Default;
+
+    private _scrollBarMargin: Margin = new Margin();
+    private _displayOnLeft: boolean = false;
+    private _autoLayoutView: boolean = true;
+
+    private _vScrollBarRes: string;
+    private _hScrollBarRes: string;
 
     private _viewSize: Point = new Point();
     private _contentSize: Point = new Point();
@@ -72,6 +83,13 @@ export class ScrollPaneComponent extends SerializableComponent {
     private _posY: number = 0;
     private _moveOffset: Point = new Point();
     private _group: ViewGroup;
+
+    private _vScrollBar: UIScrollBar;
+    private _hScrollBar: UIScrollBar;
+    private _scrollBarVisible: boolean = false;
+    private _mouseWheelEnabled: boolean = false;
+    private _vScrollVisble: boolean = false;
+    private _hScrollVisble: boolean = false;
 
     private _animationInfo: {
         status: EScrollAnimStatus,
@@ -90,6 +108,7 @@ export class ScrollPaneComponent extends SerializableComponent {
 
         this._group = view;
         super.regist(view);
+        this._construct();
     }
 
     public get owner(): ViewGroup {
@@ -150,6 +169,74 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     private _handleSizeChanged() {
         this._updateOverlap();
+
+        let display = this.scrollBarDisplay;
+        if (display == EScrollBarDisplayType.Default) {
+            display = Settings.defaultScrollBarDisplay;
+        }
+
+        let ofs = this.owner.scrollOffsetSize;
+        let offset = new Point(ofs.x, ofs.y);
+        if (display == EScrollBarDisplayType.Auto) {
+            if (this._vScrollBar) {
+                if (this._contentSize.y <= this._viewSize.y) {
+                    if (this._vScrollVisble) {
+                        this._vScrollVisble = false;
+                        offset.x += this._vScrollBar.width;
+                    }
+                }
+                else {
+                    if (!this._vScrollVisble) {
+                        this._vScrollVisble = true;
+                        offset.x -= this._vScrollBar.width;
+                    }
+                }
+            }
+            if (this._hScrollBar) {
+                if (this._contentSize.x <= this._viewSize.x) {
+                    if (this._hScrollVisble) {
+                        this._hScrollVisble = false;
+                        offset.y += this._hScrollBar.height;
+                    }
+                }
+                else {
+                    if (!this._hScrollVisble) {
+                        this._hScrollVisble = true;
+                        offset.y -= this._hScrollBar.height;
+                    }
+                }
+            }
+        }
+
+        if(this._autoLayoutView) {
+            this.owner.scrollOffsetSize = offset;
+        }
+
+        if (this._vScrollBar) {
+            if (this._viewSize.y < this._vScrollBar.minSize) {
+                //use this._vScrollBar.container.visible instead of this._vScrollBar.visible... ScrollBar actually is not in its owner's display tree, so vScrollBar.visible will not work
+                // this._vScrollBar.container.visible = false;
+            } else {
+                // this._vScrollBar.container.visible = this._scrollBarVisible && !this._vScrollNone;
+                if (this._contentSize.y == 0)
+                    this._vScrollBar.displayPerc = 0;
+                else
+                    this._vScrollBar.displayPerc = Math.min(1, this._viewSize.y / this._contentSize.y);
+            }
+        }
+        if (this._hScrollBar) {
+            if (this._viewSize.x < this._hScrollBar.minSize) {
+                // this._hScrollBar.container.visible = false;
+            } else {
+                // this._hScrollBar.container.visible = this._scrollBarVisible && !this._hScrollNone;
+                if (this._contentSize.x == 0)
+                    this._hScrollBar.displayPerc = 0;
+                else
+                    this._hScrollBar.displayPerc = Math.min(1, this._viewSize.x / this._contentSize.x);
+            }
+        }
+
+        this._syncScrollBar();
     }
 
     public setPosX(val: number, ani?: boolean) {
@@ -206,12 +293,14 @@ export class ScrollPaneComponent extends SerializableComponent {
             this._posX = this._endPos.x;
             this._posY = this._endPos.y;
             this.owner.scrollTo(-this._posX, -this._posY);
+            this._syncScrollBar();
         }
     }
 
     private _mouseWheel(pointer: Pointer): void {
-        if (!this.enableMouseWheel)
+        if (!this.enableMouseWheel || !this._mouseWheelEnabled)
             return;
+            
         let dlt = 0;
         if(Math.abs(pointer.deltaX) > Math.abs(pointer.deltaY)) {
             dlt = pointer.deltaX;
@@ -369,6 +458,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }
             }             
 
+            this._syncScrollBar();
             ScrollPaneComponent.sLastScrollPt.setTo(pointer.worldX, pointer.worldY);
             this.owner.emit(Events.ScrollEvent.SCROLLING);
         }  
@@ -442,7 +532,8 @@ export class ScrollPaneComponent extends SerializableComponent {
                             this.owner.scrollTo(data.x, data.y);
                             this.owner.emit(Events.ScrollEvent.SCROLLING);
                             break;                            
-                    }
+                    }                    
+                    this._syncScrollBar();
                 },
                 onComplete: (t, targets)=>{
                     this._clearAnimation();
@@ -524,8 +615,9 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
     }
 
-    private _scrollEnd(): void {
-        this._reset();
+    private _scrollEnd(): void {      
+        this._reset();        
+        this._syncScrollBar(true);
         ScrollPaneComponent._draggingPane = null;
         ScrollPaneComponent._sStatus = EScrollStatus.NONE;
         ScrollPaneComponent._sScrollBeginCancelled = true;
@@ -591,6 +683,131 @@ export class ScrollPaneComponent extends SerializableComponent {
         //     this.setPosX(this._xPos + this._scrollStep * ratio, ani);
     }
 
+    public set displayOnLeft(val: boolean) {
+        if(this._displayOnLeft != val) {
+            this._displayOnLeft = val;
+            this.updateScrollBar();
+        }
+    }
+
+    public get displayOnLeft(): boolean {
+        return this._displayOnLeft;
+    }
+
+    public setSrollbar(hScrollBarRes: string, vScrollBarRes: string): this {
+        if(this._vScrollBarRes != vScrollBarRes || this._hScrollBarRes != hScrollBarRes) {
+            this._vScrollBarRes = vScrollBarRes;
+            this._hScrollBarRes = hScrollBarRes;
+            this._construct();
+        }
+        return this;
+    }
+
+    private _construct() {
+        let display = this.scrollBarDisplay;
+        if (display == EScrollBarDisplayType.Default) {
+            display = Settings.defaultScrollBarDisplay;
+        }
+
+        this._scrollBarVisible = true;
+        this._mouseWheelEnabled = true;
+
+        if(display != EScrollBarDisplayType.Hidden) {
+            if(this._hScrollBar) {
+                this._hScrollBar.dispose();
+                this._hScrollBar = null;
+            }
+            let hRes = this._hScrollBarRes || Settings.horizontalScrollBar;
+            if(hRes) {
+                this._hScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, hRes) as UIScrollBar;
+                if(!this._hScrollBar) {
+                    throw new Error(`Cannot create scrollbar from ${hRes}`);
+                }
+                this._hScrollBar.setScrollPane(this, false);
+                this._owner.rootContainer.add(this._hScrollBar.rootContainer);
+            }
+
+            if(this._vScrollBar) {
+                this._vScrollBar.dispose();
+                this._vScrollBar = null;
+            }
+            let vRes = this._vScrollBarRes || Settings.verticalScrollBar;
+            if(vRes) {
+                this._vScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, vRes) as UIScrollBar;
+                if(!this._vScrollBar) {
+                    throw new Error(`Cannot create scrollbar from ${vRes}`);
+                }
+                this._vScrollBar.setScrollPane(this, true);
+                this._owner.rootContainer.add(this._vScrollBar.rootContainer);
+            }
+
+            // if(display == EScrollBarDisplayType.Auto) {
+            //     this._scrollBarVisible = false;
+            //     if (this._vScrollBar) {
+            //         this._vScrollBar.container.visible = false;
+            //     }
+            //     if (this._hScrollBar) {
+            //         this._hScrollBar.container.visible = false;
+            //     }
+            // }
+        }else{
+            this._mouseWheelEnabled = false;
+        }        
+
+        this.updateScrollBar();
+    }
+
+    public updateScrollBar() {
+        this.setSize(this._owner.width, this._owner.height);
+    }
+
+    public setSize(width: number, height: number): void {
+        // this.adjustMaskContainer();
+
+        if (this._hScrollBar) {
+            this._hScrollBar.y = height - this._hScrollBar.height;
+            if (this._vScrollBar) {
+                this._hScrollBar.width = width - this._vScrollBar.width - this._scrollBarMargin.left - this._scrollBarMargin.right;
+                if (this._displayOnLeft)
+                    this._hScrollBar.x = this._scrollBarMargin.left + this._vScrollBar.width;
+                else
+                    this._hScrollBar.x = this._scrollBarMargin.left;
+            }
+            else {
+                this._hScrollBar.width = width - this._scrollBarMargin.left - this._scrollBarMargin.right;
+                this._hScrollBar.x = this._scrollBarMargin.left;
+            }
+        }
+        if (this._vScrollBar) {
+            if (!this._displayOnLeft)
+                this._vScrollBar.x = width - this._vScrollBar.width;
+            else
+                this._vScrollBar.x = 0;
+            if (this._hScrollBar)
+                this._vScrollBar.height = height - this._hScrollBar.height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+            else
+                this._vScrollBar.height = height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+            this._vScrollBar.y = this._scrollBarMargin.top;
+        }
+
+        this._handleSizeChanged();
+    }
+
+    private _syncScrollBar(end: boolean = false): void {
+        if (this._vScrollBar != null) {
+            this._vScrollBar.scrollPerc = this._overlapSize.y == 0 ? 0 : MathUtils.clamp(-this.owner.container.y, 0, this._overlapSize.y) / this._overlapSize.y;
+            // if (this._scrollBarDisplayAuto)
+            //     this.showScrollBar(!end);
+        }
+        if (this._hScrollBar != null) {
+            this._hScrollBar.scrollPerc = this._overlapSize.x == 0 ? 0 : MathUtils.clamp(-this.owner.container.x, 0, this._overlapSize.x) / this._overlapSize.x;
+            // if (this.$scrollBarDisplayAuto)
+            //     this.showScrollBar(!end);
+        }
+
+        // if (end)
+        //         this.$maskContainer.interactive = true;
+    }
 }
 
 export type ScrollPane = ScrollPaneComponent;

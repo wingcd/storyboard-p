@@ -12,7 +12,7 @@ import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
@@ -26,6 +26,10 @@ import { IView } from "../types";
 export class View implements IView{
     static CATEGORY = ECategoryType.UI;
     static TYPE = "view";
+
+    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
+        return null;
+    }
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = [];
@@ -64,7 +68,7 @@ export class View implements IView{
     }
 
     static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
-        return [target.scene.addUI.create(config, tpl), false];
+        return [target.scene.makeUI.create(config, tpl), false];
     }
 
     static DESERIALIZE_FIELD_START(config: any, target: View, configProp: string, targetProp: string, tpl: any): boolean {
@@ -703,7 +707,6 @@ export class View implements IView{
     public set enabled(value: boolean) {
         this.grayed = !value;
         this.touchable = value;
-        this._rootContainer.cameraFilter
     }
     
     protected updateGraphicsMask(targetObj: Phaser.GameObjects.Components.Mask, x?: number, y?: number, width?: number, height?: number, clear: boolean = false) {
@@ -993,6 +996,8 @@ export class View implements IView{
                 self.update(time, delta);
             }
         }
+
+        this.checkDirty();
     }
 
     /**@internal */

@@ -185,7 +185,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
     if(cfgData == undefined) {
         if(tpl == undefined) {   
             if(info.default != undefined) {
-                if(targetProp.indexOf('.') >= 0 || target[targetProp] == undefined) {         
+                if(targetProp.indexOf('.') >= 0 || target[targetProp] != info.default) {
                     SetValue(target, targetProp, info.default);
                 }
             }
@@ -331,7 +331,9 @@ export function Serialize(source: any, tpl?: any) {
     }
 
     if(shoudproc) {
+        let replaces = source.constructor.EXTENDS_SERIALIZABLE_FIELDS || {};
         for(let item of pnames) {
+            item.default = replaces[item.property] != undefined ? replaces[item.property] : item.default;
             serializeProperty(result, item, source, tpl);
         }
     }
@@ -356,14 +358,17 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
     depth = depth || 0;
 
     let pnames: ISerializeInfo[] = target.constructor.SERIALIZABLE_FIELDS || [];
+    pnames = pnames.concat();
     pnames.sort((a, b)=>{
         let ap = a.priority || 0;
         let bp = b.priority || 0;
         return ap - bp;
     });
 
+    let replaces = target.constructor.EXTENDS_SERIALIZABLE_FIELDS || {};
     for(let item of pnames) {
         if(!item.readonly) {
+            item.default = replaces[item.property] != undefined ? replaces[item.property] : item.default;
             deserializeProperty(target, item, config, tpl, depth);
         }
     }          

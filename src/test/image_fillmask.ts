@@ -1,13 +1,7 @@
-import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { BaseComponent } from "../components/BaseComponent";
-import { Deserialize } from "../utils/Serialize";
-import { DragComponent } from "../components/DragComponent";
-import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { EDirectionType } from "../core/Defines";
-import { ETextureScaleType, EFillType } from "../types";
+import { EDirectionType, EFillType, ETextureScaleType } from "../core/Defines";
 import { UIImage } from "../ui/UIImage";
 
 class UIScene extends ViewScene {

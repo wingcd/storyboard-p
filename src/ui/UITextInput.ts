@@ -5,7 +5,7 @@ import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewGroup } from "../core/ViewGroup";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
 import * as Events from "../events";
 
 export const enum EInputType {
@@ -30,6 +30,13 @@ export class UITextInput extends UITextField {
         return fields;
     }
 
+    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
+        return {
+            touchable: true,
+            focusable: true,            
+        };
+    }
+
     protected _editable:boolean = true;
     protected _inputType: EInputType = EInputType.TEXT;
     protected _promptText: string;
@@ -44,6 +51,7 @@ export class UITextInput extends UITextField {
     public constructor(scene: ViewScene) {
         super(scene);
 
+        this.touchable = true;
         this.focusable = true;
         this.inputType = EInputType.TEXT;
 

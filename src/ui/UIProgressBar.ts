@@ -1,10 +1,9 @@
 import { ISerializeInfo } from "../annotations/Serialize";
+import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import { Tween } from "../phaser";
-import { EFillType } from "../types";
-import { EProgressTitleType } from "../types/IUIProgressBar";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
 require("../components");

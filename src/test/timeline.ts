@@ -1,12 +1,8 @@
-import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EEaseType } from "../core/Defines";
-import { TimelineEvent } from "../events";
-import { EFillType } from "../types";
+import { EEaseType, EFillType } from "../core/Defines";
 import { TimelineManager } from "../tween/Timeline";
-import { UIImage } from "../ui/UIImage";
 require("../components");
 
 class UIScene extends ViewScene {

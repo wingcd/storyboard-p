@@ -2,9 +2,10 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
 import { FillMask } from "./FillMask";
-import { ETextureScaleType, INinePatchInfo, ITileInfo } from "../types";
+import { INinePatchInfo, ITileInfo } from "../types";
+import { ETextureScaleType } from "../core/Defines";
 
 export class NinePatchInfo {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -48,6 +49,12 @@ export class UIImage extends View {
         );
         return fields;
     }
+
+    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
+        return {
+            touchable: false,
+        };
+    }
         
     private _disp: TileSprite | Sprite | NinePatch;
 
@@ -64,6 +71,8 @@ export class UIImage extends View {
 
     constructor(scene: ViewScene) {
         super(scene);
+
+        this.touchable = false;
     }
 
     protected constructFromJson(config: any, tpl?:any) {

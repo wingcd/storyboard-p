@@ -1,17 +1,11 @@
-import { ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
 import { ScrollPane } from "../components";
-import { EDragType } from "../core/Defines";
+import { EOverflowType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
-import { EventData, EventEmitter, Point, Pointer, Rectangle, Tween } from "../phaser";
-import { EFillType } from "../types";
-import { EProgressTitleType } from "../types/IUIProgressBar";
-import { MathUtils } from "../utils/Math";
-import { PoolManager } from "../utils/PoolManager";
-import { UIImage } from "./UIImage";
-import { UITextField } from "./UITextField";
+import { EventData, Point, Pointer} from "../phaser";
 require("../components");
                     
 export class UIScrollBar extends ViewGroup {
@@ -21,9 +15,18 @@ export class UIScrollBar extends ViewGroup {
         let fields = ViewGroup.SERIALIZABLE_FIELDS;
         fields.push(  
             {property: "value", default: 0},
+            {property: "_vertical", alias: "vertical", default: true},            
+            {property: "_fixedGripSize", alias: "fixedGripSize", default: false},
         );
         return fields;
     }    
+
+    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
+        return {
+            opaque: true,
+            _overflowType: EOverflowType.Hidden,  
+        };
+    }
 
     private _vertical: boolean = true;
     private _fixedGripSize: boolean = false;
@@ -34,7 +37,7 @@ export class UIScrollBar extends ViewGroup {
     private _bar: View;
     
     private _target: ScrollPane;
-    private _scrollPrec: number = 0;
+    private _scrollPerc: number = 0;
 
     private _dragOffset: Point = new Point();
     private _gripDragging: boolean = false;
@@ -43,8 +46,8 @@ export class UIScrollBar extends ViewGroup {
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
         this.opaque = true;
+        this.overflowType = EOverflowType.Hidden;
     } 
 
     public setScrollPane(target: ScrollPane, vertical: boolean): this {
@@ -53,30 +56,59 @@ export class UIScrollBar extends ViewGroup {
         return this;
     }
 
-    public setDisplayPrec(val: number): this {
+    public get vertical(): boolean {
+        return this._vertical;
+    }
+
+    public get fixedGripSize(): boolean {
+        return this._fixedGripSize;
+    }
+
+    public set fixedGripSize(val: boolean) {
+        if(this._fixedGripSize != val) {
+            this._fixedGripSize = val;
+
+            this._update();
+        }
+    }
+
+    private _update() {
+        if(this._target) {
+            this._target.updateScrollBar();
+        }
+    }
+
+    public set displayPerc(val: number) {
+        if(!this._grip) {
+            return;
+        }
+
         if(this._vertical) {
             if(!this._fixedGripSize) {
                 this._grip.height = Math.floor(val * this._bar.height);
             }
-            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPrec;
+            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
         }else{
             if(!this._fixedGripSize) {
                 this._grip.width = Math.floor(val * this._bar.width);
             }
-            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPrec;
+            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
         }
 
         this._grip.visible = val != 0 && val != 1;
-        return this;
     }
 
-    public get scrollPrec(): number {
-        return this._scrollPrec;
+    public get scrollPerc(): number {
+        return this._scrollPerc;
     }
     
-    public set scrollPrec(val: number) {
-        if(this._scrollPrec != val) {
-            this._scrollPrec = val;
+    public set scrollPerc(val: number) {
+        if(this._scrollPerc != val) {
+            this._scrollPerc = val;
+
+            if(!this._grip) {
+                return;
+            }
 
             if(this._vertical) {
                 this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * val;
@@ -116,7 +148,7 @@ export class UIScrollBar extends ViewGroup {
                 oldGrip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
             }
             if(this._grip) {
-                this._grip.off(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
+                this._grip.on(Events.PointerEvent.DOWN, this.__gripMouseDown, this);
             }
         }
 
@@ -125,7 +157,7 @@ export class UIScrollBar extends ViewGroup {
                 oldBar.off(Events.PointerEvent.DOWN, this.__barMouseDown, this);
             }
             if(this._bar) {
-                this._bar.off(Events.PointerEvent.DOWN, this.__barMouseDown, this);
+                this._bar.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
             }
         }
 
@@ -134,7 +166,7 @@ export class UIScrollBar extends ViewGroup {
                 oldArrow1.off(Events.GestureEvent.CLICK, this.__arrow1Click, this);
             }
             if(this._arrow1) {
-                this._arrow1.off(Events.GestureEvent.CLICK, this.__arrow1Click, this);
+                this._arrow1.on(Events.GestureEvent.CLICK, this.__arrow1Click, this);
             }
         }
 
@@ -143,15 +175,9 @@ export class UIScrollBar extends ViewGroup {
                 oldArrow2.off(Events.GestureEvent.CLICK, this.__arrow2Click, this);
             }
             if(this._arrow2) {
-                this._arrow2.off(Events.GestureEvent.CLICK, this.__arrow2Click, this);
+                this._arrow2.on(Events.GestureEvent.CLICK, this.__arrow2Click, this);
             }
         }
-    }
-
-    protected handleSizeChanged() {
-        super.handleSizeChanged();
-
-        
     }
 
     public dispose(toPool?: boolean) {
@@ -174,8 +200,11 @@ export class UIScrollBar extends ViewGroup {
         this._dragOffset.y -= this._grip.y;
     }
 
-    private __gripMouseMove(sender: View, pointer: Pointer): void {
+    private __gripMouseMove(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
         if (!this.onStage || !this._gripDragging) {
+            return;
+        }
+        if(!this._target) {
             return;
         }
         
@@ -193,6 +222,9 @@ export class UIScrollBar extends ViewGroup {
         if (!this.onStage || !this._gripDragging) {
             return;
         }
+        if(!this._target) {
+            return;
+        }
 
         this.root.off(Events.PointerEvent.MOVE, this.__gripMouseMove, this);
         this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);
@@ -202,6 +234,9 @@ export class UIScrollBar extends ViewGroup {
 
     private __arrow1Click(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
         event.stopPropagation();
+        if(!this._target) {
+            return;
+        }
 
         if (this._vertical)
             this._target.scrollUp();
@@ -211,6 +246,9 @@ export class UIScrollBar extends ViewGroup {
 
     private __arrow2Click(sender: View, pointer: Pointer, localX: number, localY: number, event: EventData): void {
         event.stopPropagation();
+        if(!this._target) {
+            return;
+        }
 
         if (this._vertical)
             this._target.scrollDown();
@@ -219,6 +257,10 @@ export class UIScrollBar extends ViewGroup {
     }
 
     private __barMouseDown(sender: View, pointer: Pointer): void {
+        if(!this._target) {
+            return;
+        }
+
         var pt = this._grip.globalToLocal(pointer.x, pointer.y, View.sHelperPoint);
         if (this._vertical) {
             if (pt.y < 0)

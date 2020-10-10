@@ -17,6 +17,8 @@ import { IUIProgressBar, IUIProgressBarConfig } from "../types/IUIProgressBar";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { IUISliderConfig } from "../types/IUISlider";
 import { UISlider } from "../ui/UISlider";
+import { IUIScrollBarConfig } from "../types/IUIScrollBar";
+import { UIScrollBar } from "../ui/UIScrollBar";
 
 export interface IPrefab {
     id: number;
@@ -104,6 +106,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UISlider;
     } 
 
+    public scrollBar(config?: IUIScrollBarConfig, template?: any): UIScrollBar {
+        let type: any = ViewFactory.getType("scrollbar");
+        return this._add(type, config, template) as UIScrollBar;
+    } 
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
         if(!viewType) {
@@ -126,6 +133,7 @@ ViewFactory.regist(UIButton);
 ViewFactory.regist(UILabel);
 ViewFactory.regist(UIProgressBar);
 ViewFactory.regist(UISlider);
+ViewFactory.regist(UIScrollBar);
 
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UIRichTextField);

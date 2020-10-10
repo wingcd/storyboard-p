@@ -14,9 +14,10 @@ export class ViewGroup extends View {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
-            {property: "overflowType", default: EOverflowType.Visible},
+            {property: "_overflowType", alias: "overflowType", default: EOverflowType.Visible},
             {property: "opaque",importAs: "_opaque",default: false},
             {property: "children",importAs: "_children",default: [], type: View},
+            {property: "margin", importAs: "_margin", type: Margin},
         );
         return fields;
     }
@@ -25,8 +26,10 @@ export class ViewGroup extends View {
     private _overflowType: EOverflowType = EOverflowType.Visible;
     private _children: View[] = []; 
     private _margin: Margin = new Margin();
+    
     private _alignOffset: Point = new Point();
     private _scrollRect: Rectangle = new Rectangle();
+    private _scrollOffsetSize: Point = new Point();
 
     private _scrollContainer: Container;
     private _container: Container;
@@ -551,6 +554,10 @@ export class ViewGroup extends View {
 
         this._container.width = this._scrollRect.width;
         this._container.height = this._scrollRect.height;
+        this.updateHideMask();
+    }
+
+    private updateHideMask() {
         if(this._overflowType == EOverflowType.Hidden || this._overflowType == EOverflowType.Scroll) {
             this._updateHideMask();
         }
@@ -558,8 +565,8 @@ export class ViewGroup extends View {
 
     private _updateHideMask(clear: boolean = false) {
         this.updateGraphicsMask(this._container, this._scrollRect.x, this._scrollRect.y,
-                                this.actualWidth - this._margin.left - this._margin.right, 
-                                this.actualHeight - this._margin.top - this._margin.bottom, clear);
+                                this.actualWidth - this._margin.left - this._margin.right + this._scrollOffsetSize.x, 
+                                this.actualHeight - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y, clear);
     }
 
     /**@internal */
@@ -569,7 +576,8 @@ export class ViewGroup extends View {
 
     set alignOffset(val: Point) {
         if(val.x != this._alignOffset.x || val.y != this._alignOffset.y) {
-            this._alignOffset.setTo(val.x, val.y);
+            this._alignOffset.setTo(val.x, val.y);            
+            this.updateScrollRect();
             this.handleSizeChanged();
         }
     }
@@ -577,6 +585,20 @@ export class ViewGroup extends View {
     /**@internal */
     get scrollRect(): Rectangle {
         return this._scrollRect;
+    }
+
+     /**@internal */
+    set scrollOffsetSize(val: Point) {
+        if(val.x != this._scrollOffsetSize.x ||
+            val.y != this._scrollOffsetSize.y) {
+            this._scrollOffsetSize.setTo(val.x, val.y);
+            this.handleSizeChanged();
+        }
+    }
+
+     /**@internal */
+    get scrollOffsetSize(): Point {
+        return this._scrollOffsetSize;
     }
 
     public get margin(): Margin {
@@ -595,9 +617,24 @@ export class ViewGroup extends View {
     }
 
     protected updateScrollRect() {
-        this._scrollRect.setTo(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y, 
-            this.width - this._margin.left - this._margin.right, this.height - this._margin.top - this._margin.bottom);
+        if(this._scrollPane && this._scrollPane.displayOnLeft) {
+            this._scrollRect.setTo(
+                this._margin.left + this._alignOffset.x - this._scrollOffsetSize.x,
+                this._margin.top + this._alignOffset.y, 
+                this.width - this._margin.left - this._margin.right + this._scrollOffsetSize.x, 
+                this.height - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y);
+        }else{
+            this._scrollRect.setTo(
+                this._margin.left + this._alignOffset.x, 
+                this._margin.top + this._alignOffset.y, 
+                this.width - this._margin.left - this._margin.right + this._scrollOffsetSize.x, 
+                this.height - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y);
+        }
         
+        this.updateScollContainer();
+    }
+
+    private updateScollContainer(){
         if(this._scrollContainer) {
             this._scrollContainer.x = this._scrollRect.x;
             this._scrollContainer.y = this._scrollRect.y;

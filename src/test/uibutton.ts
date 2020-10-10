@@ -1,22 +1,10 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation, } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { BaseComponent } from "../components/BaseComponent";
-import { Deserialize, Serialize } from "../utils/Serialize";
-import { DragComponent } from "../components/DragComponent";
-import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { ViewGroup } from "../core/ViewGroup";
-import { EAlignType, EAutoSizeType, EEaseType, EHorAlignType, EOverflowType } from "../core/Defines";
-import { PropertyManager } from "../tween/Property";
+import { EAlignType, EAutoSizeType, EButtonMode, EHorAlignType, EOverflowType } from "../core/Defines";
 import { PropertyComponent } from "../components/PropertyComponent";
-import { AnimationComponent } from "../components/AnimationComponent";
-import { TimelineManager } from "../tween/Timeline";
-import { Package } from "../core/Package";
-import { View } from "../core/View";
 import { UIButton } from "../ui/UIButton";
-import * as Events from "../events";
-import { EButtonMode } from "../types/IUIButton";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;

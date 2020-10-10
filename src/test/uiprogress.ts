@@ -1,12 +1,9 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EAlignType, EAutoSizeType, EDirectionType, EEaseType, EHorAlignType, EOverflowType, EVertAlignType } from "../core/Defines";
+import { EAlignType, EAutoSizeType, EDirectionType, EEaseType, EFillType, EHorAlignType, EProgressTitleType, EVertAlignType } from "../core/Defines";
 import { AnimationComponent } from "../components/AnimationComponent";
-import * as Events from "../events";
-import { EProgressTitleType } from "../types/IUIProgressBar";
-import { EFillType, ETextureScaleType } from "../types";
 import { UIProgressBar } from "../ui/UIProgressBar";
 import { UIImage } from "../ui/UIImage";
 

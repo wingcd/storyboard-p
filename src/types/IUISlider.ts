@@ -1,4 +1,4 @@
-import { EProgressTitleType } from "./IUIProgressBar";
+import { EProgressTitleType } from "../core/Defines";
 import { IViewGroupConfig } from "./IViewGroup";
 
 export interface IUISliderConfig extends IViewGroupConfig {

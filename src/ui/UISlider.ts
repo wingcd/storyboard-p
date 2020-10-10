@@ -1,12 +1,10 @@
 import { ISerializeInfo } from "../annotations/Serialize";
-import { EDragType, EOverflowType } from "../core/Defines";
+import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
-import { EventData, EventEmitter, Input, Point, Pointer, Rectangle, Tween } from "../phaser";
-import { EFillType } from "../types";
-import { EProgressTitleType } from "../types/IUIProgressBar";
+import { EventData, Point, Pointer, Tween } from "../phaser";
 import { MathUtils } from "../utils/Math";
 import { PoolManager } from "../utils/PoolManager";
 import { UIImage } from "./UIImage";

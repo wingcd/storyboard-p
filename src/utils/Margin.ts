@@ -19,6 +19,10 @@ export class Margin {
     public bottom: number = 0;
 
     constructor(left?: number, right?: number, top?: number, bottom?: number) {
+        this.set(left, right, top, bottom);
+    }
+
+    public set(left?: number, right?: number, top?: number, bottom?: number) {
         this.left = left || 0;
         this.right = right || 0;
         this.top = top || 0;

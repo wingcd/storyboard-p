@@ -1,5 +1,5 @@
 import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { EOverflowType } from "../core/Defines";
@@ -14,6 +14,9 @@ class UIScene extends ViewScene {
     }
 
     preload() {
+    }
+
+    create(): void {        
         let view = this.addUI.view();
         view.setBackgroundColor(0xff0000, true);
         view.setXY(50, 50);
@@ -28,13 +31,9 @@ class UIScene extends ViewScene {
         view.setBackgroundColor(0xffff00, true);
         view.setXY(950, 500);
         view.setSize(100, 100);
-        view.draggable = true;
-        
+        view.draggable = true; 
 
         this.root.overflowType = EOverflowType.Scroll;
-    }
-
-    create(): void {
     }
 }
 

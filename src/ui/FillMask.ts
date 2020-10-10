@@ -1,11 +1,11 @@
 import { Graphics, Container, MaskType } from "../phaser";
-import { EDirectionType } from "../core/Defines";
+import { EDirectionType, EFillType } from "../core/Defines";
 import { ISerializeInfo } from "../annotations/Serialize";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { DisplayObjectEvent } from "../events";
-import { EFillType, IFillMask } from "../types";
 import { View } from "../core/View";
+import { IFillMask } from "../types";
 
 interface IMaskable {
     mask: MaskType;    

@@ -1,13 +1,5 @@
 import { IView } from ".";
-
-export const enum ERelationPinType {
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM,
-    CENTER,
-    MIDDLE,
-}
+import { ERelationPinType } from "../core/Defines";
 
 export interface IRelationPin {
     to: IRelationPin;

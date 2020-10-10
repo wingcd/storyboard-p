@@ -55,6 +55,41 @@ export enum EAlignType {
                         Justify = "justify"
                     };
 
+export const enum EFillType {
+    None,
+    Horizontal,
+    Vertical,
+    Rotate90,
+    Rotate180,
+    Rotate360,
+}
+
+export enum ETextureScaleType {
+    None,
+    Tile,
+    NinePatch,    
+}
+
+export enum ERelationPinType {
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM,
+    CENTER,
+    MIDDLE,
+};
+
+export enum EButtonMode { Common, Check, Radio };
+
+export enum EProgressTitleType {
+    Percent,
+    ValueAndMax,
+    Value,
+    Custom,
+};
+
+export enum EScrollbarDisplayType { Default, Visible, Auto, Hidden};
+
 let easeMap: ((t: number) => number)[] = [
     null,
     Easing.Linear,

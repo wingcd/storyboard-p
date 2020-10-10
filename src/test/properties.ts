@@ -1,11 +1,8 @@
-import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
+import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EFillType } from "../types";
 import { PropertyManager } from "../tween/Property";
-import { TweenInfo } from "../tween/TweenInfo";
-import { EEaseType } from "../core/Defines";
+import { EEaseType, EFillType } from "../core/Defines";
 require("../components");
 
 class UIScene extends ViewScene {
