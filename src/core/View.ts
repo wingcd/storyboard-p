@@ -61,7 +61,7 @@ export class View implements IView{
             {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},            
             {property: "alpha", importAs: "_alpha", default: 1},         
             {property: "tint", importAs: "_tint", default: 0xffffff},            
-            {property: "_gray", importAs: "gray", default: 0},
+            {property: "grayed", importAs: "_grayed", default: false},
             {property: "_components", alias: "components", type: BaseComponent, priority: 999},          
             {property: "_relations", alias: "relations", type: Relations, priority: 999},
         );
@@ -211,6 +211,15 @@ export class View implements IView{
         if(this._rootContainer.parentContainer) {
             this._rootContainer.parentContainer.remove(this._rootContainer);
         }
+        this.onParentChanged();
+    }
+
+    protected onParentChanged() {
+        if(this._parent) {            
+            this.handleGrayedChanged(this._parent.grayed);
+        }else{
+            this.handleGrayedChanged();
+        }
     }
 
     public get root(): ViewRoot {
@@ -340,6 +349,8 @@ export class View implements IView{
             if(this._gFrame && this._gFrame.parentContainer) {
                 this._gFrame.parentContainer.remove(this._gFrame);
             }
+
+            this.onParentChanged();
         }
 
         return this;
@@ -365,6 +376,8 @@ export class View implements IView{
             if(parent) {
                 this.setRoot(parent.root);
             }
+
+            this.onParentChanged();
             this.emit(DisplayObjectEvent.PARENT_CHANGED, oldParent, parent);
         }
     }
@@ -688,7 +701,7 @@ export class View implements IView{
             this.setMask(this._rootContainer, mask);
             this._updateRootMask();
         }
-    } 
+    }
 
     public get grayed(): boolean {
         return this._grayed;
@@ -1214,12 +1227,13 @@ export class View implements IView{
 
     }
 
-    protected handleGrayedChanged() {
+    /**@internal */
+    handleGrayedChanged(focusGray?: boolean) {
         let gameobjects = this._rootContainer.getAll();
         for(let i in gameobjects) {
             let g: any = gameobjects[i];
             if(g.setPipeline) {
-                if(this._grayed) {
+                if(this._grayed || focusGray) {
                     g.setPipeline("gray-scale");
                 }else{
                     g.resetPipeline(); 
@@ -1555,6 +1569,7 @@ export class View implements IView{
         this.applyDraggable();
         this.checkDirty();
         this.ensureSizeCorrect();
+        this.handleGrayedChanged();
         this.updateMask();
     }
 

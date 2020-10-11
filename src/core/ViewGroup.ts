@@ -78,6 +78,7 @@ export class ViewGroup extends View {
     protected applyHitArea() {
         super.applyHitArea();
 
+        (this.rootContainer as any).___filter_input__ = !this.touchable;
         if(this.rootContainer.input && this.rootContainer.input.enabled) {
             // 是否把自身过滤掉
             (this.rootContainer.input as any).___filter_self__ = !this._opaque && !this.enableBackground;
@@ -104,11 +105,11 @@ export class ViewGroup extends View {
         return this;
     }
 
-    protected handleGrayedChanged() {
-        super.handleBorderChange();
+    handleGrayedChanged() {
+        super.handleGrayedChanged();
         
         this._children.forEach(child=>{
-            child.grayed = this.grayed;
+            child.handleGrayedChanged(this.grayed);
         });
     }
 

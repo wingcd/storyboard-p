@@ -96,8 +96,10 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     private _vScrollBar: UIScrollBar;
     private _hScrollBar: UIScrollBar;
+    // 标记是否显示scrollbar
     private _scrollBarVisible: boolean = false;
     private _mouseWheelEnabled: boolean = false;
+    // 标记滚动条是否已经显示
     private _vScrollVisble: boolean = false;
     private _hScrollVisble: boolean = false;
     private _pageSize: Point = new Point();
@@ -189,6 +191,18 @@ export class ScrollPaneComponent extends SerializableComponent {
         this._handleSizeChanged();
     }
 
+    private _needShowVScrollBar(): boolean {
+        let typeEanble = this.scrollType == EScrollType.Vertical || this.scrollType == EScrollType.Both;
+        let shouldShow = this._contentSize.y > this._viewSize.y;
+        return typeEanble && (shouldShow || this._realDisplayType == EScrollBarDisplayType.Always);
+    }
+
+    private _needShowHScrollBar(): boolean {
+        let typeEanble = this.scrollType == EScrollType.Horizontal || this.scrollType == EScrollType.Both;
+        let shouldShow = this._contentSize.x > this._viewSize.x;
+        return typeEanble && (shouldShow || this._realDisplayType == EScrollBarDisplayType.Always);
+    }
+
     private _handleSizeChanged() {
         this._updateOverlap();
 
@@ -196,7 +210,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         let offset = new Point(ofs.x, ofs.y);
         if (this._realDisplayType != EScrollBarDisplayType.Hidden) {
             if (this._vScrollBar) {
-                if (this._contentSize.y <= this._viewSize.y) {
+                if (!this._needShowVScrollBar()) {
                     if (this._vScrollVisble) {
                         this._vScrollVisble = false;
                         offset.x += this._vScrollBar.width;
@@ -210,7 +224,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }
             }
             if (this._hScrollBar) {
-                if (this._contentSize.x <= this._viewSize.x) {
+                if (!this._needShowHScrollBar()) {
                     if (this._hScrollVisble) {
                         this._hScrollVisble = false;
                         offset.y += this._hScrollBar.height;
@@ -934,12 +948,8 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     private _setScrollBarVisible(visible: boolean): void {
         this._scrollBarVisible = visible && this._viewSize.x > 0 && this._viewSize.y > 0;
-        let vCanShow = true;
-        let hCanShow = true;
-        if(this._realDisplayType == EScrollBarDisplayType.Visible) {
-            vCanShow = this._contentSize.y > this._viewSize.y;
-            hCanShow = this._contentSize.x > this._viewSize.x;
-        }
+        let vCanShow = this._needShowVScrollBar();
+        let hCanShow = this._needShowHScrollBar();
         if (this._vScrollBar)
             this._vScrollBar.rootContainer.visible = vCanShow && this._scrollBarVisible && this._vScrollVisble;
         if (this._hScrollBar)

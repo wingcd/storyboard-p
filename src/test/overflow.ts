@@ -29,6 +29,7 @@ class UIScene extends ViewScene {
     create(): void {
         
         let view = this.addUI.group();
+        // view.touchable = false;
         view.setBackgroundColor(0xa0a0a0, true);
         view.setXY(100, 50);
         view.setSize(400, 400);
@@ -61,9 +62,10 @@ class UIScene extends ViewScene {
             x: 100,
             y: 0,
             width: 200,
-            height: 40,
+            height: 40,            
         });  
         scroll.setBackgroundColor(0xffff00, true);  
+        // scroll.enabled = false;
         // scroll.alpha = 0.5;  
 
         let bar = this.addUI.image({
@@ -173,6 +175,7 @@ class UIScene extends ViewScene {
         vrbtn.touchable = true;
         vscroll.addChild(vrbtn); 
         vrbtn.relations.set(ERelationPinType.BOTTOM, vscroll);
+        vscroll.fixedGripSize = true;
 
         let pkg = new PackageItem();
         Package.inst.addPackage(pkg);
@@ -184,7 +187,7 @@ class UIScene extends ViewScene {
         view.scrollPane.setSrollbar(hScroll, vScroll);
 
         console.log(view.toJSON());
-        view.clone().setXY(400, 200);
+        view.clone().setXY(400, 50);
     }
 }
 
