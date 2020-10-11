@@ -88,7 +88,7 @@ export enum EProgressTitleType {
     Custom,
 };
 
-export enum EScrollbarDisplayType { Default, Visible, Auto, Hidden};
+export enum EScrollbarDisplayType { Default, Visible, Always, Auto, Hidden}; // 使用默认配置，需要时可见，永远可见，滚动时可见，隐藏
 
 let easeMap: ((t: number) => number)[] = [
     null,

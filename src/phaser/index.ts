@@ -18,8 +18,9 @@ export import TransformMatrix = Phaser.GameObjects.Components.TransformMatrix;
 export import BitmapMask = Phaser.Display.Masks.BitmapMask;
 export import GeometryMask = Phaser.Display.Masks.GeometryMask;
 export import Input = Phaser.Input;
-export import Time = Phaser.Time;
 export import PMath = Phaser.Math;
+export import Time = Phaser.Time;
+export import TimerEvent = Phaser.Time.TimerEvent;
 
 export import Easing = Phaser.Math.Easing;
 export import Tweens = Phaser.Tweens;

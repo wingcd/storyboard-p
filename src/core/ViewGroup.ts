@@ -45,13 +45,6 @@ export class ViewGroup extends View {
         super(scene);
     }
 
-    protected constructFromJson(config: any, tpl?:any) {
-        super.constructFromJson(config, tpl);
-        
-        this.updateScrollRect();
-        this.updateMask();
-    }
-
     protected bind(scene: ViewScene): boolean {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
@@ -80,7 +73,7 @@ export class ViewGroup extends View {
             this._opaque = value;
             this.applyHitArea();
         }
-    }
+    }    
 
     protected applyHitArea() {
         super.applyHitArea();
@@ -538,12 +531,7 @@ export class ViewGroup extends View {
 
             this.applyOverflow();
         }
-    }    
-
-    protected handleXYChanged() {
-        super.handleXYChanged();
-        this.updateMask();
-    }
+    }  
 
     public updateMask() {
         super.updateMask();
@@ -564,9 +552,10 @@ export class ViewGroup extends View {
     }
 
     private _updateHideMask(clear: boolean = false) {
+        let scale = this.getLossyScale();
         this.updateGraphicsMask(this._container, this._scrollRect.x, this._scrollRect.y,
-                                this.actualWidth - this._margin.left - this._margin.right + this._scrollOffsetSize.x, 
-                                this.actualHeight - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y, clear);
+                                (this.width - this._margin.left - this._margin.right + this._scrollOffsetSize.x) * scale.x, 
+                                (this.height - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y) * scale.y, clear);
     }
 
     /**@internal */
@@ -605,12 +594,9 @@ export class ViewGroup extends View {
         return this._margin;
     }
 
-    public set margin(value: Margin) {
-        if(this._margin.left != value.left ||
-            this._margin.right != value.right ||
-            this._margin.top != value.top ||
-            this._margin.bottom != value.bottom) {
-            this._margin.copy(value);
+    public set margin(val: Margin) {
+        if(!this._margin.equal(val)) {
+            this._margin.copy(val);
             this.updateScrollRect();
             this.handleSizeChanged();
         }
@@ -700,6 +686,8 @@ export class ViewGroup extends View {
         for(let c of this._children) {
             c.relations.focusUpdateOwner(c);
         }
-        this.onChildrenChanged();
+        this.onChildrenChanged();       
+        
+        this.updateScrollRect();
     }
 }

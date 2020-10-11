@@ -1,7 +1,7 @@
 import "reflect-metadata";
 
 import { EDirtyType, ECategoryType } from "./Defines";
-import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter } from "../phaser";
+import { Point, Container, GameObject, Graphics, Rectangle, GeometryMask, MaskType, BitmapMask, EventEmitter, Pointer } from "../phaser";
 import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
@@ -58,7 +58,8 @@ export class View implements IView{
             {property: "touchEnableMoved",default: true},
             {property: "draggable",importAs: "_draggable",default: false},
             {property: "enableBackground",importAs: "_enableBackground",default: false},
-            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},
+            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},            
+            {property: "alpha", importAs: "_alpha", default: 1},         
             {property: "tint", importAs: "_tint", default: 0xffffff},            
             {property: "_gray", importAs: "gray", default: 0},
             {property: "_components", alias: "components", type: BaseComponent, priority: 999},          
@@ -1227,14 +1228,30 @@ export class View implements IView{
         }
     }
 
+    protected applyTint() {
+        let disp: any = this.displayObject;
+        if(disp && disp.tint != undefined) {
+            disp.tint = this._tint;
+        }
+    }
+
+    protected applyAlpha() {
+        let disp: any = this.displayObject;
+        if(disp && disp.alpha != undefined) {
+            disp.alpha = this._alpha;
+        }
+    }
+
     protected applyBackgroundChange() {
         if(this._enableBackground) {
             if(!this._gBackground) {
                 this._gBackground = this._scene.make.graphics({}, false);
-                this._rootContainer.addAt(this._gBackground, 0);            }
+                this._rootContainer.addAt(this._gBackground, 0);            
+            }
             this._gBackground.clear();
-            this._gBackground.fillStyle(colorMultiply(this._backgroundColor, this._tint), this._alpha);
+            this._gBackground.fillStyle(colorMultiply(this._backgroundColor, this._tint), 1);
             this._gBackground.fillRect(0, 0, this._width, this._height);
+            this._gBackground.alpha = this._alpha;
         }else if(this._gBackground){
             this._gBackground.destroy();
             this._gBackground = null;
@@ -1526,15 +1543,19 @@ export class View implements IView{
 
     protected relayout() {        
         this.addDirty(EDirtyType.BoundsChanged | EDirtyType.FrameChanged | EDirtyType.BorderChanged);
+        this._rootContainer.setScale(this._scaleX, this._scaleY);
         this.handleXYChanged();
         this.handleSizeChanged();
         this.updatePivotOffset();
+        this.applyAlpha();
+        this.applyTint();
         this.applyBackgroundChange();
         this.applyHitArea();
         this.applayProperties();
         this.applyDraggable();
         this.checkDirty();
         this.ensureSizeCorrect();
+        this.updateMask();
     }
 
     protected updateComponents() {
@@ -1570,6 +1591,20 @@ export class View implements IView{
         this.relayout();
         this.updateComponents();
     }    
+
+    /**
+     * scale in world
+     */
+    public getLossyScale(): Point {
+        let scale = View.sHelperPoint.setTo(this._scaleX, this._scaleY);
+        let parent = this.rootContainer.parentContainer;
+        while(parent) {
+            scale.x *= parent.scaleX;
+            scale.y *= parent.scaleY;
+            parent = parent.parentContainer;
+        }
+        return scale;
+    }
 
     public clone(): View {
         let json = this.toJSON();
@@ -1714,6 +1749,7 @@ export class View implements IView{
     public set tint(value: number) {
         if(this._tint != value) {
             this._tint = value;
+            this.applyTint();
             this.applyBackgroundChange();
         }
     }
@@ -1725,6 +1761,7 @@ export class View implements IView{
     public set alpha(value: number) {
         if(this._alpha != value) {
             this._alpha = value;
+            this.applyAlpha();
             this.applyBackgroundChange();
         }
     }

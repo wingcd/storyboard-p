@@ -135,33 +135,18 @@ export class UIImage extends View {
             this._updateInfo();
         }
     }
+    
     public get flipY(): boolean {
         return this._flipY;
     }
+
     public set flipY(val: boolean) {
         if(this._flipY != val) {
             this._flipY = val;
             this._updateInfo();
         }
     }
-    public get tint(): number {
-        return super.tint;
-    }
-    public set tint(val:number) {
-        if(this.tint != val) {       
-            super.tint = val;
-            this._updateInfo();
-        }
-    }
-    public get alpha(): number {
-        return super.alpha;
-    }
-    public set alpha(val: number) {
-        if(this.alpha != val) {
-            super.alpha = val;
-            this._updateInfo();
-        }
-    }
+
     public get fillMask(): FillMask {
         if(!this._disp) {
             return null;

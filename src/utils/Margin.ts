@@ -29,6 +29,11 @@ export class Margin {
         this.bottom = bottom || 0;
     }
 
+    public equal(val: Margin): boolean {
+        return this.left == val.left && this.right == val.right &&
+               this.top == val.top && this.bottom == val.bottom;
+    }
+
     public parse(str: string): void {
         if (!str) {
             this.left = this.right = this.top = this.bottom = 0;

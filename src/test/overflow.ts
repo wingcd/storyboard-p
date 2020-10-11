@@ -2,7 +2,7 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Point } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EDirectionType, EFillType, EOverflowType, ERelationPinType, EScrollType } from "../core/Defines";
+import { EDirectionType, EFillType, EOverflowType, ERelationPinType, EScrollbarDisplayType, EScrollType } from "../core/Defines";
 import { Margin } from "../utils/Margin";
 import { Package } from "../core/Package";
 import { PackageItem } from "../core/PackageItem";
@@ -31,12 +31,13 @@ class UIScene extends ViewScene {
         let view = this.addUI.group();
         view.setBackgroundColor(0xa0a0a0, true);
         view.setXY(100, 50);
-        view.setSize(450, 400);
+        view.setSize(400, 400);
         view.margin = new Margin(10, 10, 10, 10);
         view.overflowType = EOverflowType.Scroll;
         // view.scrollPane.inertanceEffect = true;
         view.scrollPane.scrollType = EScrollType.Both;
         view.scrollPane.bouncebackEffect = true;
+        view.scrollPane.scrollBarDisplay = EScrollbarDisplayType.Visible;
         
         let child1 = this.makeUI.view();
         child1.setBackgroundColor(0x00ff00, true);
@@ -53,19 +54,23 @@ class UIScene extends ViewScene {
         child2.setXY(400, 400);
         view.addChild(child2);
 
+        
+        view.setScale(0.5, 0.5);
+
         let scroll = this.addUI.scrollBar({
             x: 100,
             y: 0,
             width: 200,
             height: 40,
         });  
-        scroll.setBackgroundColor(0xffff00, true);    
+        scroll.setBackgroundColor(0xffff00, true);  
+        // scroll.alpha = 0.5;  
 
         let bar = this.addUI.image({
             name: "bar",
             textureKey: "normal",
             width: 160,
-            height: 50,
+            height: 80,
             x: 20,
         });
         bar.touchable = true;
@@ -177,6 +182,9 @@ class UIScene extends ViewScene {
         v.x = 400;
             
         view.scrollPane.setSrollbar(hScroll, vScroll);
+
+        console.log(view.toJSON());
+        view.clone().setXY(400, 200);
     }
 }
 

@@ -448,7 +448,8 @@ export class UITextField extends View {
 
         let textfield = this.getTextField();
         if(textfield) {
-            this.updateGraphicsMask(textfield, 0, 0, this.width, this.height, clear);
+            let scale = this.getLossyScale();
+            this.updateGraphicsMask(textfield, 0, 0, this.width * scale.x, this.height * scale.y, clear);
         }
     }
 
