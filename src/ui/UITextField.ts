@@ -4,7 +4,7 @@ import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType, ECategoryType
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
-import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../types";
 import { Templates } from "../core/Templates";
 import { clone, Deserialize, Serialize } from "../utils/Serialize";
 import { colorToString } from "../utils/Color";
@@ -107,12 +107,12 @@ export class TextStyle implements ITextStyle, ITemplatable {
         return new TextStyle().fromJSON(json);
     }   
 
-    public toJSON(): any {
+    public toJSON(tpl?: any): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp);
+        return Serialize(this, temp || tpl);
     }
 
     public fromJSON(config: any, template?: any): this {
@@ -840,7 +840,7 @@ export class UITextField extends View {
     }
 
     public fromJSON(config: any, template?: any): this {      
-        if(config) {  
+        if(config || template) {  
             super.fromJSON(config, template);
             this.render();
         }

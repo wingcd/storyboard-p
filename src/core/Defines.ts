@@ -90,6 +90,8 @@ export enum EProgressTitleType {
 
 export enum EScrollbarDisplayType { Default, Visible, Always, Auto, Hidden}; // 使用默认配置，需要时可见，永远可见，滚动时可见，隐藏
 
+export enum EListLayoutType { SingleColumn, SingleRow, FlowHorizontal, FlowVertical, Pagination };
+
 let easeMap: ((t: number) => number)[] = [
     null,
     Easing.Linear,

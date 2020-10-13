@@ -1,8 +1,9 @@
 import "reflect-metadata";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
+import { Package } from "../core/Package";
 
 export function addIgnoreFields(target: any, fields: string[]) {
     if(target && typeof(target) == 'object') {
@@ -35,8 +36,12 @@ function store(source: any, info: ISerializeInfo, tpl: any): any {
     let item = null;
     if(info.raw) {
         item = Object.assign({}, source);
-    }else{    
-        if(info.type && info.type.SERIALIZE) {
+    }else{ 
+        if(source.toJSON) {
+            item = source.toJSON(tpl);            
+        }
+        
+        if(!item && info.type && info.type.SERIALIZE) {
             item = info.type.SERIALIZE(source, tpl);
         }
         
@@ -120,7 +125,11 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
                                 delete item.__category__;
                             }
 
-                            if(item && Object.getOwnPropertyNames(item).length > 0) { 
+                            let fillData = item && Object.getOwnPropertyNames(item).length > 0;
+                            if(!fillData) {
+                                item = undefined;
+                            }
+                            if(info.keepArray || fillData) { 
                                 if(isarray) {
                                     rets.push(item);
                                 }else{
@@ -219,20 +228,24 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                     // process array
                     target[targetProp] = isarray ? [] : {};
 
-                    for(let i in cfgData) {                        
-                        if(typeof(cfgData[i]) != 'object') {
-                            continue;
-                        }
-
+                    for(let i in cfgData) {  
                         let t = null;
                         if(tpl && tpl[i] != undefined) {
                             t = tpl[i];
                         }
 
+                        if(typeof(cfgData[i]) != 'object' && typeof(t) != 'object') {
+                            continue;
+                        }
+
                         let ritem = null;
                         let needRestore = true;
-                        if(info.type.DESERIALIZE) {
-                            ritem = info.type.DESERIALIZE(cfgData[i], target, cfgProp, targetProp, t, i);
+                        let itemData = cfgData[i];  
+                        if(info.type.DESERIALIZE) {                          
+                            if(!t && itemData && itemData.resourceUrl) {
+                                t = Package.inst.getTemplateFromUrl(itemData.resourceUrl);
+                            }
+                            ritem = info.type.DESERIALIZE(itemData, target, cfgProp, targetProp, t, i);
                             if(Array.isArray(ritem)) {
                                 needRestore = ritem[1];
                                 ritem = ritem[0];
@@ -248,7 +261,7 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                         }
 
                         if(needRestore) {
-                            restore(ritem, i, cfgData[i], t, info, depth);
+                            restore(ritem, i, itemData, t, info, depth);
                         }
 
                         if(isarray) {
@@ -266,6 +279,10 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
                     if(!info.raw && typeof(cfgData) == "object" && info.type) {
                         let ritem = target[targetProp];
                         if(info.type.DESERIALIZE) {
+                            if(!tpl && cfgData && cfgData.resourceUrl) {
+                                tpl = Package.inst.getTemplateFromUrl(cfgData.resourceUrl);
+                            }
+                            
                             ritem = info.type.DESERIALIZE(cfgData, target, cfgProp, targetProp, tpl);
                             if(Array.isArray(ritem)) {
                                 needRestore = ritem[1];
@@ -352,6 +369,10 @@ export function Serialize(source: any, tpl?: any) {
  * @param tpl 模板对象，当设置此参数后，需要将模板数据一起赋值
  */
 export function Deserialize(target: any, config: any, tpl?:any, depth?:number): boolean {
+    if(!tpl && config && config.resourceUrl) {
+        tpl = Package.inst.getTemplateFromUrl(config.resourceUrl);
+    }
+
     if(!target.constructor.SERIALIZABLE_FIELDS) {
         return false;
     }

@@ -2,7 +2,7 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
-import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../types";
 import { FillMask } from "./FillMask";
 import { INinePatchInfo, ITileInfo } from "../types";
 import { ETextureScaleType } from "../core/Defines";
@@ -316,12 +316,10 @@ export class UIImage extends View {
     }
 
     public fromJSON(config: any, template?: any): this {
-        if(!config) {
-            return;
+        if(config || template) {
+            super.fromJSON(config, template);
+            this._updateTexture();
         }
-        super.fromJSON(config, template);
-
-        this._updateTexture();
 
         return this;
     }

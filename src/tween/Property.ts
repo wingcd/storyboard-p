@@ -1,5 +1,5 @@
 import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild, SetValue } from "../utils/Object";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { ECategoryType, EEaseType, ParseEaseType } from "../core/Defines";
@@ -507,12 +507,12 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         return this;
     }
 
-    public toJSON(): any {
+    public toJSON(tpl?: any): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp);
+        return Serialize(this, temp || tpl);
     }
 
     public fromJSON(config: any, template?: any): this {

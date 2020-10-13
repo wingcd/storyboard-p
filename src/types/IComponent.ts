@@ -2,7 +2,7 @@ import { Property } from "../tween/Property";
 import { View } from "../core/View";
 import { ITemplatable } from "./ITemplatable";
 
-export interface ComponentOptions {
+export interface IComponentOptions {
     containsParentType?: boolean; 
     containsChildType?: boolean;
     containsSameParentType?: boolean;
@@ -30,8 +30,8 @@ export interface IComponentable {
     addComponentByType(compType: new()=>{}): IComponent;
     addComponent(comp: IComponent): IComponent;
     removeComponent(comp: IComponent): this;
-    removeComponentByType(type: Function, all?: boolean, options?: ComponentOptions): this;
-    hasComponent(type: Function, options?: ComponentOptions): boolean;
-    getComponent(type: Function, options?: ComponentOptions): IComponent;
-    getComponents(type: Function, options?: ComponentOptions): IComponent[];
+    removeComponentByType(type: Function, all?: boolean, options?: IComponentOptions): this;
+    hasComponent(type: Function, options?: IComponentOptions): boolean;
+    getComponent(type: Function, options?: IComponentOptions): IComponent;
+    getComponents(type: Function, options?: IComponentOptions): IComponent[];
 }

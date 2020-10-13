@@ -1,11 +1,10 @@
-import { Graphics, Container, MaskType } from "../phaser";
+import { Graphics, MaskType } from "../phaser";
 import { EDirectionType, EFillType } from "../core/Defines";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo, IFillMask } from "../types";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { DisplayObjectEvent } from "../events";
 import { View } from "../core/View";
-import { IFillMask } from "../types";
 
 interface IMaskable {
     mask: MaskType;    
@@ -73,18 +72,16 @@ export class FillMask {
         this._updateMask();
     }
 
-    public toJSON(): any {
-        return Serialize(this);
+    public toJSON(tpl?: any): any {
+        return Serialize(this, tpl);
     }
 
-    public fromJSON(config?: any) {
-        if(!config) {
-            return;
+    public fromJSON(config?: any, tpl?: any): this {
+        if(config || tpl) {
+            Deserialize(this, config, tpl);
+            this._update();
         }
-
-        Deserialize(this, config);
-
-        this._update();
+        return this;
     }
 
     private _attach() {

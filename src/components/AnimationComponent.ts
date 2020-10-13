@@ -1,10 +1,9 @@
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
-import { ISerializeInfo } from "../annotations/Serialize";
 import { ComponentFactory } from "./ComponentFactory";
 import { TimelineManager } from "../tween/Timeline";
 import { SerializableComponent } from "./SerializableComponent";
-import { IComponent } from "../types";
+import { IComponent, ISerializeInfo } from "../types";
 
  @disallow_multiple_component()
 export class AnimationComponent extends SerializableComponent implements IComponent{

@@ -1,7 +1,7 @@
 import { View } from "../core/View";
-import { ComponentOptions } from "../types";
+import { IComponentOptions } from "../types";
 
-export function disallow_multiple_component(options?: ComponentOptions): ClassDecorator {
+export function disallow_multiple_component(options?: IComponentOptions): ClassDecorator {
     return target => {
         let value = {
             options,
@@ -16,7 +16,7 @@ export function disallow_multiple_component(options?: ComponentOptions): ClassDe
     }
 }
 
-export function enable_replaced_component(options?: ComponentOptions): ClassDecorator {
+export function enable_replaced_component(options?: IComponentOptions): ClassDecorator {
     return target => {
         let value = {
             options,

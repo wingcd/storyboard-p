@@ -1,9 +1,6 @@
 import { randomString } from "../utils/String";
-import { ECategoryType } from "./Defines";
-import { ViewScene } from "./ViewScene";
-import { ITemplatable } from "../types/ITemplatable";
 import { Package } from "./Package";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo,ITemplatable } from "../types";
 
 export class PackageItem {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {

@@ -1,4 +1,4 @@
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -22,7 +22,7 @@ export class UISlider extends ViewGroup {
             {property: "titleType", default: EProgressTitleType.Percent},
             {property: "value", default: 0},
             {property: "reverse", default: false},
-            {property: "changeOnClick", default: true},            
+            {property: "changeOnClick", default: true},       
             {property: "autoSetGripPos", default: true},
         );
         return fields;
@@ -386,8 +386,8 @@ export class UISlider extends ViewGroup {
         this.update();
     }
 
-    public dispose(toPool?: boolean) {
-        super.dispose(toPool);
+    public dispose() {
+        super.dispose();
 
         this._clearTween();
 
@@ -437,7 +437,7 @@ export class UISlider extends ViewGroup {
             return;
 
         var percent: number;            
-        let pt = PoolManager.inst.get(Point);
+        let pt = PoolManager.inst.get(Point) as Point;
         if (this._hBar) {
             this._hBar.globalToLocal(pointer.x, pointer.y, pt);
             percent = pt.x / this._barMaxWidth;

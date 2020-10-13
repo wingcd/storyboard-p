@@ -1,5 +1,5 @@
 import { View } from "../core/View";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";

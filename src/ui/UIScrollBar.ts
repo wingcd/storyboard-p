@@ -1,4 +1,4 @@
-import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../types";
 import { ScrollPane } from "../components";
 import { EOverflowType } from "../core/Defines";
 import { View } from "../core/View";
@@ -180,8 +180,8 @@ export class UIScrollBar extends ViewGroup {
         }
     }
 
-    public dispose(toPool?: boolean) {
-        super.dispose(toPool);
+    public dispose() {
+        super.dispose();
 
         this.root.off(Events.PointerEvent.MOVE, this.__gripMouseMove, this);
         this.root.off(Events.PointerEvent.UP, this.__gripMouseUp, this);

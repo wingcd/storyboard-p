@@ -5,7 +5,7 @@ import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewGroup } from "../core/ViewGroup";
-import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../types";
 import * as Events from "../events";
 
 export const enum EInputType {

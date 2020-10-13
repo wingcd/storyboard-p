@@ -1,15 +1,17 @@
+import { IPoolable } from "../types/IPoolable";
+
 export class PoolManager {
     private static _inst: PoolManager = new PoolManager();
     public static get inst(): PoolManager {
         return this._inst;
     }
 
-    private _pools:{[key: string]: Array<any>} = {};
+    private _pools:{[key: string]: Array<IPoolable>} = {};
 
     private constructor() {
     }
 
-    public getByName(name: string, typeClass: new(...args:any[])=>{}, ...args: any[]) {
+    public getByName(name: string, typeClass: new(...args:any[])=>{}, ...args: any[]): any {
         let array = this._pools[name];
         if(!array) {
             array = [];
@@ -24,11 +26,15 @@ export class PoolManager {
             }
         }
 
-        let ret = new typeClass(...args);
-        return ret;
+        if(typeClass) {
+            let ret = new typeClass(...args);
+            return ret;
+        }
+        
+        return null;
     }
 
-    public get(typeClass: new(...args:any[])=>{}, ...args: any[]) {
+    public get(typeClass: new(...args:any[])=>{}, ...args: any[]): any {
         let name = "_sb_pool_" + typeClass.name;
         return this.getByName(name, typeClass, ...args);
     }

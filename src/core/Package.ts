@@ -1,8 +1,8 @@
 import { PackageItem } from "./PackageItem";
 import { randomString } from "../utils/String";
-import { ITemplatable } from "../types/ITemplatable";
+import { ITemplatable } from "../types";
 import { ViewScene } from "./ViewScene";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { Templates } from "./Templates";
 
 export class Package {

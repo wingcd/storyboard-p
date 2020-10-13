@@ -2,7 +2,7 @@ import { BaseComponent } from "./BaseComponent";
 import { ECategoryType } from "../core/Defines";
 import { ComponentFactory } from "./ComponentFactory";
 import { Deserialize, Serialize } from "../utils/Serialize";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { Templates } from "../core/Templates";
 import { ViewScene } from "../core/ViewScene";
 import { ISerializableCompoent } from "../types";
@@ -50,12 +50,12 @@ export class SerializableComponent extends BaseComponent implements ISerializabl
         return ComponentFactory.inst.create(json) as SerializableComponent;
     }   
 
-    public toJSON(): any {
+    public toJSON(tpl?: any): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp);
+        return Serialize(this, temp || tpl);
     }
 
     public fromJSON(config: any, template?: any): this {

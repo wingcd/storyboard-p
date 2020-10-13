@@ -6,7 +6,7 @@ import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { SerializableComponent } from "./SerializableComponent";
 import { UIScrollBar } from "../ui/UIScrollBar";
@@ -151,6 +151,28 @@ export class ScrollPaneComponent extends SerializableComponent {
         this.owner.off(Input.Events.POINTER_OUT, this._mouseOut, this);
         
         this.owner.container.setPosition(0, 0);
+    }
+
+    private onDispose() {
+        if(this._vScrollBar) {
+            this._vScrollBar.dispose();
+            this._vScrollBar = null;
+        }
+
+        if(this._hScrollBar) {
+            this._hScrollBar.dispose();
+            this._hScrollBar = null;
+        }
+
+        if(this._preventEventVBar) {
+            this._preventEventVBar.dispose();
+            this._preventEventVBar = null;
+        }
+
+        if(this._preventEventHBar) {
+            this._preventEventHBar.dispose();
+            this._preventEventHBar = null;
+        }
     }
 
     private _init() {
@@ -533,8 +555,8 @@ export class ScrollPaneComponent extends SerializableComponent {
         } 
   
         this._owner.scene.input.on(Input.Events.POINTER_MOVE, this._moving, this);
-         this._owner.scene.input.on(Input.Events.POINTER_UP, this._end, this);
-         this._owner.scene.input.on(Input.Events.POINTER_UP_OUTSIDE, this._end, this);
+        this._owner.scene.input.on(Input.Events.POINTER_UP, this._end, this);
+        this._owner.scene.input.on(Input.Events.POINTER_UP_OUTSIDE, this._end, this);
         this._canreset = true;
   
         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_BEGIN;      

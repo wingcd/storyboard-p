@@ -1,5 +1,4 @@
-import { ITemplatable } from "../types/ITemplatable";
-import { ECategoryType } from "./Defines";
+import { ITemplatable } from "../types";
 import { ViewScene } from "./ViewScene";
 
 type CONSTRUCTOR = new()=>ITemplatable;

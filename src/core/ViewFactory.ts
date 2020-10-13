@@ -1,24 +1,15 @@
 import { ViewScene } from "./ViewScene";
-import { IViewConfig, IViewGroupConfig, IUIImageConfig, IUITextFieldConfig, IUITextInputConfig, } from "../types";
 import { View } from "./View";
 import { ViewGroup } from "./ViewGroup";
-import { UIImage } from "../ui/UIImage";
-import { UITextInput } from "../ui/UITextInput";
-import { UITextField } from "../ui/UITextField";
 import { ObjectFactory } from "./ObjectFactory";
 import { ECategoryType } from "./Defines";
-import { UIButton } from "../ui/UIButton";
-import { IUIButtonConfig } from "../types/IUIButton";
-import { IUILabelConfig } from "../types/IUILabel";
-import { UILabel } from "../ui/UILabel";
-import { UIRichTextField } from "../ui/UIRichTextField";
-import { IUIRichTextInputConfig } from "../types/UIRichTextField";
-import { IUIProgressBar, IUIProgressBarConfig } from "../types/IUIProgressBar";
-import { UIProgressBar } from "../ui/UIProgressBar";
-import { IUISliderConfig } from "../types/IUISlider";
-import { UISlider } from "../ui/UISlider";
-import { IUIScrollBarConfig } from "../types/IUIScrollBar";
-import { UIScrollBar } from "../ui/UIScrollBar";
+
+import { IViewConfig, IViewGroupConfig, IUIImageConfig, IUITextFieldConfig, IUITextInputConfig, 
+    IUIButtonConfig, IUILabelConfig, IUIScrollBarConfig, IUISliderConfig, 
+    IUIProgressBarConfig, IUIRichTextInputConfig } from "../types";
+    
+import { UIButton,UILabel,UIRichTextField,UIProgressBar,
+    UISlider,UIScrollBar,UIImage,UITextInput,UITextField } from "../ui";
 
 export interface IPrefab {
     id: number;

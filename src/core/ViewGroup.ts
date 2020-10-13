@@ -4,7 +4,7 @@ import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
 import { ViewScene } from "./ViewScene";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { View } from "./View";
 import { Margin } from "../utils/Margin";
 
@@ -16,7 +16,7 @@ export class ViewGroup extends View {
         fields.push(
             {property: "_overflowType", alias: "overflowType", default: EOverflowType.Visible},
             {property: "opaque",importAs: "_opaque",default: false},
-            {property: "children",importAs: "_children",default: [], type: View},
+            {property: "children",importAs: "_children",default: [], type: View, keepArray: true},
             {property: "margin", importAs: "_margin", type: Margin},
         );
         return fields;
@@ -81,7 +81,7 @@ export class ViewGroup extends View {
         (this.rootContainer as any).___filter_input__ = !this.touchable;
         if(this.rootContainer.input && this.rootContainer.input.enabled) {
             // 是否把自身过滤掉
-            (this.rootContainer.input as any).___filter_self__ = !this._opaque && !this.enableBackground;
+            (this.rootContainer.input as any).___filter_self__ = !this._opaque && !this.enableBackground && this._overflowType != EOverflowType.Scroll;
         }
     }
 
@@ -295,11 +295,11 @@ export class ViewGroup extends View {
         return this;
     }
 
-    public removeAllChildren(dispose?: boolean, toPool?: boolean): this {
+    public removeAllChildren(dispose?: boolean): this {
         this._batchProcessing = true;
         let children = this._children.slice();
         for(let i=0;i<children.length;i++) {
-            this.removeChild(children[i], dispose, toPool);
+            this.removeChild(children[i], dispose);
         }
         this._children = [];
         this.addDirty(EDirtyType.BoundsChanged);
@@ -308,10 +308,10 @@ export class ViewGroup extends View {
         return this;
     }
 
-    public removeChild(child: View, dispose?: boolean, toPool?: boolean): View {
+    public removeChild(child: View, dispose?: boolean): View {
         let childIndex: number = this._children.indexOf(child);
         if (childIndex >= 0) {
-            let ret = this.removeChildAt(childIndex, dispose, toPool);
+            let ret = this.removeChildAt(childIndex, dispose);
             if(!this._batchProcessing) {
                 this.onChildrenChanged();
             }
@@ -330,7 +330,7 @@ export class ViewGroup extends View {
         }
     }
 
-    public removeChildAt(index: number, dispose?: boolean, toPool?: boolean): View {
+    public removeChildAt(index: number, dispose?: boolean): View {
         if(index >= 0 && index < this._children.length) {
             let child = this._children[index];
             child.clearParent();
@@ -341,7 +341,7 @@ export class ViewGroup extends View {
             }
 
             if(dispose === true) {
-                child.dispose(toPool);
+                child.dispose();
             }
 
             this.clear();
@@ -420,11 +420,11 @@ export class ViewGroup extends View {
         }
     }   
 
-    public dispose(toPool?: boolean) {
-        super.dispose(toPool);
+    public dispose() {
+        super.dispose();
 
         this._children.forEach(c=>{
-            c.dispose(toPool);
+            c.dispose();
         })
         this._children.length = 0;
 
@@ -519,7 +519,8 @@ export class ViewGroup extends View {
                 this._scrollContainer = null;
             }
         }
-        
+            
+        this.applyHitArea();
         if(this.rootContainer.input) {
             // 是否通过父节点input过滤子节点的input
             (this.rootContainer.input as any).___filter_input__ = filterInput;
@@ -627,6 +628,11 @@ export class ViewGroup extends View {
             this._scrollContainer.y = this._scrollRect.y;
             this._scrollContainer.width = this._scrollRect.width;
             this._scrollContainer.height = this._scrollRect.height;
+        }else{
+            this._container.x = this._scrollRect.x;
+            this._container.y = this._scrollRect.y;
+            this._container.width = this._scrollRect.width;
+            this._container.height = this._scrollRect.height;
         }
     }
     

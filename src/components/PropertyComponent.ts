@@ -1,6 +1,6 @@
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { PropertyManager } from "../tween/Property";
 import { SerializableComponent } from "./SerializableComponent";

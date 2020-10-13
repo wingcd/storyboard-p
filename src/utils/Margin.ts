@@ -1,4 +1,4 @@
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { Deserialize } from "./Serialize";
 
 export class Margin {

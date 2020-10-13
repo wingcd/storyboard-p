@@ -2,7 +2,7 @@ import * as Events from "../events";
 import { ViewGroup } from "./ViewGroup";
 import { View } from "./View";
 import { GetViewByRelativePath, GetViewRelativePath, IsViewChild } from "../utils/Object";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { ERelationPinType } from "./Defines";
 
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
@@ -11,7 +11,7 @@ class RelationPin {
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields: ISerializeInfo[] = [];
         fields.push(
-            {property: "_ownerName", alias: "owner", default: null},
+            {property: "_ownerName", alias: "owner", default: ''},
             {property: "_precent", alias: "precent", default: false},            
             {property: "_pinType", alias: "pinType", default: ERelationPinType.LEFT},                             
             {property: "_to", alias: "to", type: RelationPin, default: null},
@@ -19,7 +19,7 @@ class RelationPin {
         return fields;
     }
     
-    private _ownerName: string = null;
+    private _ownerName: string = '';
     private _owner: View = null;
     private _relations: Relations = null;
     private _pinType: ERelationPinType;

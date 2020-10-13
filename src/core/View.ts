@@ -6,13 +6,12 @@ import { Settings } from "./Setting";
 import { PoolManager } from "../utils/PoolManager";
 import * as Events from '../events';
 import { DisplayObjectEvent } from "../events";
-import { IComponent, ComponentOptions } from "../types/IComponent";
 import { BaseComponent } from "../components/BaseComponent";
 import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
-import { IExtendsValue, ISerializeInfo } from "../annotations/Serialize";
+import { IExtendsValue, ISerializeInfo } from "../types";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
@@ -21,7 +20,7 @@ import { Package } from "./Package";
 import { Templates } from "./Templates";
 import { PropertyComponent } from "../components/PropertyComponent";
 import { AnimationComponent } from "../components/AnimationComponent";
-import { IView } from "../types";
+import { IView, IComponent, IComponentOptions } from "../types";
 
 export class View implements IView{
     static CATEGORY = ECategoryType.UI;
@@ -214,12 +213,17 @@ export class View implements IView{
         this.onParentChanged();
     }
 
+    protected get realTouchable(): boolean {
+        return this._touchable && (this._parent && this._parent.realTouchable || !this._parent);
+    }
+
     protected onParentChanged() {
         if(this._parent) {            
             this.handleGrayedChanged(this._parent.grayed);
         }else{
             this.handleGrayedChanged();
         }
+        this.applyHitArea();
     }
 
     public get root(): ViewRoot {
@@ -1020,6 +1024,10 @@ export class View implements IView{
             this._gFrame.destroy();
             this._gFrame = null;
         }
+        if(this._gBorder) {
+            this._gBorder.destroy();
+            this._gBorder = null;
+        }
     }
 
     public reset(): this {              
@@ -1028,11 +1036,17 @@ export class View implements IView{
         return this;
     }
 
-    public dispose(toPool?: boolean) {
-        this.removeAllListeners();
-
+    public dispose() {
         if(this._relations) {
             this._relations.dispose();
+        }
+
+        if(this._components) {
+            this._components.forEach(comp=>{
+                comp.unRegist();
+                comp.dispose();
+            });
+            this._components.length = 0;
         }
 
         this.parent = null;
@@ -1040,10 +1054,7 @@ export class View implements IView{
 
         this.clear();
 
-        // if(toPool) {
-        //     PoolManager.inst.put(this);
-        //     return;
-        // }
+        this.removeAllListeners();
         this._rootContainer.destroy();
         this._rootContainer = null;
             
@@ -1195,7 +1206,7 @@ export class View implements IView{
     }
 
     protected applyHitArea() {
-        if(!this._touchable) {
+        if(!this.realTouchable) {
             if(this._hitArea) {
                 this._hitArea.setSize(0, 0);
             }
@@ -1470,7 +1481,7 @@ export class View implements IView{
         return this;
     }
 
-    public removeComponentByType(type: Function, all: boolean = true, options?: ComponentOptions): this {
+    public removeComponentByType(type: Function, all: boolean = true, options?: IComponentOptions): this {
         if(!this._components || !type) {
             return;
         }
@@ -1487,7 +1498,7 @@ export class View implements IView{
         return this;
     }
 
-    private _compareComponent(item: IComponent, type: Function, options?: ComponentOptions) {
+    private _compareComponent(item: IComponent, type: Function, options?: IComponentOptions) {
         let p = type;
         let last = p;
         let find =  item.constructor.name == type.name;
@@ -1518,7 +1529,7 @@ export class View implements IView{
         return find;
     }
 
-    public hasComponent(type: Function, options?: ComponentOptions): boolean {
+    public hasComponent(type: Function, options?: IComponentOptions): boolean {
         if(!this._components || !type) {
             return false;
         }
@@ -1526,7 +1537,7 @@ export class View implements IView{
         return this.getComponent(type, options) != null;
     }
 
-    public getComponent(type: Function, options?: ComponentOptions): IComponent {
+    public getComponent(type: Function, options?: IComponentOptions): IComponent {
         if(!this._components) {
             return null;
         }
@@ -1536,7 +1547,7 @@ export class View implements IView{
         });
     }
 
-    public getComponents(type: Function, options?: ComponentOptions): IComponent[] {
+    public getComponents(type: Function, options?: IComponentOptions): IComponent[] {
         if(!this._components) {
             return [];
         }
@@ -1626,12 +1637,12 @@ export class View implements IView{
         return this.scene.addUI.create(json);
     }
 
-    public toJSON(): any {
+    public toJSON(tpl?: any): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp);
+        return Serialize(this, temp || tpl);
     }
 
     public fromJSON(config: any, template?: any): this {

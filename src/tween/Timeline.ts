@@ -8,7 +8,7 @@ import { MathUtils } from "../utils/Math";
 import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild } from "../utils/Object";
 import TweenStep from "./TweenStep";
 import { ITweenInfo } from "../types";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { Package } from "../core/Package";
 import { ITemplatable } from "../types/ITemplatable";
 import { Templates } from "../core/Templates";
@@ -925,12 +925,12 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         this._groups.length = 0;
     }
 
-    public toJSON(): any {
+    public toJSON(tpl?: any): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp);
+        return Serialize(this, temp || tpl);
     }
 
     public fromJSON(config: any, template?: any): this {

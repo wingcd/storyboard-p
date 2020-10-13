@@ -1,6 +1,6 @@
 import { IComponent } from "../types";
 import { View } from "../core/View";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 
 export class BaseComponent implements IComponent {

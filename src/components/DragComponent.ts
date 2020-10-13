@@ -7,7 +7,7 @@ import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
 import { EDragType } from "../core/Defines";
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { IViewGroup } from "../types";
 import { SerializableComponent } from "./SerializableComponent";
 import { ComponentFactory } from "./ComponentFactory";

@@ -1,4 +1,4 @@
-import { ISerializeInfo } from "../annotations/Serialize";
+import { ISerializeInfo } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -313,8 +313,8 @@ export class UIProgressBar extends ViewGroup {
         this.update();
     }
 
-    public dispose(toPool?: boolean) {
-        super.dispose(toPool);
+    public dispose() {
+        super.dispose();
 
         this._clearTween();
     }

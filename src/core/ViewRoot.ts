@@ -32,8 +32,8 @@ export class ViewRoot extends ViewGroup {
         this._game.scale.on(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }
 
-    public dispose(toPool?: boolean) {
-        super.dispose(toPool);
+    public dispose() {
+        super.dispose();
 
         this._game.scale.off(Scale.Events.RESIZE, this._sizeChanged.bind(this));
     }

@@ -3,8 +3,8 @@ import { Serialize, Deserialize } from "../utils/Serialize";
 export class Project {
     
 
-    public toJSON(): any {
-        return Serialize(this);
+    public toJSON(tpl?: any): any {
+        return Serialize(this, tpl);
     }
 
     public fromJSON(config: any, template?: any): this {

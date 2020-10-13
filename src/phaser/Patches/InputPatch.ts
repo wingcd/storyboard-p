@@ -18,6 +18,7 @@ function searchAllInputChildren(result: any[], gameObject: Phaser.GameObjects.Ga
 function searchInputParent(result: any[], gameObject: Phaser.GameObjects.GameObject,  camera: Phaser.Cameras.Scene2D.Camera, dropZone: boolean = false): boolean {
     let parent = gameObject.parentContainer;
     if(parent) {
+        // 过滤父节点touchable为false的所有节点
         if((parent as any).___filter_input__) {
             return false;
         }
