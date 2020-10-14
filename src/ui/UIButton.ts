@@ -1,5 +1,5 @@
 import { View } from "../core/View";
-import { ISerializeInfo } from "../types";
+import { IExtendsValue, ISerializeInfo, IUIButton } from "../types";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
@@ -10,7 +10,7 @@ import { UITextField } from "./UITextField";
 import { EButtonMode } from "../core/Defines";
 require("../components");
                     
-export class UIButton extends ViewGroup {
+export class UIButton extends ViewGroup implements IUIButton {
     static TYPE = "button";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -20,6 +20,7 @@ export class UIButton extends ViewGroup {
             {property: "_mode", alias: "mode", default: EButtonMode.Common},
             {property: "_relatedPropMgrId", alias: "propMgrId"},
             {property: "_propertyGroupId", alias: "groupId"},
+            {property: "_changeStateOnClick", alias: "changeStateOnClick", default: true},
         );
         return fields;
     }
@@ -33,6 +34,7 @@ export class UIButton extends ViewGroup {
 
     private _selected: boolean = false;
     private _mode: EButtonMode = EButtonMode.Common;
+    private _changeStateOnClick: boolean = true;
 
     protected _titleObject: UITextField;
     protected _iconObject: UIImage;
@@ -109,6 +111,14 @@ export class UIButton extends ViewGroup {
         this.title = value;
     }
 
+    public get changeStateOnClick(): boolean {
+        return this._changeStateOnClick;
+    }
+
+    public set changeStateOnClick(value: boolean) {
+        this._changeStateOnClick = value;
+    }
+
     public get selected(): boolean {
         return this._selected;
     }
@@ -119,24 +129,27 @@ export class UIButton extends ViewGroup {
 
         if (this._selected != val) {
             this._selected = val;
-            let hasDisable = this._buttonPropManager.has(UIButton.DISABLED);
-            let hasSelectedDisable = this._buttonPropManager.has(UIButton.SELECTED_DISABLED);
-            if (this.grayed && this._buttonPropManager && (hasDisable || hasSelectedDisable)) {
-                if (this._selected && hasSelectedDisable) {
-                    this._buttonPropManager.applyTo(UIButton.SELECTED_DISABLED);
+
+            if(this._buttonPropManager) {
+                let hasDisable = this._buttonPropManager.has(UIButton.DISABLED);
+                let hasSelectedDisable = this._buttonPropManager.has(UIButton.SELECTED_DISABLED);
+                if (this.grayed && this._buttonPropManager && (hasDisable || hasSelectedDisable)) {
+                    if (this._selected && hasSelectedDisable) {
+                        this._buttonPropManager.applyTo(UIButton.SELECTED_DISABLED);
+                    }
+                    else {
+                        this._buttonPropManager.applyTo(UIButton.DISABLED);
+                    }
                 }
                 else {
-                    this._buttonPropManager.applyTo(UIButton.DISABLED);
-                }
-            }
-            else {
-                if (this._selected) {
-                    let over = this._over && this._buttonPropManager.has(UIButton.SELECTED_OVER);
-                    this._buttonPropManager.applyTo(over ? UIButton.SELECTED_OVER : UIButton.DOWN);
-                }
-                else {
-                    let over = this._over && this._buttonPropManager.has(UIButton.OVER);
-                    this._buttonPropManager.applyTo(over ? UIButton.OVER : UIButton.UP);
+                    if (this._selected) {
+                        let over = this._over && this._buttonPropManager.has(UIButton.SELECTED_OVER);
+                        this._buttonPropManager.applyTo(over ? UIButton.SELECTED_OVER : UIButton.DOWN);
+                    }
+                    else {
+                        let over = this._over && this._buttonPropManager.has(UIButton.OVER);
+                        this._buttonPropManager.applyTo(over ? UIButton.OVER : UIButton.UP);
+                    }
                 }
             }
 

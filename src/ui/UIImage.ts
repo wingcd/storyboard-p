@@ -2,7 +2,7 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
-import { IExtendsValue, ISerializeInfo } from "../types";
+import { IExtendsValue, ISerializeInfo, IUIImage } from "../types";
 import { FillMask } from "./FillMask";
 import { INinePatchInfo, ITileInfo } from "../types";
 import { ETextureScaleType } from "../core/Defines";
@@ -32,7 +32,7 @@ export class NinePatchInfo {
     };
 }
 
-export class UIImage extends View {
+export class UIImage extends View  implements IUIImage {
     static TYPE = "image";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {

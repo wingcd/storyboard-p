@@ -6,10 +6,10 @@ import { ECategoryType } from "./Defines";
 
 import { IViewConfig, IViewGroupConfig, IUIImageConfig, IUITextFieldConfig, IUITextInputConfig, 
     IUIButtonConfig, IUILabelConfig, IUIScrollBarConfig, IUISliderConfig, 
-    IUIProgressBarConfig, IUIRichTextInputConfig } from "../types";
+    IUIProgressBarConfig, IUIRichTextInputConfig, IUIListConfig } from "../types";
     
 import { UIButton,UILabel,UIRichTextField,UIProgressBar,
-    UISlider,UIScrollBar,UIImage,UITextInput,UITextField } from "../ui";
+    UISlider,UIScrollBar,UIImage,UITextInput,UITextField, UIList } from "../ui";
 
 export interface IPrefab {
     id: number;
@@ -102,6 +102,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UIScrollBar;
     } 
 
+    public list(config?: IUIListConfig, template?: any): UIList {
+        let type: any = ViewFactory.getType("list");
+        return this._add(type, config, template) as UIList;
+    } 
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.type : null) || (template ? template.type : null);
         if(!viewType) {
@@ -129,3 +134,4 @@ ViewFactory.regist(UIScrollBar);
 ViewFactory.regist(UITextField);
 ViewFactory.regist(UIRichTextField);
 ViewFactory.regist(UITextInput);
+ViewFactory.regist(UIList);

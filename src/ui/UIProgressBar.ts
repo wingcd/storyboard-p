@@ -1,4 +1,4 @@
-import { ISerializeInfo } from "../types";
+import { ISerializeInfo, IUIProgressBar } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -8,7 +8,7 @@ import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
 require("../components");
                     
-export class UIProgressBar extends ViewGroup {
+export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
     static TYPE = "progress";
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {

@@ -1,4 +1,4 @@
-import { IExtendsValue, ISerializeInfo } from "../types";
+import { IExtendsValue, ISerializeInfo, IUIScrollBar } from "../types";
 import { ScrollPane } from "../components";
 import { EOverflowType } from "../core/Defines";
 import { View } from "../core/View";
@@ -8,7 +8,7 @@ import * as Events from "../events";
 import { EventData, Point, Pointer} from "../phaser";
 require("../components");
                     
-export class UIScrollBar extends ViewGroup {
+export class UIScrollBar extends ViewGroup implements IUIScrollBar{
     static TYPE = "scrollbar";
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -23,7 +23,6 @@ export class UIScrollBar extends ViewGroup {
 
     static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
         return {
-            opaque: true,
             _overflowType: EOverflowType.Hidden,  
         };
     }
@@ -46,7 +45,6 @@ export class UIScrollBar extends ViewGroup {
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this.opaque = true;
         this.overflowType = EOverflowType.Hidden;
     } 
 

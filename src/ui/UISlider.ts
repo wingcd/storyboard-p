@@ -1,4 +1,4 @@
-import { ISerializeInfo } from "../types";
+import { ISerializeInfo, IUISlider } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -11,7 +11,7 @@ import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
 require("../components");
                     
-export class UISlider extends ViewGroup {
+export class UISlider extends ViewGroup  implements IUISlider{
     static TYPE = "slider";
     
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
@@ -61,7 +61,6 @@ export class UISlider extends ViewGroup {
         super(scene);
 
         this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
-        this.opaque = true;
     } 
 
     /**

@@ -5,8 +5,9 @@ import * as Events from '../events';
 import { View } from "../core/View";
 import { ViewRoot } from "../core/ViewRoot";
 import { MultiPointerManager } from "../utils/MultiPointerManager";
+import { IUITextField } from "../types";
 
-export class UIRichTextField extends UITextField { 
+export class UIRichTextField extends UITextField  implements IUITextField{ 
     static TYPE = "richtext";
 
     private static AREA_DOWN_EVENT = "areadown";

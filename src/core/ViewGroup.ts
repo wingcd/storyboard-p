@@ -1,28 +1,28 @@
-import { Container, Scene, Rectangle, Graphics, GeometryMask, Point } from "../phaser";
+import { Container, Rectangle, Graphics, Point } from "../phaser";
 import { EDirtyType, EOverflowType } from "./Defines";
 import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
 import { ViewScene } from "./ViewScene";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { ISerializeInfo } from "../types";
+import { ISerializeInfo, IViewGroup } from "../types";
 import { View } from "./View";
 import { Margin } from "../utils/Margin";
 
-export class ViewGroup extends View {
+export class ViewGroup extends View implements IViewGroup{
     static TYPE = "group";
 
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;
         fields.push(
             {property: "_overflowType", alias: "overflowType", default: EOverflowType.Visible},
-            {property: "opaque",importAs: "_opaque",default: false},
+            {property: "opaque",importAs: "_opaque",default: true},
             {property: "children",importAs: "_children",default: [], type: View, keepArray: true},
             {property: "margin", importAs: "_margin", type: Margin},
         );
         return fields;
     }
 
-    private _opaque: boolean = false;
+    private _opaque: boolean = true;
     private _overflowType: EOverflowType = EOverflowType.Visible;
     private _children: View[] = []; 
     private _margin: Margin = new Margin();

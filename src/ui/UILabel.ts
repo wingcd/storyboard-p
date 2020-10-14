@@ -1,10 +1,11 @@
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
+import { IUILabel } from "../types";
 import { UIImage } from "./UIImage";
 import { UITextInput } from "./UITextInput";
 require("../components");
                     
-export class UILabel extends ViewGroup {
+export class UILabel extends ViewGroup  implements IUILabel{
     static TYPE = "label";
 
     protected _titleObject: UITextInput;

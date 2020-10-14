@@ -1,5 +1,5 @@
 import * as Events from "../events";
-import { Point, Tween, Input, EventData, Pointer, Easing, TimerEvent } from "../phaser";
+import { Point, Tween, Input, EventData, Pointer, Easing, TimerEvent, Rectangle } from "../phaser";
 import { EScrollbarDisplayType as EScrollBarDisplayType, EScrollType } from "../core/Defines";
 import { MathUtils } from "../utils/Math";
 import { Settings } from "../core/Setting";
@@ -61,6 +61,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         return ScrollPaneComponent._draggingPane;
     }
 
+    protected static sHelperRect: Rectangle = new Rectangle();
     protected static sGlobalScrollStart: Point = new Point();
     protected static sLastScrollPt: Point = new Point();
     private   static _sScrollBeginCancelled: boolean;    
@@ -69,7 +70,9 @@ export class ScrollPaneComponent extends SerializableComponent {
     public scrollType: EScrollType = EScrollType.Both;
     public enableMouseWheel: boolean = true;
     public touchEffect: boolean = true;
+    // 是否允许惯性
     public inertanceEffect: boolean = false;
+    // 是否允许回弹效果
     public bouncebackEffect: boolean = false;
 
     public scrollSpeed: number = Settings.defaultScrollSpeed;
@@ -446,6 +449,11 @@ export class ScrollPaneComponent extends SerializableComponent {
         return Math.round(ret);
     }
 
+    public get isDragging(): boolean {
+        return ScrollPaneComponent._draggingPane == this && 
+            (ScrollPaneComponent._sStatus == EScrollStatus.SCROLL_BEGIN || ScrollPaneComponent._sStatus == EScrollStatus.SCROLLING);
+    }
+
     private _moving(pointer: Pointer): void {     
         if(this._pointerId !== pointer.pointerId) {
             return;
@@ -766,6 +774,74 @@ export class ScrollPaneComponent extends SerializableComponent {
             this.setPosX(this._posX + this._pageSize.x * ratio, ani);
         else
             this.setPosX(this._posX + this.scrollSpeed * ratio, ani);
+    }
+
+    public scrollToView(target: View | Rectangle, ani: boolean = false, snapToFirst: boolean = false): void {
+        this.owner.ensureBoundsCorrect();
+        // if (this._needRefresh)
+        //     this._refresh();
+
+        let rect: Rectangle = ScrollPaneComponent.sHelperRect;
+        if (target instanceof View) {
+            if (target.parent != this.owner) {
+                target.parent.localToGlobalRect(target.x, target.y,
+                    target.width, target.height, rect);
+                rect = this.owner.globalToLocalRect(rect.x, rect.y,
+                    rect.width, rect.height, rect);
+            }
+            else {
+                rect.x = target.x;
+                rect.y = target.y;
+                rect.width = target.width;
+                rect.height = target.height;
+            }
+        }
+        else {
+            rect = target as Rectangle;
+        }
+
+        if (this._overlapSize.y > 0) {
+            const bottom: number = this._posY + this._viewSize.y;
+            if (snapToFirst || rect.y <= this._posY || rect.height >= this._viewSize.y) {
+                if (this._pageMode) {
+                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
+                }else {
+                    this.setPosY(rect.y, ani);
+                }
+            }
+            else if (rect.y + rect.height > bottom) {
+                if (this._pageMode) {
+                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
+                // }else if (rect.height <= this._viewSize.y / 2) {
+                //     this.setPosY(rect.y + rect.height * 2 - this._viewSize.y, ani);
+                }else{
+                    this.setPosY(rect.y + rect.height - this._viewSize.y, ani);
+                }
+            }
+        }
+
+        if (this._overlapSize.x > 0) {
+            let right: number = this._posX + this._viewSize.x;
+            if (snapToFirst || rect.x <= this._posX || rect.width >= this._viewSize.x) {
+                if (this._pageMode) {
+                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
+                }else{
+                    this.setPosX(rect.x, ani);
+                }
+            }
+            else if (rect.x + rect.width > right) {
+                if (this._pageMode){
+                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
+                // }else if (rect.width <= this._viewSize.x / 2){
+                //     this.setPosX(rect.x + rect.width * 2 - this._viewSize.x, ani);
+                }else{
+                    this.setPosX(rect.x + rect.width - this._viewSize.x, ani);
+                }
+            }
+        }
+
+        if (!ani) // && this._needRefresh)
+            this._refresh();
     }
 
     public set displayOnLeft(val: boolean) {

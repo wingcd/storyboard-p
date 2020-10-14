@@ -22,7 +22,7 @@ import { PropertyComponent } from "../components/PropertyComponent";
 import { AnimationComponent } from "../components/AnimationComponent";
 import { IView, IComponent, IComponentOptions } from "../types";
 
-export class View implements IView{
+export class View implements IView {
     static CATEGORY = ECategoryType.UI;
     static TYPE = "view";
 

@@ -4,7 +4,7 @@ import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType, ECategoryType
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
-import { IExtendsValue, ISerializeInfo } from "../types";
+import { IExtendsValue, ISerializeInfo, IUITextField } from "../types";
 import { Templates } from "../core/Templates";
 import { clone, Deserialize, Serialize } from "../utils/Serialize";
 import { colorToString } from "../utils/Color";
@@ -164,7 +164,7 @@ export class LineInfo {
     }
 }
 
-export class UITextField extends View {
+export class UITextField extends View  implements IUITextField {
     static TYPE = "textfield";
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = View.SERIALIZABLE_FIELDS;

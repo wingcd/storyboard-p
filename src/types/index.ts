@@ -27,3 +27,4 @@ export * from './IUILabel';
 export * from './IUIProgressBar';
 export * from './IUIScrollBar';
 export * from './IUISlider';
+export * from './IUIList';

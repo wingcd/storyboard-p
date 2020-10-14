@@ -1,1 +1,1 @@
-require('./test/clone2')
+require('./test/uilist')

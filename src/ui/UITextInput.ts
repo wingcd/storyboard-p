@@ -5,7 +5,7 @@ import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewGroup } from "../core/ViewGroup";
-import { IExtendsValue, ISerializeInfo } from "../types";
+import { IExtendsValue, ISerializeInfo, IUITextField } from "../types";
 import * as Events from "../events";
 
 export const enum EInputType {
@@ -17,7 +17,7 @@ export const enum EInputType {
     URL = "url"
 };
 
-export class UITextInput extends UITextField { 
+export class UITextInput extends UITextField  implements IUITextField{ 
     static TYPE = "textinput";
     static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
         let fields = UITextField.SERIALIZABLE_FIELDS;
