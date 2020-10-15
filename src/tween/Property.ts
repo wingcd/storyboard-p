@@ -1,5 +1,5 @@
-import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild, SetValue } from "../utils/Object";
-import { ISerializeInfo } from "../types";
+import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild} from "../utils/Object";
+import { ISerializeFields } from "../types";
 import { View } from "../core/View";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { ECategoryType, EEaseType, ParseEaseType } from "../core/Defines";
@@ -20,16 +20,12 @@ export class Property {
     targetPath: string = "";
     tweenInfo?: ITweenInfo = null;
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "name"},
-            {property: "value"},
-            {property: "targetPath", default: ""},
-            {property: "tweenInfo", alias: "tween", default: null, raw: true},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        name: {},
+        value: {},
+        targetPath: {default: ""},
+        tweenInfo: {alias: "tween", default: null, raw: true},
+    };
 }
 
 class PropertyGroup {
@@ -43,15 +39,11 @@ class PropertyGroup {
     /**@internal */
     id: number;
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "id"},
-            {property: "_name", alias: "name"},
-            {property: "_properties", alias: "properties", type: Property, default: []},            
-            {property: "_targetPath", alias: "target", default: ""},
-        );
-        return fields;
+    static SERIALIZABLE_FIELDS: ISerializeFields = {        
+        id: {},
+        name: {importAs: "_name"},
+        properties: {importAs: "_properties", type: Property, default: []},            
+        targetPath: {property: "_targetPath", alias: "target", default: ""},
     }
 
     static DESERIALIZE(config: any, target: PropertyManager, configProp: string, targetProp: string, tpl: any, index?: number) {
@@ -291,18 +283,14 @@ class PropertyGroup {
 export class PropertyManager extends EventEmitter implements ITemplatable {
     static CATEGORY = ECategoryType.Property;
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        CATEGORY: {property: "CATEGORY", alias: "__category__", static: true, readOnly: true},
 
-            {property: "resourceUrl"},
-            {property: "_id", alias: "id"},  
-            {property: "_name", alias: "name"},       
-            {property: "_defaultId", alias: "default"},
-            {property: "_groups", alias: "groups", type: PropertyGroup, default: []},
-        );
-        return fields;
+        resourceUrl: {},
+        id: {importAs: "_id"},  
+        name: {importAs: "_name"},       
+        default: {importAs: "_defaultId"},
+        groups: {importAs: "_groups", type: PropertyGroup, default: []},
     } 
 
     private _name: string;

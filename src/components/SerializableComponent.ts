@@ -2,7 +2,7 @@ import { BaseComponent } from "./BaseComponent";
 import { ECategoryType } from "../core/Defines";
 import { ComponentFactory } from "./ComponentFactory";
 import { Deserialize, Serialize } from "../utils/Serialize";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { Templates } from "../core/Templates";
 import { ViewScene } from "../core/ViewScene";
 import { ISerializableCompoent } from "../types";
@@ -12,15 +12,16 @@ export class SerializableComponent extends BaseComponent implements ISerializabl
     public static CATEGORY = ECategoryType.Component;
     public static TYPE = "";    
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = BaseComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "TYPE", alias: "type", static: true, readonly: true, must: true},
-            {property: "resourceUrl"},
-            {property: "_id", alias: "id"}, 
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        BaseComponent.SERIALIZABLE_FIELDS,
+        {
+            TYPE: {alias: "__type__", static: true, readOnly: true, must: true},
+
+            resourceUrl: {},
+            id: { importAs: "_id" }, 
+        }
+    );
 
     private _inBuilding = false;  
 

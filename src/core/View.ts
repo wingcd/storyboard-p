@@ -11,7 +11,7 @@ import { ViewScene } from "./ViewScene";
 import { DragComponent } from "../components/DragComponent";
 import { ComponentFactory } from "../components/ComponentFactory";
 import { Relations } from "./Relations";
-import { IExtendsValue, ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { colorMultiply } from "../utils/Color";
 import { ViewGroup } from "./ViewGroup";
@@ -26,46 +26,44 @@ export class View implements IView {
     static CATEGORY = ECategoryType.UI;
     static TYPE = "view";
 
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return null;
+    static SERIALIZE_INIT() 
+    {
+        
     }
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = [];
-        fields.push(
-            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
-            {property: "TYPE", alias: "type", static: true, readonly: true},
-            {property: "data",default: null},
-            {property: "resourceUrl", default: null},
-            {property: "id",importAs: "_id"},
-            {property: "name",importAs: "_name",default: ""},
-            {property: "visible",importAs: "_visible",default: true},
-            {property: "hiddenCollapsed",importAs: "_hiddenCollapsed", default: false},
-            {property: "x",importAs: "_x",default: 0},
-            {property: "y",importAs: "_y",default: 0},
-            {property: "width",importAs: "_width",alias: "w",default: 100},
-            {property: "height",importAs: "_height",alias: "h",default: 100},
-            {property: "scaleX",importAs: "_scaleX",alias: "sx",default: 1},
-            {property: "scaleY",importAs: "_scaleY",alias: "sy",default: 1},
-            {property: "angle",importAs: "_angle",default: 0},
-            {property: "pivotX",importAs: "_pivot.x",alias: "px",default: 0},
-            {property: "pivotY",importAs: "_pivot.y", alias: "py",default: 0},
-            {property: "pivotAsAnchor",importAs: "_pivotAsAnchor",alias: "asAnchor",default: false},
-            {property: "useBorderAsFrame",importAs: "_useBorderAsFrame",alias: "asFrame",default: true},
-            {property: "focusable",importAs: "_focusable",default: false},
-            {property: "touchable",importAs: "_touchable",default: true},
-            {property: "touchEnableMoved",default: true},
-            {property: "draggable",importAs: "_draggable",default: false},
-            {property: "enableBackground",importAs: "_enableBackground",default: false},
-            {property: "backgroundColor",importAs: "_backgroundColor",default: 0xffffff},            
-            {property: "alpha", importAs: "_alpha", default: 1},         
-            {property: "tint", importAs: "_tint", default: 0xffffff},            
-            {property: "grayed", importAs: "_grayed", default: false},
-            {property: "_components", alias: "components", type: BaseComponent, priority: 999},          
-            {property: "_relations", alias: "relations", type: Relations, priority: 999},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        CATEGORY: {alias: "__category__", static: true, readOnly: true},
+        TYPE: { alias: "__type__", static: true, readOnly: true},
+
+        data: {},
+        resourceUrl: {},
+        id: {importAs: "_id"},
+        name: {importAs: "_name",default: ""},
+        visible: {importAs: "_visible",default: true},
+        hiddenCollapsed: {importAs: "_hiddenCollapsed", default: false},
+        x: {importAs: "_x",default: 0},
+        y: {importAs: "_y",default: 0},
+        width: {importAs: "_width",alias: "w",default: 100},
+        height: {importAs: "_height",alias: "h",default: 100},
+        scaleX: {importAs: "_scaleX",alias: "sx",default: 1},
+        scaleY: {importAs: "_scaleY",alias: "sy",default: 1},
+        angle: {importAs: "_angle",default: 0},
+        pivotX: {importAs: "_pivot.x",alias: "px",default: 0},
+        pivotY: {importAs: "_pivot.y", alias: "py",default: 0},
+        pivotAsAnchor: {importAs: "_pivotAsAnchor",alias: "asAnchor",default: false},
+        useBorderAsFrame: {importAs: "_useBorderAsFrame",alias: "asFrame",default: true},
+        focusable: {importAs: "_focusable",default: false},
+        touchable: {importAs: "_touchable",default: true},
+        touchEnableMoved: {default: true},
+        draggable: {importAs: "_draggable",default: false},
+        enableBackground: {importAs: "_enableBackground",default: false},
+        backgroundColor: {importAs: "_backgroundColor",default: 0xffffff},            
+        alpha: {importAs: "_alpha", default: 1},         
+        tint: {importAs: "_tint", default: 0xffffff},            
+        grayed: {importAs: "_grayed", default: false},
+        components: {property: "_components", type: BaseComponent, priority: 999},          
+        relations: {importAs: "_relations", type: Relations, priority: 999},
+    };
 
     static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
         return [target.scene.makeUI.create(config, tpl), false];

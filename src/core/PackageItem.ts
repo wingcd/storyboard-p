@@ -1,16 +1,12 @@
 import { randomString } from "../utils/String";
 import { Package } from "./Package";
-import { ISerializeInfo,ITemplatable } from "../types";
+import { ISerializeFields,ITemplatable } from "../types";
 
 export class PackageItem {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "name", default: null},      
-            {property: "_id", alias: "id", default: null},  
-            {property: "_templates", alias: "templates", default: null, raw: true},
-        );
-        return fields;
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        name: {property: "name", default: null},      
+        id: {property: "_id", default: null},  
+        templates: {property: "_templates", default: null, raw: true},
     }
 
     protected constructFromJson() {

@@ -2,17 +2,13 @@ import { PackageItem } from "./PackageItem";
 import { randomString } from "../utils/String";
 import { ITemplatable } from "../types";
 import { ViewScene } from "./ViewScene";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { Templates } from "./Templates";
 
 export class Package {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "_packages", alias: "packages", default: null, type: PackageItem},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        packages: {property: "_packages", type: PackageItem},
+    };
 
     protected constructFromJson() {
         let packages = this._packages.slice();

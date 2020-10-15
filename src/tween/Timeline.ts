@@ -8,7 +8,7 @@ import { MathUtils } from "../utils/Math";
 import { GetValue, GetViewRelativePath, GetViewByRelativePath, IsViewChild } from "../utils/Object";
 import TweenStep from "./TweenStep";
 import { ITweenInfo } from "../types";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { Package } from "../core/Package";
 import { ITemplatable } from "../types/ITemplatable";
 import { Templates } from "../core/Templates";
@@ -20,27 +20,19 @@ export class KFProperty {
     value: any = null;
     target: any = null;
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "name"},
-            {property: "value"},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        name: {},
+        value: {},
+    };
 }
 
 export class KeyFrame {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "tag", default: ""},
-            {property: "time", default: 0},            
-            {property: "property", alias: "prop", type: KFProperty, default: null},
-            {property: "tweenInfo", alias: "tween", default: null, raw: true},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        tag: {default: ""},
+        time: {default: 0},            
+        property: {alias: "prop", type: KFProperty, default: null},
+        tweenInfo: {alias: "tween", default: null, raw: true},
+    };
     
     tag: string = "";
     time: number = 0;
@@ -53,14 +45,10 @@ export class KeyFrame {
 }
 
 export class KeyFrameGroup {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "_propPath", alias: "prop"},
-            {property: "_targetPath", alias: "path", default: ""},
-            {property: "_keyframes", alias: "frames", type: KeyFrame},
-        );
-        return fields;
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        propPath: {property: "_propPath"},
+        targetPath: {property: "_targetPath", alias: "path", default: ""},
+        keyframes: {property: "_keyframes", alias: "frames", type: KeyFrame},
     }
 
     static DESERIALIZE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number) {
@@ -432,18 +420,14 @@ export class KeyFrameGroup {
 export class TimelineManager extends EventEmitter implements ITemplatable {
     static CATEGORY = ECategoryType.Timeline;
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        CATEGORY: {alias: "__category__", static: true, readOnly: true},
 
-            {property: "resourceUrl", default: null},
-            {property: "_id", alias: "id"},
-            {property: "_name", alias: "name"},
-            {property: "playOnEnable", default: false},
-            {property: "_groups", alias: "groups", type: KeyFrameGroup, default: []},
-        );
-        return fields;
+        resourceUrl: {},
+        id: {property: "_id"},
+        name: {property: "_name"},
+        playOnEnable: {default: false},
+        groups: {property: "_groups", type: KeyFrameGroup, default: []},
     }
     
     private _id: string;

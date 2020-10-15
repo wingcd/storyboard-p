@@ -1,17 +1,13 @@
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { Deserialize } from "./Serialize";
 
 export class Margin {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields: ISerializeInfo[] = [];
-        fields.push(
-            {property: "left", alias: "l", default:0},
-            {property: "right", alias: "r", default:0},
-            {property: "top", alias: "t", default:0},
-            {property: "bottom", alias: "b", default:0},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        left: {alias: "l", default:0},
+        right: {alias: "r", default:0},
+        top: {alias: "t", default:0},
+        bottom: {alias: "b", default:0},
+    };
     
     public left: number = 0;
     public right: number = 0;

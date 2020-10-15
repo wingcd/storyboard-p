@@ -1,6 +1,6 @@
 import { disallow_multiple_component } from "../annotations/Component";
 import { View } from "../core/View";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { PropertyManager } from "../tween/Property";
 import { SerializableComponent } from "./SerializableComponent";
@@ -10,13 +10,13 @@ export class PropertyComponent extends SerializableComponent {
     public static TYPE = "property";
 
     private _contollers: PropertyManager[] = [];
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = SerializableComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "_contollers", alias: "contollers", type: PropertyManager, default: []},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        SerializableComponent.SERIALIZABLE_FIELDS,
+        {
+            contollers: {property: "_contollers", type: PropertyManager, default: []},
+        }
+    );
 
     public get properties(): PropertyManager[] {
         return this._contollers;

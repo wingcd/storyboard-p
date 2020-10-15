@@ -1,13 +1,11 @@
 import { IComponent } from "../types";
 import { View } from "../core/View";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 
 export class BaseComponent implements IComponent {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        return [
-            {property: "enable",importAs: "_enable",default: true}
-        ];
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        enable: {importAs: "_enable",default: true},
     }
 
     protected _owner: View;

@@ -2,24 +2,20 @@ import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
 import { Sprite, TileSprite } from "../phaser";
 import { MathUtils } from "../utils/Math";
-import { IExtendsValue, ISerializeInfo, IUIImage } from "../types";
+import { ISerializeFields, IUIImage } from "../types";
 import { FillMask } from "./FillMask";
 import { INinePatchInfo, ITileInfo } from "../types";
 import { ETextureScaleType } from "../core/Defines";
 
 export class NinePatchInfo {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "left", default: 0},
-            {property: "right", default: 1},
-            {property: "top", default: 0},
-            {property: "bottom", default: 1},
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        left: {default: 0},
+        right: {default: 1},
+        top: {default: 0},
+        bottom: {default: 1},
 
-            {property: "stretchMode", raw: true},
-        );
-        return fields;
-    }
+        stretchMode: {raw: true},
+    };
 
     public left?: number = 0;
     public right?: number = 1;
@@ -35,26 +31,26 @@ export class NinePatchInfo {
 export class UIImage extends View  implements IUIImage {
     static TYPE = "image";
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = View.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "textureKey", importAs: "_textureKey", alias:"texture", type: String},
-            {property: "textureFrame", importAs: "_textureFrame", alias:"frame", type: String},
-            {property: "scaleType", importAs: "_scaleType", type: ETextureScaleType, default: ETextureScaleType.None},
-            {property: "tile", importAs: "_tile", default: null},
-            {property: "ninePatch", importAs: "_ninePatch", default: null, type: NinePatchInfo},
-            {property: "flipX", importAs: "_flipX", default: false},
-            {property: "flipY", importAs: "_flipY", default: false},
-            {property: "fillMask", importAs: "_fillMask", type:FillMask, default: null},
-        );
-        return fields;
+    static SERIALIZE_INIT() 
+    {      
+        let fields = UIImage.SERIALIZABLE_FIELDS;  
+        fields.touchable.default = false;
     }
 
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return {
-            touchable: false,
-        };
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        View.SERIALIZABLE_FIELDS,
+        {
+            textureKey: {importAs: "_textureKey", alias:"texture", type: String},
+            textureFrame: {importAs: "_textureFrame", alias:"frame", type: String},
+            scaleType: {importAs: "_scaleType", type: ETextureScaleType, default: ETextureScaleType.None},
+            tile: {importAs: "_tile", default: null},
+            ninePatch: {importAs: "_ninePatch", default: null, type: NinePatchInfo},
+            flipX: {importAs: "_flipX", default: false},
+            flipY: {importAs: "_flipY", default: false},
+            fillMask: {importAs: "_fillMask", type:FillMask, default: null},
+        }
+    );
         
     private _disp: TileSprite | Sprite | NinePatch;
 

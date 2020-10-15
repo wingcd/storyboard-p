@@ -108,7 +108,7 @@ export class ViewFactory {
     } 
 
     public create(config?: any, template?: any): View {
-        let viewType = (config ? config.type : null) || (template ? template.type : null);
+        let viewType = (config ? config.__type__ : null) || (template ? template.__type__ : null);
         if(!viewType) {
             throw new Error("must be with view type to create instance!");
         }

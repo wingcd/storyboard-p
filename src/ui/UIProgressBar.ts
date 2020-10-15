@@ -1,4 +1,4 @@
-import { ISerializeInfo, IUIProgressBar } from "../types";
+import { ISerializeFields, IUIProgressBar } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -11,17 +11,17 @@ require("../components");
 export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
     static TYPE = "progress";
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = ViewGroup.SERIALIZABLE_FIELDS;
-        fields.push(  
-            {property: "min", default: 0},
-            {property: "max", default: 100},
-            {property: "titleType", default: EProgressTitleType.Percent},
-            {property: "value", default: 0},
-            {property: "reverse", default: false},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        ViewGroup.SERIALIZABLE_FIELDS,
+        {
+            min: {default: 0},
+            max: {default: 100},
+            titleType: {default: EProgressTitleType.Percent},
+            value: {default: 0},
+            reverse: {default: false},
+        }
+    );
 
     private _titleObject: UITextField;
     private _hBar: View;

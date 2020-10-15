@@ -1,6 +1,6 @@
 import { Graphics, MaskType } from "../phaser";
 import { EDirectionType, EFillType } from "../core/Defines";
-import { ISerializeInfo, IFillMask } from "../types";
+import { ISerializeFields, IFillMask } from "../types";
 import { MathUtils } from "../utils/Math";
 import { Serialize, Deserialize } from "../utils/Serialize";
 import { DisplayObjectEvent } from "../events";
@@ -13,16 +13,13 @@ interface IMaskable {
 }
 
 export class FillMask {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [
-            {property: "fillType", importAs:"_fillType", default: EFillType.None},
-            {property: "value", importAs:"_value", default: 0},
-            {property: "origin", importAs:"_origin", default: EDirectionType.None},
-            {property: "anticlockwise", importAs:"_anticlockwise", default: false},
-            {property: "outterRadius", importAs:"_outterRadius", default: null},
-            {property: "innerRadius", importAs:"_innerRadius", default: null},
-        ];
-        return fields;
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        fillType: {property: "_fillType", default: EFillType.None},
+        value: {importAs:"_value", default: 0},
+        origin: {importAs:"_origin", default: EDirectionType.None},
+        anticlockwise: {importAs:"_anticlockwise", default: false},
+        outterRadius: {importAs:"_outterRadius", default: null},
+        innerRadius: {importAs:"_innerRadius", default: null},
     }
 
     private _target:IMaskable = null;

@@ -6,7 +6,7 @@ import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
-import { ISerializeInfo } from "../types";
+import { ISerializeField, ISerializeFields } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { SerializableComponent } from "./SerializableComponent";
 import { UIScrollBar } from "../ui/UIScrollBar";
@@ -35,26 +35,26 @@ const enum EScrollStatus {
 export class ScrollPaneComponent extends SerializableComponent {
     public static TYPE = "scroll";
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = SerializableComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-           {property: "scrollType",default: EScrollType.Both,type: EScrollType},
-           {property: "scrollSpeed",alias: "speed",default: Settings.defaultScrollSpeed},
-           {property: "enableMouseWheel",alias: "mouseWheel",default: true},
-           {property: "mouseScrollSpeed",alias: "mouseSpeed",default: Settings.defaultScrollSpeed * 2},
-           {property: "touchEffect",default: true},
-           {property: "inertanceEffect",default: false},
-           {property: "bouncebackEffect",default: false},
-           
-           {property: "_scrollBarDisplay", alias: "barDispType", default: EScrollBarDisplayType.Default},
-           {property: "_scrollBarMargin", alias: "barMargin", type: Margin},           
-           {property: "_displayOnLeft", alias: "barOnLeft", default: false},         
-           {property: "_autoLayoutView", alias: "autoLayout", default: true},      
-           {property: "_vScrollBarRes", alias: "vbarRes"},   
-           {property: "_hScrollBarRes", alias: "hbarRes"},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        SerializableComponent.SERIALIZABLE_FIELDS,
+        {
+            scrollType: {default: EScrollType.Both,type: EScrollType},
+            scrollSpeed: {alias: "speed",default: Settings.defaultScrollSpeed},
+            enableMouseWheel: {alias: "mouseWheel",default: true},
+            mouseScrollSpeed: {alias: "mouseSpeed",default: Settings.defaultScrollSpeed * 2},
+            touchEffect: {default: true},
+            inertanceEffect: {default: false},
+            bouncebackEffect: {default: false},
+            
+            scrollBarDisplay: {importAs: "_scrollBarDisplay", alias: "barDispType", default: EScrollBarDisplayType.Default},
+            scrollBarMargin: {importAs: "_scrollBarMargin", alias: "barMargin", type: Margin},           
+            displayOnLeft: {importAs: "_displayOnLeft", alias: "barOnLeft", default: false},         
+            autoLayoutView: {importAs: "_autoLayoutView", alias: "autoLayout", default: true},      
+            vScrollBarRes: {importAs: "_vScrollBarRes", alias: "vbarRes"},   
+            hScrollBarRes: {importAs: "_hScrollBarRes", alias: "hbarRes"},
+        }
+    );
 
     private static _draggingPane: ScrollPaneComponent;
     private static get draggingPane(): ScrollPaneComponent {

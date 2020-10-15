@@ -4,23 +4,23 @@ import { Settings } from "./Setting";
 import { ViewRoot } from "./ViewRoot";
 import { ViewScene } from "./ViewScene";
 import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
-import { ISerializeInfo, IViewGroup } from "../types";
+import { ISerializeFields, IViewGroup } from "../types";
 import { View } from "./View";
 import { Margin } from "../utils/Margin";
 
 export class ViewGroup extends View implements IViewGroup{
     static TYPE = "group";
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = View.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "_overflowType", alias: "overflowType", default: EOverflowType.Visible},
-            {property: "opaque",importAs: "_opaque",default: true},
-            {property: "children",importAs: "_children",default: [], type: View, keepArray: true},
-            {property: "margin", importAs: "_margin", type: Margin},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        View.SERIALIZABLE_FIELDS,
+        {
+            overflowType: {importAs: "_overflowType", default: EOverflowType.Visible},
+            opaque: {property: "opaque",importAs: "_opaque",default: true},
+            children: {importAs: "_children",default: [], type: View, keepArray: true},
+            margin: {importAs: "_margin", type: Margin},
+        }
+    );
 
     private _opaque: boolean = true;
     private _overflowType: EOverflowType = EOverflowType.Visible;

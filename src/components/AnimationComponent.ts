@@ -3,20 +3,20 @@ import { View } from "../core/View";
 import { ComponentFactory } from "./ComponentFactory";
 import { TimelineManager } from "../tween/Timeline";
 import { SerializableComponent } from "./SerializableComponent";
-import { IComponent, ISerializeInfo } from "../types";
+import { IComponent, ISerializeFields } from "../types";
 
  @disallow_multiple_component()
 export class AnimationComponent extends SerializableComponent implements IComponent{
     public static TYPE = "animation";
 
     private _timelines: TimelineManager[] = [];
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = SerializableComponent.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "_timelines", alias: "timelines", type: TimelineManager, default: []},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        SerializableComponent.SERIALIZABLE_FIELDS,
+        {
+            timelines: {importAs: "_timelines", type: TimelineManager, default: []},
+        }
+    );
 
     public get timelines(): TimelineManager[] {
         return this._timelines;

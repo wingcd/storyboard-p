@@ -1,10 +1,10 @@
 import { View } from "../core/View";
-import { Text, BitmapText, Point, ITextStyle, Color } from "../phaser";
+import { Text, BitmapText, Point, ITextStyle } from "../phaser";
 import { EVertAlignType, EAutoSizeType, EAlignType, EHorAlignType, ECategoryType } from "../core/Defines";
 import { ViewScene } from "../core/ViewScene";
 import { Settings } from "../core/Setting";
 import { DisplayObjectEvent } from "../events/DisplayObjectEvent";
-import { IExtendsValue, ISerializeInfo, IUITextField } from "../types";
+import { ISerializeFields, IUITextField } from "../types";
 import { Templates } from "../core/Templates";
 import { clone, Deserialize, Serialize } from "../utils/Serialize";
 import { colorToString } from "../utils/Color";
@@ -13,15 +13,11 @@ import { Package } from "../core/Package";
 import { ITemplatable } from "../types/ITemplatable";
 
 class UnderlineStyle {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(
-            {property: "color", default: 0},
-            {property: "thickness", default: 1},
-            {property: "offset", default: 0},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        color: {default: 0},
+        thickness: {default: 1},
+        offset: {default: 0},
+    };
 
     color?: number = 0x000;
     thickness?: number = 1;
@@ -31,43 +27,40 @@ class UnderlineStyle {
 export class TextStyle implements ITextStyle, ITemplatable {
     static CATEGORY = ECategoryType.TextStyle;
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields:ISerializeInfo[] = [];
-        fields.push(    
-            {property: "CATEGORY", alias: "__category__", static: true, readonly: true},
-            {property: "resourceUrl"},
-            {property: "_id", alias: "id"}, 
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        CATEGORY: {alias: "__category__", static: true, readOnly: true},
 
-            {property: "fontFamily", default: "Arial"},
-            {property: "fontSize", default: 16},
-            {property: "fontStyle"},
-            {property: "backgroundColor"},            
-            {property: "color", default: 0},
-            {property: "stroke"},
-            {property: "strokeThickness"},            
-            {property: "shadow", raw: true},
-            {property: "padding", raw: true},
-            {property: "align", default: "left"},
-            {property: "maxLines"},            
-            {property: "fixedWidth"},
-            {property: "fixedHeight"},
-            {property: "resolution"},
-            {property: "rtl"},            
-            {property: "rtlByWord"},
-            {property: "testString"},
-            {property: "baselineX"},
-            {property: "baselineY"},
-            {property: "wordWrap", raw: true},            
-            {property: "metrics", raw: true},
-            {property: "lineSpacing", default: 0},
-            {property: "letterSpacing", default: 0},
-            {property: "vertical", raw: true},
-            
-            {property: "underline", type: UnderlineStyle},
-            {property: "halign", default: "left"},
-            {property: "valign", default: "top"},
-        );
-        return fields;
+        resourceUrl: {},
+        id: {property: "_id"}, 
+
+        fontFamily: {default: "Arial"},
+        fontSize: {default: 16},
+        fontStyle: {},
+        backgroundColor: {},            
+        color: {default: 0},
+        stroke: {},
+        strokeThickness: {},            
+        shadow: {raw: true},
+        padding: {raw: true},
+        align: {default: "left"},
+        maxLines: {},            
+        fixedWidth: {},
+        fixedHeight: {},
+        resolution: {},
+        rtl: {},            
+        rtlByWord: {},
+        testString: {},
+        baselineX: {},
+        baselineY: {},
+        wordWrap: {raw: true},            
+        metrics: {raw: true},
+        lineSpacing: {default: 0},
+        letterSpacing: {default: 0},
+        vertical: {raw: true},
+        
+        underline: {type: UnderlineStyle},
+        halign: {default: "left"},
+        valign: {default: "top"},
     }
 
     private _id: string;
@@ -166,28 +159,28 @@ export class LineInfo {
 
 export class UITextField extends View  implements IUITextField {
     static TYPE = "textfield";
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = View.SERIALIZABLE_FIELDS;
-        fields.push(            
-            {property: "GUTTER_X", default: 2, static: true},
-            {property: "GUTTER_Y", default: 2, static: true},
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {} as ISerializeFields,
+        View.SERIALIZABLE_FIELDS,
+        {           
+            GUTTER_X: {property: "GUTTER_X", default: 2, static: true},
+            GUTTER_Y: {property: "GUTTER_Y", default: 2, static: true},
 
-            {property: "text", default: ""},
-            {property: "tagMode", default: false},
-            {property: "_style", alias: "style", type: TextStyle},            
-            {property: "verticalAlign", default: EVertAlignType.Top},
-            {property: "horizontalAlign", default: EHorAlignType.Left},
-            {property: "offset", type: Point},            
-            {property: "_singleLine", default: true},
-            {property: "autoSize", default: EAutoSizeType.Both},
-        );
-        return fields;
-    }
+            text: {property: "text", default: ""},
+            tagMode: {property: "tagMode", default: false},
+            style: {property: "_style", type: TextStyle},            
+            verticalAlign: {default: EVertAlignType.Top},
+            horizontalAlign: {default: EHorAlignType.Left},
+            offset: {type: Point},            
+            singleLine: {property: "_singleLine", default: true},
+            autoSize: {default: EAutoSizeType.Both},
+        },
+    );
 
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return {
-            touchable: false,      
-        };
+    static SERIALIZE_INIT() 
+    {      
+        let fields = UITextField.SERIALIZABLE_FIELDS;  
+        fields.touchable.default = false;
     }
 
     private _textField: Text;

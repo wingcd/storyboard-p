@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ISerializeInfo } from "../types";
+import { ISerializeField, ISerializeFields } from "../types";
 import { SerializeFactory } from "./SerializeFactory";
 import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
@@ -28,7 +28,7 @@ export function clone(source: any): any {
     return JSON.parse(json);
 }
 
-function store(source: any, info: ISerializeInfo, tpl: any): any {
+function store(source: any, info: ISerializeField, tpl: any): any {
     if(source == undefined) {
         return null;
     }
@@ -55,7 +55,7 @@ function store(source: any, info: ISerializeInfo, tpl: any): any {
     return item;
 }
 
-function restore(target: any, targetProp: string, data: any, tpl: any, info: ISerializeInfo, depth: number) {
+function restore(target: any, targetProp: string, data: any, tpl: any, info: ISerializeField, depth: number) {
     if(!target) {
         return target;
     }
@@ -67,7 +67,7 @@ function restore(target: any, targetProp: string, data: any, tpl: any, info: ISe
     }
 }
 
-function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: any = null) {
+function serializeProperty(target:any, info: ISerializeField, source: any, tpl: any = null) {
     let raw = source;    
     // 静态变量
     if(info.static) {
@@ -167,11 +167,11 @@ function serializeProperty(target:any, info: ISerializeInfo, source: any, tpl: a
     }
 }
 
-function getConfigPropName(info: ISerializeInfo, config: any, tpl:any = null) {
+function getConfigPropName(info: ISerializeField, config: any, tpl:any = null) {
     return info.alias && (config.hasOwnProperty(info.alias) || (tpl && tpl.hasOwnProperty(info.alias))) ? info.alias : info.property;;
 }
 
-function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:any = null, depth:number = 0) {
+function deserializeProperty(target:any, info: ISerializeField, config: any, tpl:any = null, depth:number = 0) {
     if(!config && tpl) {
         config = {};
     }
@@ -328,8 +328,12 @@ function deserializeProperty(target:any, info: ISerializeInfo, config: any, tpl:
  * @param tpl 模板对象，当设置此参数后，只序列化差异化数据
  */
 export function Serialize(source: any, tpl?: any) { 
+    if(source.constructor.SERIALIZE_INIT) {
+        source.constructor.SERIALIZE_INIT();
+    }
+
     let result:any = {};
-    let pnames: ISerializeInfo[] = source.constructor.SERIALIZABLE_FIELDS || [];
+    let pnames: ISerializeField[] = objectToArray(source.constructor.SERIALIZABLE_FIELDS);
 
     let shoudproc = true;
     for(let item of pnames) {
@@ -348,10 +352,10 @@ export function Serialize(source: any, tpl?: any) {
     }
 
     if(shoudproc) {
-        let replaces = source.constructor.EXTENDS_SERIALIZABLE_FIELDS || {};
-        for(let item of pnames) {
-            item.default = replaces[item.property] != undefined ? replaces[item.property] : item.default;
-            serializeProperty(result, item, source, tpl);
+        for(let item of pnames) {            
+            if(!item.ignore && !item.writeOnly) {
+                serializeProperty(result, item, source, tpl);
+            }
         }
     }
 
@@ -373,12 +377,16 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
         tpl = Package.inst.getTemplateFromUrl(config.resourceUrl);
     }
 
+    if(target.constructor.SERIALIZE_INIT) {
+        target.constructor.SERIALIZE_INIT();
+    }
+
     if(!target.constructor.SERIALIZABLE_FIELDS) {
         return false;
     }
     depth = depth || 0;
 
-    let pnames: ISerializeInfo[] = target.constructor.SERIALIZABLE_FIELDS || [];
+    let pnames: ISerializeField[] = objectToArray(target.constructor.SERIALIZABLE_FIELDS);
     pnames = pnames.concat();
     pnames.sort((a, b)=>{
         let ap = a.priority || 0;
@@ -386,10 +394,8 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
         return ap - bp;
     });
 
-    let replaces = target.constructor.EXTENDS_SERIALIZABLE_FIELDS || {};
     for(let item of pnames) {
-        if(!item.readonly) {
-            item.default = replaces[item.property] != undefined ? replaces[item.property] : item.default;
+        if(!item.ignore && !item.readOnly) {
             deserializeProperty(target, item, config, tpl, depth);
         }
     }          
@@ -399,4 +405,22 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
     }
 
     return true;
+}
+
+function objectToArray(fields: ISerializeFields): ISerializeField[] {
+    if(fields) {
+        let rets:ISerializeField[] = [];
+        for(let i in fields) {
+            let field = fields[i];
+            if(!field.property) {
+                field.property = i;
+            }else if(!field.alias){
+                field.alias = i;
+            }
+            rets.push(field);
+        }
+
+        return rets;
+    }
+    return [];
 }

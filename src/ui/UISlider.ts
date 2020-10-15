@@ -1,4 +1,4 @@
-import { ISerializeInfo, IUISlider } from "../types";
+import { ISerializeFields, IUISlider } from "../types";
 import { EFillType, EProgressTitleType } from "../core/Defines";
 import { View } from "../core/View";
 import { ViewGroup } from "../core/ViewGroup";
@@ -14,19 +14,19 @@ require("../components");
 export class UISlider extends ViewGroup  implements IUISlider{
     static TYPE = "slider";
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = ViewGroup.SERIALIZABLE_FIELDS;
-        fields.push(  
-            {property: "min", default: 0},
-            {property: "max", default: 100},
-            {property: "titleType", default: EProgressTitleType.Percent},
-            {property: "value", default: 0},
-            {property: "reverse", default: false},
-            {property: "changeOnClick", default: true},       
-            {property: "autoSetGripPos", default: true},
-        );
-        return fields;
-    }    
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        ViewGroup.SERIALIZABLE_FIELDS,
+        {
+            min: {default: 0},
+            max: {default: 100},
+            titleType: {default: EProgressTitleType.Percent},
+            value: {default: 0},
+            reverse: {default: false},
+            changeOnClick: {default: true},       
+            autoSetGripPos: {default: true},
+        }    
+    );
 
     public changeOnClick: boolean = true;
 

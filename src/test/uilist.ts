@@ -9,6 +9,7 @@ import { PackageItem } from "../core/PackageItem";
 import { Package } from "../core/Package";
 import { View } from "../core/View";
 import { Margin } from "../utils/Margin";
+import { UIList } from "../ui";
 require("../components");
 
 Settings.showDebugBorder = true;
@@ -91,6 +92,10 @@ class UIScene extends ViewScene {
         }, this);
 
         console.log(JSON.stringify(list.toJSON()));
+
+        let listRes = pkg.addTemplate(list.toJSON());
+        let newList = Package.inst.createObjectFromUrl(this, listRes) as UIList;
+        newList.x = 400;
 
         console.log(1);
     }

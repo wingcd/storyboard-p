@@ -21,15 +21,15 @@ export class ObjectFactory {
     }
 
     public static create(category: string, config?: any): any {
-        if(!config || !config.type) {
+        if(!config || !config.__type__) {
             throw new Error("must be with class type to create instance!");
         }
 
-        let key = ObjectFactory.getKey(category, config.type);
+        let key = ObjectFactory.getKey(category, config.__type__);
 
         let cls: any = ObjectFactory._types[key];
         if(!cls) {
-            throw new Error(`not regist class type:${config.type}!`);
+            throw new Error(`not regist class type:${config.__type__}!`);
         }
 
         return new cls();

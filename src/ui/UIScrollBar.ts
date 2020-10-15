@@ -1,4 +1,4 @@
-import { IExtendsValue, ISerializeInfo, IUIScrollBar } from "../types";
+import { ISerializeFields, IUIScrollBar } from "../types";
 import { ScrollPane } from "../components";
 import { EOverflowType } from "../core/Defines";
 import { View } from "../core/View";
@@ -11,20 +11,19 @@ require("../components");
 export class UIScrollBar extends ViewGroup implements IUIScrollBar{
     static TYPE = "scrollbar";
     
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = ViewGroup.SERIALIZABLE_FIELDS;
-        fields.push(  
-            {property: "value", default: 0},
-            {property: "_vertical", alias: "vertical", default: true},            
-            {property: "_fixedGripSize", alias: "fixedGripSize", default: false},
-        );
-        return fields;
-    }    
-
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return {
-            _overflowType: EOverflowType.Hidden,  
-        };
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        ViewGroup.SERIALIZABLE_FIELDS,
+        {
+            value: {default: 0},
+            vertical: {property: "_vertical", default: true},            
+            fixedGripSize: {property: "_fixedGripSize", default: false},
+        }
+    );   
+    static SERIALIZE_INIT() 
+    {      
+        let fields = UIScrollBar.SERIALIZABLE_FIELDS;  
+        fields.overflowType.default = EOverflowType.Hidden;
     }
 
     private _vertical: boolean = true;

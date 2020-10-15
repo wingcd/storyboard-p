@@ -1,5 +1,5 @@
 import { View } from "../core/View";
-import { IExtendsValue, ISerializeInfo, IUIButton } from "../types";
+import { ISerializeFields, IUIButton } from "../types";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
@@ -13,17 +13,17 @@ require("../components");
 export class UIButton extends ViewGroup implements IUIButton {
     static TYPE = "button";
 
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = ViewGroup.SERIALIZABLE_FIELDS;
-        fields.push(
-            {property: "_selected", alias: "selected", default: false},     
-            {property: "_mode", alias: "mode", default: EButtonMode.Common},
-            {property: "_relatedPropMgrId", alias: "propMgrId"},
-            {property: "_propertyGroupId", alias: "groupId"},
-            {property: "_changeStateOnClick", alias: "changeStateOnClick", default: true},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        ViewGroup.SERIALIZABLE_FIELDS,
+        {
+            selected: {property: "_selected", default: false},     
+            mode: {property: "_mode", default: EButtonMode.Common},
+            propMgrId: {property: "_relatedPropMgrId"},
+            groupId: {property: "_propertyGroupId"},
+            changeStateOnClick: {property: "_changeStateOnClick", default: true},
+        }
+    );
 
     public static UP: string = "up";
     public static DOWN: string = "down";

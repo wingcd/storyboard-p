@@ -7,8 +7,7 @@ import { DisplayObjectEvent } from "../events";
 import { disallow_multiple_component } from "../annotations/Component";
 import { PoolManager } from "../utils/PoolManager";
 import { EDragType } from "../core/Defines";
-import { ISerializeInfo } from "../types";
-import { IViewGroup } from "../types";
+import { ISerializeFields, IViewGroup } from "../types";
 import { SerializableComponent } from "./SerializableComponent";
 import { ComponentFactory } from "./ComponentFactory";
 
@@ -26,14 +25,15 @@ const enum EDragStatus {
 export class DragComponent extends SerializableComponent {
    public static TYPE = "drag";
 
-   static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-      let fields = SerializableComponent.SERIALIZABLE_FIELDS;
-      fields.push(
-         {property: "dragBounds",default: null,type: Rectangle},
-         {property: "topMostOnDragging",alias: "topmost",default: false},
-         {property: "dragType",default: EDragType.Both,type: EDragType});
-      return fields;
-  }
+   static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+      {},
+      SerializableComponent.SERIALIZABLE_FIELDS,
+       {
+         dragBounds: {type: Rectangle},
+         topMostOnDragging: {alias: "topmost",default: false},
+         dragType: {default: EDragType.Both, type: EDragType},
+       }
+   );
 
    protected static sGlobalDragStart: Point = new Point();
    protected static sStartXY: Point = new Point();

@@ -2,21 +2,17 @@ import * as Events from "../events";
 import { ViewGroup } from "./ViewGroup";
 import { View } from "./View";
 import { GetViewByRelativePath, GetViewRelativePath, IsViewChild } from "../utils/Object";
-import { ISerializeInfo } from "../types";
+import { ISerializeFields } from "../types";
 import { ERelationPinType } from "./Defines";
 
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
 
 class RelationPin {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields: ISerializeInfo[] = [];
-        fields.push(
-            {property: "_ownerName", alias: "owner", default: ''},
-            {property: "_precent", alias: "precent", default: false},            
-            {property: "_pinType", alias: "pinType", default: ERelationPinType.LEFT},                             
-            {property: "_to", alias: "to", type: RelationPin, default: null},
-        );
-        return fields;
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        owner: {property: "_ownerName", default: ''},
+        precent: {property: "_precent", default: false},            
+        pinType: {property: "_pinType", default: ERelationPinType.LEFT},                             
+        to: {property: "_to", type: RelationPin },
     }
     
     private _ownerName: string = '';
@@ -290,13 +286,9 @@ class RelationPin {
 }
 
 export class Relations {
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields: ISerializeInfo[] = [];
-        fields.push(                               
-            {property: "_pins", alias: "pins", type: RelationPin, default: {}, asMap: true},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        pins: {property: "_pins", type: RelationPin, default: {}, asMap: true},
+    };
 
     private _owner: View;    
     

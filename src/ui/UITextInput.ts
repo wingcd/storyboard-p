@@ -5,7 +5,7 @@ import { EHorAlignType, EVertAlignType } from "../core/Defines";
 import { TextEvent, FocusEvent, DisplayObjectEvent } from "../events";
 import { Browser } from "../utils/Browser";
 import { ViewGroup } from "../core/ViewGroup";
-import { IExtendsValue, ISerializeInfo, IUITextField } from "../types";
+import { ISerializeFields, IUITextField } from "../types";
 import * as Events from "../events";
 
 export const enum EInputType {
@@ -19,22 +19,22 @@ export const enum EInputType {
 
 export class UITextInput extends UITextField  implements IUITextField{ 
     static TYPE = "textinput";
-    static get SERIALIZABLE_FIELDS(): ISerializeInfo[] {
-        let fields = UITextField.SERIALIZABLE_FIELDS;
-        fields.push(            
-            {property: "editable", default: true},
-            {property: "inputType", default: EInputType.TEXT},
-            {property: "promptText"},
-            {property: "promptColor"},
-        );
-        return fields;
-    }
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {} as ISerializeFields,
+        UITextField.SERIALIZABLE_FIELDS,
+        {            
+            editable: {default: true},
+            inputType: {default: EInputType.TEXT},
+            promptText: {},
+            promptColor: {},
+        }
+    );
 
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return {
-            touchable: true,
-            focusable: true,            
-        };
+    static SERIALIZE_INIT() 
+    {      
+        let fields = UITextInput.SERIALIZABLE_FIELDS;  
+        fields.touchable.default = true;        
+        fields.focusable.default = true;
     }
 
     protected _editable:boolean = true;

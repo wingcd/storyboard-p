@@ -1,4 +1,4 @@
-import { IExtendsValue } from "../types";
+import { ISerializeFields } from "../types";
 import { EAlignType, EListLayoutType, EOverflowType, EVertAlignType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
@@ -29,11 +29,16 @@ class ItemInfo {
                     
 export class UIList extends ViewGroup  implements IUIList{
     static TYPE = "list";
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        ViewGroup.SERIALIZABLE_FIELDS,
+    );
 
-    static get EXTENDS_SERIALIZABLE_FIELDS(): IExtendsValue {
-        return {
-            _overflowType: EOverflowType.Hidden,  
-        };
+    static SERIALIZE_INIT() 
+    {      
+        let fields = UIList.SERIALIZABLE_FIELDS;  
+        fields.overflowType.default = EOverflowType.Hidden;        
+        fields.children.property = "__data__";
     }
 
     public itemRenderer: ListRenderer;
@@ -86,6 +91,10 @@ export class UIList extends ViewGroup  implements IUIList{
             this._update();
         }
     }
+
+    // private _defaultItemProvider(index: number): string {
+    //     if(this._)
+    // }
 
     private _update() {
         this.layout();
