@@ -14,7 +14,7 @@ interface IMaskable {
 
 export class FillMask {
     static SERIALIZABLE_FIELDS: ISerializeFields = {
-        fillType: {property: "_fillType", default: EFillType.None},
+        fillType: {importAs: "_fillType", default: EFillType.None},
         value: {importAs:"_value", default: 0},
         origin: {importAs:"_origin", default: EDirectionType.None},
         anticlockwise: {importAs:"_anticlockwise", default: false},

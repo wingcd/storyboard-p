@@ -7,21 +7,24 @@ import { Templates } from "../core/Templates";
 import { ViewScene } from "../core/ViewScene";
 import { ISerializableCompoent } from "../types";
 import { Package } from "../core/Package";
+import { View } from "../core/View";
 
 export class SerializableComponent extends BaseComponent implements ISerializableCompoent {
     public static CATEGORY = ECategoryType.Component;
     public static TYPE = "";    
 
-    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
-        {},
-        BaseComponent.SERIALIZABLE_FIELDS,
-        {
-            TYPE: {alias: "__type__", static: true, readOnly: true, must: true},
+    static SERIALIZABLE_FIELDS: ISerializeFields = {
+        CATEGORY: {alias: "__category__", static: true, readOnly: true},
+        TYPE: {alias: "__type__", static: true, readOnly: true, must: true},
 
-            resourceUrl: {},
-            id: { importAs: "_id" }, 
-        }
-    );
+        enable: {importAs: "_enable",default: true},
+        resourceUrl: {},
+        id: { importAs: "_id" }, 
+    };   
+
+    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
+        return [ComponentFactory.inst.create(config, tpl), false];
+    }
 
     private _inBuilding = false;  
 

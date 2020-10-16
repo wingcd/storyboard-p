@@ -20,20 +20,12 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
-        let textfield = this.addUI.richTextField();
+        let textfield = this.addUI.textField();
         textfield.setSize(200, 100);
         textfield.singleLine = true;
         textfield.touchable = true;
         
-        textfield.text =  '[b][i][size=24][color=red]Phaser[/color][size=20][img=smile] is a [area=click-test][color=green][u]fast[/u][/color][/area]' //'abcd efaf aefa fasdfaef asdf asf a'// 'آزمایش برای Foo Ltd.‎ و Bar Inc.‎ باشد که آزموده شود.'; //
-        textfield.autoSize = EAutoSizeType.Height;
-        // textfield.font = "ui://fonts/ice";
-        // textfield.verticalMode = true;
-        // textfield.rtl = true;
-        // textfield.rtlByWord = true;
-        textfield.textAlign = EAlignType.Right;
-        textfield.verticalAlign = EVertAlignType.Top;
-        // textfield.horizontalAlign = EHorAlignType.Right;
+        textfield.text =  'hello world';
 
         textfield.setXY(100, 100);
 

@@ -4,6 +4,7 @@ import { ISerializeFields } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { PropertyManager } from "../tween/Property";
 import { SerializableComponent } from "./SerializableComponent";
+import { clone } from "../utils/Serialize";
 
  @disallow_multiple_component()
 export class PropertyComponent extends SerializableComponent {
@@ -12,7 +13,7 @@ export class PropertyComponent extends SerializableComponent {
     private _contollers: PropertyManager[] = [];
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        SerializableComponent.SERIALIZABLE_FIELDS,
+        clone(SerializableComponent.SERIALIZABLE_FIELDS),
         {
             contollers: {property: "_contollers", type: PropertyManager, default: []},
         }

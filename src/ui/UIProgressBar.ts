@@ -6,6 +6,7 @@ import { ViewScene } from "../core/ViewScene";
 import { Tween } from "../phaser";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
+import { clone } from "../utils/Serialize";
 require("../components");
                     
 export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
@@ -13,7 +14,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
     
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        ViewGroup.SERIALIZABLE_FIELDS,
+        clone(ViewGroup.SERIALIZABLE_FIELDS),
         {
             min: {default: 0},
             max: {default: 100},

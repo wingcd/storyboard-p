@@ -24,7 +24,8 @@ export class Property {
         name: {},
         value: {},
         targetPath: {default: ""},
-        tweenInfo: {alias: "tween", default: null, raw: true},
+        // to do...
+        tweenInfo: {alias: "tween", raw: true},
     };
 }
 
@@ -42,7 +43,8 @@ class PropertyGroup {
     static SERIALIZABLE_FIELDS: ISerializeFields = {        
         id: {},
         name: {importAs: "_name"},
-        properties: {importAs: "_properties", type: Property, default: []},            
+
+        properties: {property: "_properties", type: Property, default: []},            
         targetPath: {property: "_targetPath", alias: "target", default: ""},
     }
 
@@ -284,11 +286,11 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
     static CATEGORY = ECategoryType.Property;
     
     static SERIALIZABLE_FIELDS: ISerializeFields = {
-        CATEGORY: {property: "CATEGORY", alias: "__category__", static: true, readOnly: true},
+        CATEGORY: {alias: "__category__", static: true, readOnly: true},
 
         resourceUrl: {},
         id: {importAs: "_id"},  
-        name: {importAs: "_name"},       
+        name: {importAs: "_name"}, 
         default: {importAs: "_defaultId"},
         groups: {importAs: "_groups", type: PropertyGroup, default: []},
     } 

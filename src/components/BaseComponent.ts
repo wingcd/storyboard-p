@@ -4,16 +4,8 @@ import { ISerializeFields } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 
 export class BaseComponent implements IComponent {
-    static SERIALIZABLE_FIELDS: ISerializeFields = {
-        enable: {importAs: "_enable",default: true},
-    }
-
     protected _owner: View;
     protected _enable: boolean = true;
-
-    static DESERIALIZE(config: any, target: View, configProp: string, targetProp: string, tpl: any, index?: number) {
-        return [ComponentFactory.inst.create(config, tpl), false];
-    }
 
     constructor() {
         let that = this as any;

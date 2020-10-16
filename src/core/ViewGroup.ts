@@ -7,16 +7,17 @@ import { ScrollPaneComponent } from "../components/ScrollPaneComponent";
 import { ISerializeFields, IViewGroup } from "../types";
 import { View } from "./View";
 import { Margin } from "../utils/Margin";
+import { clone } from "../utils/Serialize";
 
 export class ViewGroup extends View implements IViewGroup{
     static TYPE = "group";
 
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        View.SERIALIZABLE_FIELDS,
+        clone(View.SERIALIZABLE_FIELDS),
         {
             overflowType: {importAs: "_overflowType", default: EOverflowType.Visible},
-            opaque: {property: "opaque",importAs: "_opaque",default: true},
+            opaque: {importAs: "_opaque", default: true},
             children: {importAs: "_children",default: [], type: View, keepArray: true},
             margin: {importAs: "_margin", type: Margin},
         }

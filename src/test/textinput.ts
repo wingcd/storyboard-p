@@ -24,7 +24,7 @@ class UIScene extends ViewScene {
         textfield.fontSize = 30;     
         textfield.font = "ui://fonts/ice";
         textfield.text = 'abc';
-        textfield.multipleLine = false;
+        textfield.singleLine = true;
         // textfield.password = true;
         textfield.autoSize = EAutoSizeType.None;
         textfield.textAlign = EAlignType.Left;

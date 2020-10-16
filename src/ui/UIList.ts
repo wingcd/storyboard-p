@@ -8,6 +8,7 @@ import { UIButton } from "./UIButton";
 import { Pointer } from "../phaser";
 import * as Events from "../events";
 import { Package } from "../core/Package";
+import { clone } from "../utils/Serialize";
 require("../components");
 
 export type ListRenderer = (index: number, item: View) => void;
@@ -31,14 +32,18 @@ export class UIList extends ViewGroup  implements IUIList{
     static TYPE = "list";
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        ViewGroup.SERIALIZABLE_FIELDS,
+        clone(ViewGroup.SERIALIZABLE_FIELDS),
+        {
+            defaultItem: {importAs: "_defaultItem"},
+        }
     );
 
     static SERIALIZE_INIT() 
     {      
         let fields = UIList.SERIALIZABLE_FIELDS;  
         fields.overflowType.default = EOverflowType.Hidden;        
-        fields.children.property = "__data__";
+        fields.children.importAs = "__data__";
+        fields.children.alias = "__data__";
     }
 
     public itemRenderer: ListRenderer;

@@ -4,6 +4,7 @@ import { ComponentFactory } from "./ComponentFactory";
 import { TimelineManager } from "../tween/Timeline";
 import { SerializableComponent } from "./SerializableComponent";
 import { IComponent, ISerializeFields } from "../types";
+import { clone } from "../utils/Serialize";
 
  @disallow_multiple_component()
 export class AnimationComponent extends SerializableComponent implements IComponent{
@@ -12,7 +13,7 @@ export class AnimationComponent extends SerializableComponent implements ICompon
     private _timelines: TimelineManager[] = [];
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        SerializableComponent.SERIALIZABLE_FIELDS,
+        clone(SerializableComponent.SERIALIZABLE_FIELDS),
         {
             timelines: {importAs: "_timelines", type: TimelineManager, default: []},
         }

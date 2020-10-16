@@ -48,8 +48,8 @@ class UIScene extends ViewScene {
 
         let json = view.toJSON();
         json.name = "1231";
-        json.fillMask.innerRadius = undefined;
-        json.fillMask.anticlockwise = false;
+        // json.fillMask.innerRadius = undefined;
+        // json.fillMask.anticlockwise = false;
         let view2 = this.addUI.image(json);
         view2.x = 200;
 
@@ -57,7 +57,7 @@ class UIScene extends ViewScene {
         
         let view3 = view.clone() as UIImage;
         view3.x = 400;
-        view3.fillMask.fillType = EFillType.Horizontal;
+        view3.fillType = EFillType.Horizontal;
         view3.fillMask.value = 1;
 
         this.tweens.add({

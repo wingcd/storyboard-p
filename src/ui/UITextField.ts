@@ -161,19 +161,18 @@ export class UITextField extends View  implements IUITextField {
     static TYPE = "textfield";
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {} as ISerializeFields,
-        View.SERIALIZABLE_FIELDS,
+        clone(View.SERIALIZABLE_FIELDS),
         {           
-            GUTTER_X: {property: "GUTTER_X", default: 2, static: true},
-            GUTTER_Y: {property: "GUTTER_Y", default: 2, static: true},
+            GUTTER_X: {default: 2, static: true},
+            GUTTER_Y: {default: 2, static: true},
 
-            text: {property: "text", default: ""},
-            tagMode: {property: "tagMode", default: false},
-            style: {property: "_style", type: TextStyle},            
-            verticalAlign: {default: EVertAlignType.Top},
-            horizontalAlign: {default: EHorAlignType.Left},
-            offset: {type: Point},            
-            singleLine: {property: "_singleLine", default: true},
-            autoSize: {default: EAutoSizeType.Both},
+            text: {importAs: "_text", default: ""},
+            tagMode: {importAs: "_tagMode", default: false},
+            style: {importAs: "_style", type: TextStyle},            
+            verticalAlign: {importAs: "_verticalAlign", default: EVertAlignType.Top},
+            horizontalAlign: {importAs: "_horizontalAlign", default: EHorAlignType.Left},    
+            singleLine: {importAs: "_singleLine", default: true},
+            autoSize: {importAs: "_autoSize", default: EAutoSizeType.Both},
         },
     );
 
@@ -195,7 +194,6 @@ export class UITextField extends View  implements IUITextField {
     protected _style: ITextStyle = new TextStyle();
     private _verticalAlign: EVertAlignType = EVertAlignType.Top;
     private _horizontalAlign: EHorAlignType = EHorAlignType.Left;
-    private _offset: Point = new Point();
     private _singleLine:boolean = true;
     private _autoSize: EAutoSizeType = EAutoSizeType.Both;
 
@@ -207,6 +205,7 @@ export class UITextField extends View  implements IUITextField {
     private _updatingSize: boolean;
     private _sizeDirty: boolean;
 
+    private _offset: Point = new Point();
     private _textWidth: number = 0;
     private _textHeight: number = 0;
     
@@ -345,12 +344,11 @@ export class UITextField extends View  implements IUITextField {
         }
     }
 
-    public get multipleLine(): boolean {
-        return !this._singleLine;
+    public get singleLine(): boolean {
+        return this._singleLine;
     }
 
-    public set multipleLine(value: boolean) {
-        value = !value;
+    public set singleLine(value: boolean) {
         if(this._singleLine != value) {
             this._singleLine = value;
             this.render();
@@ -554,18 +552,18 @@ export class UITextField extends View  implements IUITextField {
 
         let style = this._getStyle();            
         if(this.verticalMode) {
-            let wordHeightWrap = !this._heightAutoSize && this.multipleLine;
+            let wordHeightWrap = !this._heightAutoSize && !this._singleLine;
             let warpHeight = (wordHeightWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.height) : 100000;
             style.wordWrap = {
                 width: warpHeight,         
-                useAdvancedWrap: this.multipleLine,           
+                useAdvancedWrap: !this._singleLine,           
             };
         }else {
-            let wordWidthWrap = !this._widthAutoSize && this.multipleLine;
+            let wordWidthWrap = !this._widthAutoSize && !this._singleLine;
             let warpWidth = (wordWidthWrap || this.autoSize == EAutoSizeType.None) ? Math.ceil(this.width) : 100000;
             style.wordWrap = {
                 width: warpWidth,        
-                useAdvancedWrap: this.multipleLine,      
+                useAdvancedWrap: !this._singleLine,      
             };
         }
 
@@ -835,7 +833,6 @@ export class UITextField extends View  implements IUITextField {
     public fromJSON(config: any, template?: any): this {      
         if(config || template) {  
             super.fromJSON(config, template);
-            this.render();
         }
 
         return this;

@@ -91,7 +91,7 @@ class UIScene extends ViewScene {
             console.log('click');
         }, this);
 
-        console.log(JSON.stringify(list.toJSON()));
+        console.log(list.toJSON());
 
         let listRes = pkg.addTemplate(list.toJSON());
         let newList = Package.inst.createObjectFromUrl(this, listRes) as UIList;

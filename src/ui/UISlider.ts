@@ -9,6 +9,7 @@ import { MathUtils } from "../utils/Math";
 import { PoolManager } from "../utils/PoolManager";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
+import { clone } from "../utils/Serialize";
 require("../components");
                     
 export class UISlider extends ViewGroup  implements IUISlider{
@@ -16,15 +17,15 @@ export class UISlider extends ViewGroup  implements IUISlider{
     
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        ViewGroup.SERIALIZABLE_FIELDS,
+        clone(ViewGroup.SERIALIZABLE_FIELDS),
         {
-            min: {default: 0},
-            max: {default: 100},
-            titleType: {default: EProgressTitleType.Percent},
-            value: {default: 0},
-            reverse: {default: false},
+            min: {property: "_min", default: 0},
+            max: {property: "_max",default: 100},
+            titleType: {property: "_titleType", default: EProgressTitleType.Percent},
+            value: {property: "_value", default: 0},
+            reverse: {property: "_reverse", default: false},
             changeOnClick: {default: true},       
-            autoSetGripPos: {default: true},
+            autoSetGripPos: {property: "_autoSetGripPos", default: true},
         }    
     );
 
@@ -62,6 +63,12 @@ export class UISlider extends ViewGroup  implements IUISlider{
 
         this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
     } 
+
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
+
+        this.update();
+    }
 
     /**
      * params: 

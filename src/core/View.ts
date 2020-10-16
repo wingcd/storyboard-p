@@ -21,6 +21,7 @@ import { Templates } from "./Templates";
 import { PropertyComponent } from "../components/PropertyComponent";
 import { AnimationComponent } from "../components/AnimationComponent";
 import { IView, IComponent, IComponentOptions } from "../types";
+import { SerializableComponent } from "../components";
 
 export class View implements IView {
     static CATEGORY = ECategoryType.UI;
@@ -38,7 +39,7 @@ export class View implements IView {
         data: {},
         resourceUrl: {},
         id: {importAs: "_id"},
-        name: {importAs: "_name",default: ""},
+        name: {importAs: "_name", default: ""},
         visible: {importAs: "_visible",default: true},
         hiddenCollapsed: {importAs: "_hiddenCollapsed", default: false},
         x: {importAs: "_x",default: 0},
@@ -50,8 +51,8 @@ export class View implements IView {
         angle: {importAs: "_angle",default: 0},
         pivotX: {importAs: "_pivot.x",alias: "px",default: 0},
         pivotY: {importAs: "_pivot.y", alias: "py",default: 0},
-        pivotAsAnchor: {importAs: "_pivotAsAnchor",alias: "asAnchor",default: false},
-        useBorderAsFrame: {importAs: "_useBorderAsFrame",alias: "asFrame",default: true},
+        pivotAsAnchor: {importAs: "_pivotAsAnchor", alias: "asAnchor",default: false},
+        useBorderAsFrame: {importAs: "_useBorderAsFrame", alias: "asFrame",default: true},
         focusable: {importAs: "_focusable",default: false},
         touchable: {importAs: "_touchable",default: true},
         touchEnableMoved: {default: true},
@@ -61,7 +62,7 @@ export class View implements IView {
         alpha: {importAs: "_alpha", default: 1},         
         tint: {importAs: "_tint", default: 0xffffff},            
         grayed: {importAs: "_grayed", default: false},
-        components: {property: "_components", type: BaseComponent, priority: 999},          
+        components: {property: "_components", type: SerializableComponent, priority: 999},          
         relations: {importAs: "_relations", type: Relations, priority: 999},
     };
 

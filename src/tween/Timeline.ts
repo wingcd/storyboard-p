@@ -30,8 +30,10 @@ export class KeyFrame {
     static SERIALIZABLE_FIELDS: ISerializeFields = {
         tag: {default: ""},
         time: {default: 0},            
-        property: {alias: "prop", type: KFProperty, default: null},
-        tweenInfo: {alias: "tween", default: null, raw: true},
+        property: {alias: "prop", type: KFProperty},
+        // to do... 
+        // 需要序列化
+        tweenInfo: {alias: "tween", raw: true},
     };
     
     tag: string = "";
@@ -424,10 +426,10 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         CATEGORY: {alias: "__category__", static: true, readOnly: true},
 
         resourceUrl: {},
-        id: {property: "_id"},
-        name: {property: "_name"},
+        id: {importAs: "_id"},
+        name: {importAs: "_name"},
         playOnEnable: {default: false},
-        groups: {property: "_groups", type: KeyFrameGroup, default: []},
+        groups: {importAs: "_groups", type: KeyFrameGroup},
     }
     
     private _id: string;

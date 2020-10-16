@@ -105,6 +105,12 @@ function getArrayItem(parent: any, key: string) {
 
 export function SetValue(source: any, key: string, value: any, checkProp: boolean = false)
 {
+    if(Array.isArray(value)) {
+        value = value.slice();
+    }else if(typeof(value) == 'object') {
+        value = Object.assign({}, value);
+    }
+
     if (!source || typeof source === 'number')
     {
         return false;

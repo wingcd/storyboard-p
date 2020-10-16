@@ -5,7 +5,8 @@ import { MathUtils } from "../utils/Math";
 import { ISerializeFields, IUIImage } from "../types";
 import { FillMask } from "./FillMask";
 import { INinePatchInfo, ITileInfo } from "../types";
-import { ETextureScaleType } from "../core/Defines";
+import { EFillType, ETextureScaleType } from "../core/Defines";
+import { clone } from "../utils/Serialize";
 
 export class NinePatchInfo {
     static SERIALIZABLE_FIELDS: ISerializeFields = {
@@ -39,16 +40,17 @@ export class UIImage extends View  implements IUIImage {
 
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        View.SERIALIZABLE_FIELDS,
+        clone(View.SERIALIZABLE_FIELDS),
         {
-            textureKey: {importAs: "_textureKey", alias:"texture", type: String},
-            textureFrame: {importAs: "_textureFrame", alias:"frame", type: String},
+            textureKey: {importAs: "_textureKey", alias:"texture"},
+            textureFrame: {importAs: "_textureFrame", alias:"frame"},
             scaleType: {importAs: "_scaleType", type: ETextureScaleType, default: ETextureScaleType.None},
-            tile: {importAs: "_tile", default: null},
-            ninePatch: {importAs: "_ninePatch", default: null, type: NinePatchInfo},
+            tile: {importAs: "_tile"},
+            ninePatch: {importAs: "_ninePatch", type: NinePatchInfo},
             flipX: {importAs: "_flipX", default: false},
             flipY: {importAs: "_flipY", default: false},
-            fillMask: {importAs: "_fillMask", type:FillMask, default: null},
+            fillType: {importAs: "_fillType", default: EFillType.None},
+            fillMask: {importAs: "_fillMask", type:FillMask},
         }
     );
         
@@ -62,6 +64,7 @@ export class UIImage extends View  implements IUIImage {
     private _flipX: boolean = false;
     private _flipY: boolean = false;   
     private _fillMask: FillMask;
+    private _fillType: EFillType = EFillType.None;
 
     private _requireRender: boolean;
 
@@ -73,7 +76,7 @@ export class UIImage extends View  implements IUIImage {
 
     protected constructFromJson(config: any, tpl?:any) {
         super.constructFromJson(config, tpl);
-
+        
         this._updateTexture();
     }
     
@@ -143,17 +146,33 @@ export class UIImage extends View  implements IUIImage {
         }
     }
 
+    public get fillType(): EFillType {
+        return this._fillType;
+    }
+
+    public set fillType(val:EFillType) {
+        if(val != this._fillType) {
+            this._fillType = val;
+
+            this.applyFillMask();
+        }
+    }
+
     public get fillMask(): FillMask {
-        if(!this._disp) {
-            return null;
-        }
-
-        if(!this._fillMask) {
-            this._fillMask = new FillMask();
-            this._fillMask.attach(this, this._disp);
-        }
-
         return this._fillMask;
+    }
+
+    protected applyFillMask() {
+        if(this._fillType != EFillType.None) {
+            if(!this._fillMask) {
+                this._fillMask = new FillMask();
+                this._fillMask.attach(this, this._disp);
+            }
+            this._fillMask.fillType = this._fillType;
+        }else if(this._fillMask){
+            this._fillMask.destory();
+            this._fillMask = null;
+        }
     }
 
     protected render() {
@@ -307,14 +326,15 @@ export class UIImage extends View  implements IUIImage {
         if(this._disp) {
             this._disp.setOrigin(0, 0);
         }
+
         this._updateSize();
         this._updateInfo();
+        this.applyFillMask();
     }
 
     public fromJSON(config: any, template?: any): this {
         if(config || template) {
             super.fromJSON(config, template);
-            this._updateTexture();
         }
 
         return this;

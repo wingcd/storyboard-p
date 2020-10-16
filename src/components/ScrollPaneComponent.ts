@@ -13,6 +13,7 @@ import { UIScrollBar } from "../ui/UIScrollBar";
 import { Package } from "../core/Package";
 import { Margin } from "../utils/Margin";
 import { View } from "../core/View";
+import { clone } from "../utils/Serialize";
 
 const enum EScrollStatus {
     NONE,
@@ -37,7 +38,7 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        SerializableComponent.SERIALIZABLE_FIELDS,
+        clone(SerializableComponent.SERIALIZABLE_FIELDS),
         {
             scrollType: {default: EScrollType.Both,type: EScrollType},
             scrollSpeed: {alias: "speed",default: Settings.defaultScrollSpeed},
@@ -51,7 +52,7 @@ export class ScrollPaneComponent extends SerializableComponent {
             scrollBarMargin: {importAs: "_scrollBarMargin", alias: "barMargin", type: Margin},           
             displayOnLeft: {importAs: "_displayOnLeft", alias: "barOnLeft", default: false},         
             autoLayoutView: {importAs: "_autoLayoutView", alias: "autoLayout", default: true},      
-            vScrollBarRes: {importAs: "_vScrollBarRes", alias: "vbarRes"},   
+            vScrollBarRes: {importAs: "_vScrollBarRes", alias: "vbarRes"},
             hScrollBarRes: {importAs: "_hScrollBarRes", alias: "hbarRes"},
         }
     );

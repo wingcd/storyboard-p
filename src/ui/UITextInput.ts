@@ -7,6 +7,7 @@ import { Browser } from "../utils/Browser";
 import { ViewGroup } from "../core/ViewGroup";
 import { ISerializeFields, IUITextField } from "../types";
 import * as Events from "../events";
+import { clone } from "../utils/Serialize";
 
 export const enum EInputType {
     TEXT = "text",
@@ -21,12 +22,12 @@ export class UITextInput extends UITextField  implements IUITextField{
     static TYPE = "textinput";
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {} as ISerializeFields,
-        UITextField.SERIALIZABLE_FIELDS,
+        clone(UITextField.SERIALIZABLE_FIELDS),
         {            
-            editable: {default: true},
-            inputType: {default: EInputType.TEXT},
-            promptText: {},
-            promptColor: {},
+            editable: {property: "_editable", default: true},
+            inputType: {property: "_inputType", default: EInputType.TEXT},
+            promptText: {property: "_promptText", },
+            promptColor: {property: "_promptColor", },
         }
     );
 
@@ -60,6 +61,12 @@ export class UITextInput extends UITextField  implements IUITextField{
 
         this.render();
     }    
+
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
+
+        this.render();
+    }
 
     private _onParentChanged(oldParent: ViewGroup, parent: ViewGroup) {
         if(!parent && this._editor) {
@@ -155,7 +162,7 @@ export class UITextInput extends UITextField  implements IUITextField{
                     textfield.emit(FocusEvent.CHANGED, "blur", textfield);
                     textfield.emit(TextEvent.FOCUS_OUT, textfield);
                 },
-                type: this.multipleLine ? "textarea" : "text",
+                type: !this.singleLine ? "textarea" : "text",
             });
             this._editor.inputText.x = this.x + paddingLeft - 0.5;
             this._editor.inputText.y = this.y + paddingTop - 1.5;

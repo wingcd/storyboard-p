@@ -8,6 +8,7 @@ import { PropertyManager } from "../tween/Property";
 import { UIImage } from "./UIImage";
 import { UITextField } from "./UITextField";
 import { EButtonMode } from "../core/Defines";
+import { clone } from "../utils/Serialize";
 require("../components");
                     
 export class UIButton extends ViewGroup implements IUIButton {
@@ -15,13 +16,14 @@ export class UIButton extends ViewGroup implements IUIButton {
 
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        ViewGroup.SERIALIZABLE_FIELDS,
+        clone(ViewGroup.SERIALIZABLE_FIELDS),
         {
-            selected: {property: "_selected", default: false},     
-            mode: {property: "_mode", default: EButtonMode.Common},
+            selected: {importAs: "_selected", default: false},     
+            mode: {importAs: "_mode", default: EButtonMode.Common},
+            changeStateOnClick: {importAs: "_changeStateOnClick", default: true},
+
             propMgrId: {property: "_relatedPropMgrId"},
             groupId: {property: "_propertyGroupId"},
-            changeStateOnClick: {property: "_changeStateOnClick", default: true},
         }
     );
 

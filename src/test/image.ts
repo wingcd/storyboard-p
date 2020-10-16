@@ -2,6 +2,9 @@ import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser"
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { ETextureScaleType } from "../core/Defines";
+import { Settings } from "../core/Setting";
+
+Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -13,6 +16,8 @@ class UIScene extends ViewScene {
     }
 
     create(): void {
+        this.add.image(0,0,'nine');
+
         let view = this.addUI.image({
            scaleType: ETextureScaleType.NinePatch,
            textureKey: "nine",

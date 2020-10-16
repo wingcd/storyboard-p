@@ -10,6 +10,7 @@ import { EDragType } from "../core/Defines";
 import { ISerializeFields, IViewGroup } from "../types";
 import { SerializableComponent } from "./SerializableComponent";
 import { ComponentFactory } from "./ComponentFactory";
+import { clone } from "../utils/Serialize";
 
 const enum EDragStatus {
    NONE,
@@ -27,12 +28,12 @@ export class DragComponent extends SerializableComponent {
 
    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
       {},
-      SerializableComponent.SERIALIZABLE_FIELDS,
-       {
+      clone(SerializableComponent.SERIALIZABLE_FIELDS),
+      {
          dragBounds: {type: Rectangle},
          topMostOnDragging: {alias: "topmost",default: false},
          dragType: {default: EDragType.Both, type: EDragType},
-       }
+      }
    );
 
    protected static sGlobalDragStart: Point = new Point();

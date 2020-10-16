@@ -6,6 +6,7 @@ import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import * as Events from "../events";
 import { EventData, Point, Pointer} from "../phaser";
+import { clone } from "../utils/Serialize";
 require("../components");
                     
 export class UIScrollBar extends ViewGroup implements IUIScrollBar{
@@ -13,11 +14,11 @@ export class UIScrollBar extends ViewGroup implements IUIScrollBar{
     
     static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
         {},
-        ViewGroup.SERIALIZABLE_FIELDS,
+        clone(ViewGroup.SERIALIZABLE_FIELDS),
         {
-            value: {default: 0},
-            vertical: {property: "_vertical", default: true},            
-            fixedGripSize: {property: "_fixedGripSize", default: false},
+            value: {importAs: "_value", default: 0},
+            vertical: {importAs: "_vertical", default: true},
+            fixedGripSize: {importAs: "_fixedGripSize", default: false},
         }
     );   
     static SERIALIZE_INIT() 
@@ -46,6 +47,12 @@ export class UIScrollBar extends ViewGroup implements IUIScrollBar{
 
         this.overflowType = EOverflowType.Hidden;
     } 
+
+    protected constructFromJson(config: any, tpl?:any) {
+        super.constructFromJson(config, tpl);
+
+        this._update();
+    }
 
     public setScrollPane(target: ScrollPane, vertical: boolean): this {
         this._target = target;
