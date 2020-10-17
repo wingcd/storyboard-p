@@ -1,5 +1,5 @@
 import { ISerializeFields } from "../types";
-import { EAlignType, EListLayoutType, EOverflowType, EVertAlignType } from "../core/Defines";
+import { EAlignType, EHorAlignType, EListLayoutType, EOverflowType, EVertAlignType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import { View } from "../core/View";
@@ -35,6 +35,14 @@ export class UIList extends ViewGroup  implements IUIList{
         clone(ViewGroup.SERIALIZABLE_FIELDS),
         {
             defaultItem: {importAs: "_defaultItem"},
+            layoutType: {importAs: "_layout", alias: "layout", default: EListLayoutType.SingleColumn},
+            rowCount: {importAs: "_rowCount", default: 0},
+            rowGap: {importAs: "_rowGap", default: 0},
+            columnCount: {importAs: "_columnCount", default: 0},
+            columnGap: {importAs: "_columnGap", default: 0},
+            autoResizeItem: {importAs: "_autoResizeItem", default: true},
+            horizontalAlign: {importAs: "_horizontalAlign", alias: "hAlign", default: EHorAlignType.Left},
+            verticalAlign: {importAs: "_verticalAlign", alias: "vAlign", default: EVertAlignType.Top},
         }
     );
 
@@ -42,8 +50,8 @@ export class UIList extends ViewGroup  implements IUIList{
     {      
         let fields = UIList.SERIALIZABLE_FIELDS;  
         fields.overflowType.default = EOverflowType.Hidden;        
-        fields.children.importAs = "__data__";
-        fields.children.alias = "__data__";
+        // fields.children.importAs = "__data__";
+        // fields.children.alias = "__data__";
     }
 
     public itemRenderer: ListRenderer;
@@ -51,14 +59,14 @@ export class UIList extends ViewGroup  implements IUIList{
 
     public scrollItemToViewOnClick: boolean = true;
 
-    private _layout: EListLayoutType = EListLayoutType.SingleColumn;
-    private _lineCount: number = 0;
+    private _layoutType: EListLayoutType = EListLayoutType.SingleColumn;
+    private _rowCount: number = 0;
     private _columnCount: number = 0;
     private _rowGap: number = 0;
     private _columnGap: number = 0;    
     private _defaultItem: string;
     private _autoResizeItem: boolean = true;
-    private _align: EAlignType;
+    private _horizontalAlign: EHorAlignType;
     private _verticalAlign: EVertAlignType;
 
     public constructor(scene: ViewScene) {
@@ -67,12 +75,34 @@ export class UIList extends ViewGroup  implements IUIList{
         this.overflowType = EOverflowType.Hidden;
     }
 
+    public get layoutType(): EListLayoutType {
+        return this._layoutType;
+    }
+
+    public set layoutType(val: EListLayoutType) {
+        if(val != this._layoutType) {
+            this._layoutType = val;
+            this._update();
+        }
+    }
+
     public get defaultItem(): string {
         return this._defaultItem;
     }
 
     public set defaultItem(val: string) {
         this._defaultItem = val;
+    }
+
+    public get autoResizeItem(): boolean {
+        return this._autoResizeItem;
+    }
+
+    public set autoResizeItem(val: boolean) {
+        if(val != this._autoResizeItem) {
+            this._autoResizeItem = val;
+            this._update();
+        }
     }
 
     public get rowGap(): number {
@@ -93,6 +123,50 @@ export class UIList extends ViewGroup  implements IUIList{
     public set columnGap(val: number) {
         if(val != this._columnGap) {
             this._columnGap = val;
+            this._update();
+        }
+    }
+
+    public get rowCount(): number {
+        return this._rowCount;
+    }
+
+    public set rowCount(val: number) {
+        if(val != this._rowCount) {
+            this._rowCount = val;
+            this._update();
+        }
+    }
+
+    public get columnCount(): number {
+        return this._columnCount;
+    }
+
+    public set columnCount(val: number) {
+        if(val != this._columnCount) {
+            this._columnCount = val;
+            this._update();
+        }
+    }
+
+    public get horizontalAlign(): EHorAlignType {
+        return this._horizontalAlign;
+    }
+
+    public set horizontalAlign(val: EHorAlignType) {
+        if(val != this._horizontalAlign) {
+            this._horizontalAlign = val;
+            this._update();
+        }
+    }
+
+    public get verticalAlign(): EVertAlignType {
+        return this._verticalAlign;
+    }
+
+    public set verticalAlign(val: EVertAlignType) {
+        if(val != this._verticalAlign) {
+            this._verticalAlign = val;
             this._update();
         }
     }
@@ -127,6 +201,14 @@ export class UIList extends ViewGroup  implements IUIList{
             }
             posy += c.height + this._rowGap;
         }
+    }
+
+    protected reconstruct() {  
+        super.reconstruct();
+
+        this.children.forEach(child => {
+            child.onClick(this._clickItem, this);
+        });
     }
 
     public addChildAt(child: View, index: number = 0): this {

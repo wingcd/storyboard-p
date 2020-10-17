@@ -156,11 +156,13 @@ export class ViewGroup extends View implements IViewGroup{
     onUpdate(time: number, delta: number) {
         super.onUpdate(time, delta);      
 
-        this._children.forEach(child=>{
-            if(this.finalVisible) {
-                child.onUpdate(time, delta);
-            }
-        });
+        if(this.finalVisible) {
+            this._children.forEach(child=>{
+                if(this.finalVisible) {
+                    child.onUpdate(time, delta);
+                }
+            });
+        }
     }
 
     public get children(): View[] {

@@ -264,7 +264,7 @@ export class UISlider extends ViewGroup  implements IUISlider{
     }
 
     private setFillAmount(bar: View, percent: number): boolean {
-        if (((bar instanceof UIImage)) && bar.fillMask.fillType != EFillType.None) { // || (bar instanceof UILoader)
+        if (((bar instanceof UIImage)) && bar.fillMask && bar.fillMask.fillType != EFillType.None) { // || (bar instanceof UILoader)
             bar.fillMask.value = percent;
             return true;
         }

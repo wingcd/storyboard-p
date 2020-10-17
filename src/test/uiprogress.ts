@@ -35,7 +35,7 @@ class UIScene extends ViewScene {
             width: 200,
             height: 40,
         });
-        bar.fillMask.fillType = EFillType.Horizontal;
+        bar.fillType = EFillType.Horizontal;
         bar.fillMask.origin = EDirectionType.Right;
         bar.fillMask.value = 1;        
         progress.addChild(bar);
@@ -76,7 +76,7 @@ class UIScene extends ViewScene {
         pg1.removeComponentByType(AnimationComponent);
         pg1.y = 300;
         img = pg1.getChild('bar') as UIImage;
-        img.fillMask.fillType = EFillType.None;
+        img.fillType = EFillType.None;
         
         let button = this.addUI.button({
             x: 50,
@@ -124,7 +124,7 @@ class UIScene extends ViewScene {
             width: 40,
             height: 200,
         });
-        vbar.fillMask.fillType = EFillType.Vertical;
+        vbar.fillType = EFillType.Vertical;
         vbar.fillMask.origin = EDirectionType.Top;           
         vprogress.addChild(vbar);
         vprogress.value = 100;
@@ -144,6 +144,23 @@ class UIScene extends ViewScene {
         vprogress.addComponent(animComp.clone());
 
         console.log(1);
+    }
+
+    update(time: number, delta: number) {
+        super.update(time, delta);
+
+        if(!(this as any).__fps) {
+            (this as any).__fps = this.addUI.textField({
+                width: 100,
+                height: 30, 
+                style: {
+                    color: 0xff0000,
+                },
+                x: 300,
+                y: 0,
+            });
+        }
+        (this as any).__fps.text = 1000 / delta;
     }
 }
 

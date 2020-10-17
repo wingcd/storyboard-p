@@ -573,6 +573,8 @@ export class ScrollPaneComponent extends SerializableComponent {
   
         ScrollPaneComponent.sLastScrollPt.x = ScrollPaneComponent.sGlobalScrollStart.x = this._owner.scene.input.activePointer.worldX;
         ScrollPaneComponent.sLastScrollPt.y = ScrollPaneComponent.sGlobalScrollStart.y = this._owner.scene.input.activePointer.worldY;
+
+        this.owner.emit(Events.ScrollEvent.START);
     } 
 
     private _reset() {
@@ -603,7 +605,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         this._clearAnimation();
 
         if(status != EScrollAnimStatus.NONE) { 
-            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 100);
+            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 150);
             let easing: any = Easing.Linear;
             let tween = this._owner.scene.tweens.create({
                 targets: {
@@ -642,7 +644,6 @@ export class ScrollPaneComponent extends SerializableComponent {
                         this._doAnimation();
                     }else{
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
-                        this.owner.emit(Events.ScrollEvent.END);
                         this._scrollEnd();
                         this._syncScrollBar();
                     }   
@@ -653,8 +654,8 @@ export class ScrollPaneComponent extends SerializableComponent {
             tween.play();
         }else{
             ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
-            this.owner.emit(Events.ScrollEvent.END);
-            this._scrollEnd(); 
+            this._scrollEnd();
+            this._syncScrollBar();
         }
     }
 
@@ -665,11 +666,16 @@ export class ScrollPaneComponent extends SerializableComponent {
         this._pointerId = -1;
 
         if(this.touchEffect && this.inertanceEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
-            let dx: number = Math.round(pointer.worldX - ScrollPaneComponent.sLastScrollPt.x);
-            let dy: number = Math.round(pointer.worldY - ScrollPaneComponent.sLastScrollPt.y);
+            let dx: number = Math.round(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x);
+            let dy: number = Math.round(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y);
 
-            let sx = 1 - Math.abs(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / this._viewSize.x;
-            let sy = 1 - Math.abs(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / this._viewSize.y;          
+            // let sx = 1 - Math.abs(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / this._viewSize.x;
+            // let sy = 1 - Math.abs(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / this._viewSize.y;          
+            // dx *= sx;
+            // dy *= sy;
+
+            let sx = Math.abs(pointer.worldX - ScrollPaneComponent.sLastScrollPt.x) / this._viewSize.x * 100;
+            let sy = Math.abs(pointer.worldY - ScrollPaneComponent.sLastScrollPt.y) / this._viewSize.x * 100;
             dx *= sx;
             dy *= sy;
 
@@ -715,6 +721,8 @@ export class ScrollPaneComponent extends SerializableComponent {
         ScrollPaneComponent._draggingPane = null;
         ScrollPaneComponent._sStatus = EScrollStatus.NONE;
         ScrollPaneComponent._sScrollBeginCancelled = true;
+
+        this.owner.emit(Events.ScrollEvent.END);
     }
 
     public startScroll(): void {

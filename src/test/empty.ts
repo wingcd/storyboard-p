@@ -31,6 +31,23 @@ class UIScene extends ViewScene {
 
     create(): void {
     }
+
+    update(time: number, delta: number) {
+        super.update(time, delta);
+
+        if(!(this as any).__fps) {
+            (this as any).__fps = this.addUI.textField({
+                width: 100,
+                height: 30, 
+                style: {
+                    color: 0xff0000,
+                },
+                x: 300,
+                y: 0,
+            });
+        }
+        (this as any).__fps.text = 1000 / delta;
+    }
 }
 
 export class App extends Phaser.Game {

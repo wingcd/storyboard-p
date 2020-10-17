@@ -5,6 +5,7 @@ import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EButtonMode, EHorAlignType, EOverflowType } from "../core/Defines";
 import { PropertyComponent } from "../components/PropertyComponent";
 import { UIButton } from "../ui/UIButton";
+import { Renderer } from "phaser";
 
 Settings.showDebugBorder = true;
 Settings.showDebugFrame = true;
@@ -91,6 +92,23 @@ class UIScene extends ViewScene {
 
         console.log(1);
     }
+
+    update(time: number, delta: number) {
+        super.update(time, delta);
+
+        if(!(this as any).__fps) {
+            (this as any).__fps = this.addUI.textField({
+                width: 100,
+                height: 30, 
+                style: {
+                    color: 0xff0000,
+                },
+                x: 300,
+                y: 0,
+            });
+        }
+        (this as any).__fps.text = 1000 / delta;
+    }
 }
 
 export class App extends Phaser.Game {
@@ -104,7 +122,8 @@ const config: Phaser.Types.Core.GameConfig = {
     parent: "game",
     width: 960,
     height: 540,
-    backgroundColor: "#f0f0f0",    
+    backgroundColor: "#f0f0f0",  
+    type: Phaser.WEBGL, 
     scene: [UIScene],  
     scale: {
         mode: Phaser.Scale.RESIZE,

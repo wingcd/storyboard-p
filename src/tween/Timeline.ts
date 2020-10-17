@@ -429,7 +429,7 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         id: {importAs: "_id"},
         name: {importAs: "_name"},
         playOnEnable: {default: false},
-        groups: {importAs: "_groups", type: KeyFrameGroup},
+        groups: {importAs: "_groups", type: KeyFrameGroup, default: []},
     }
     
     private _id: string;
