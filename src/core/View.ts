@@ -737,6 +737,9 @@ export class View implements IView {
         if(!mask) {
             target = this._scene.add.graphics({});
             mask = target.createGeometryMask();
+            target.visible = false;
+            target.fillStyle(0x1, 1);
+            target.fillRect(0, 0, 1, 1);
         }else{
             target = (mask as GeometryMask).geometryMask;
         }
@@ -752,13 +755,11 @@ export class View implements IView {
         }
 
         let pos = this.localToGlobal(x, y);
-        target.visible = false;
         // this._rootContainer.add(target);
-        target.clear();
+        // target.clear();
 
         target.setPosition(pos.x, pos.y);
-        target.fillStyle(0x1, 1);
-        target.fillRect(0, 0, width, height);
+        target.setScale(width, height);
         this.setMask(targetObj, mask, true);
     }
 

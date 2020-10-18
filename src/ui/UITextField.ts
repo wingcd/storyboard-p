@@ -438,7 +438,7 @@ export class UITextField extends View  implements IUITextField {
         super.updateMask();
 
         let textfield = this.getTextField();
-        if(textfield) {
+        if(textfield && this._needMask()) {
             let scale = this.getLossyScale();
             this.updateGraphicsMask(textfield, 0, 0, this.width * scale.x, this.height * scale.y, clear);
         }
@@ -526,6 +526,14 @@ export class UITextField extends View  implements IUITextField {
 
     public withBitmapFont(): boolean {
         return this.font.startsWith('ui://');
+    }
+
+    private _needMask(): boolean {
+        if(this.verticalMode) {
+            return !this._heightAutoSize && !this._singleLine;
+        }else{
+            return !this._widthAutoSize && !this._singleLine;
+        }
     }
 
     protected renderNow(updateBounds: boolean = true) {

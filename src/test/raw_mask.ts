@@ -1,14 +1,4 @@
-import { Settings } from "../core/Setting";
-import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation } from "../phaser";
-import { UIManager } from "../core/UIManager";
-import { ViewScene } from "../core/ViewScene";
-import { EOverflowType } from "../core/Defines";
-
-Settings.showDebugBorder = true;
-Settings.showDebugFrame = true;
-Settings.showDebugBounds = true;
-
-class UIScene extends ViewScene {
+class UIScene extends Phaser.Scene {
     constructor() {
         super({key: 'game', active: true})
     }
@@ -19,26 +9,22 @@ class UIScene extends ViewScene {
     }
 
     create() {
-        let container = this.add.container(300, 300);
-
-        let img = this.add.image(0, 0, 'aaa');
-        container.add(img);
-
-        let g = this.make.graphics({x: 300, y: 300});
-        g.fillCircle(0, 0, 150);
-        container.setMask(g.createGeometryMask());
+        for(let i=0;i<10;i++) {
+            let img = this.add.image(i*10+100, i*10+100, 'aaa');
+            let g = this.add.graphics({x: i*10 + 100, y: i*10 + 100});
+            g.fillStyle(0x1, 1);
+            g.fillCircle(0, 0, 50);
+            g.visible = false;
+            img.setMask(g.createGeometryMask());
+        }
     }
 
     update(time: number, delta: number) {
         super.update(time, delta);
 
         if(!(this as any).__fps) {
-            (this as any).__fps = this.addUI.textField({
-                width: 100,
-                height: 30,
-                style: {
-                    color: 0xff0000,
-                }
+            (this as any).__fps = this.add.text(0,0,"",{
+                color: "#00ff00"
             });
         }
         (this as any).__fps.text = 1000 / delta;
@@ -64,15 +50,6 @@ const config: Phaser.Types.Core.GameConfig = {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         autoRound: true,   
     },
-    plugins: {
-        global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
-            {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
-                orientation: EStageOrientation.LANDSCAPE,
-                scaleMode: EStageScaleMode.FIXED_AUTO,
-            }},
-        ]
-    }
 };
 
 

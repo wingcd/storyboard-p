@@ -76,7 +76,7 @@ class UIScene extends ViewScene {
             x: 20,
         });
         bar.touchable = true;
-        bar.fillMask.fillType = EFillType.Horizontal;
+        bar.fillType = EFillType.Horizontal;
         bar.fillMask.origin = EDirectionType.Right;
         bar.fillMask.value = 1;           
         scroll.addChild(bar);        
@@ -135,7 +135,7 @@ class UIScene extends ViewScene {
             y: 20,
         });
         vbar.touchable = true;
-        vbar.fillMask.fillType = EFillType.Vertical;
+        vbar.fillType = EFillType.Vertical;
         vbar.fillMask.origin = EDirectionType.Top;
         vbar.fillMask.value = 1;           
         vscroll.addChild(vbar);        
@@ -188,6 +188,23 @@ class UIScene extends ViewScene {
 
         console.log(view.toJSON());
         view.clone().setXY(400, 50);
+    }
+
+    update(time: number, delta: number) {
+        super.update(time, delta);
+
+        if(!(this as any).__fps) {
+            (this as any).__fps = this.addUI.textField({
+                width: 100,
+                height: 30, 
+                style: {
+                    color: 0xff0000,
+                },
+                x: 300,
+                y: 0,
+            });
+        }
+        (this as any).__fps.text = 1000 / delta;
     }
 }
 

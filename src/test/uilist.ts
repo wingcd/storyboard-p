@@ -45,7 +45,7 @@ class UIScene extends ViewScene {
             height: 80,
         });  
         // 更新mask造成手机卡顿。估计是转换坐标计算有延迟，需要优化
-        button.overflowType = EOverflowType.Hidden;
+        // button.overflowType = EOverflowType.Hidden;
 
         let img = this.makeUI.image({
             name: "icon",
@@ -59,17 +59,17 @@ class UIScene extends ViewScene {
         img.relations.set(ERelationPinType.LEFT, button);
         img.relations.set(ERelationPinType.RIGHT, button);
 
-        // let title = this.makeUI.textField();
-        // title.setSize(100, 80);
-        // title.autoSize = EAutoSizeType.None;
-        // // title.textAlign = EAlignType.Center;
-        // title.verticalAlign = EVertAlignType.Middle;
-        // title.horizontalAlign = EHorAlignType.Center;
-        // title.name = "title";
-        // title.text = "测试";
-        // title.fontSize = 24;
-        // button.addChild(title);
-        // title.relations.set(ERelationPinType.CENTER, button);
+        let title = this.makeUI.textField();
+        title.setSize(100, 80);
+        title.autoSize = EAutoSizeType.None;
+        // title.textAlign = EAlignType.Center;
+        title.verticalAlign = EVertAlignType.Middle;
+        title.horizontalAlign = EHorAlignType.Center;
+        title.name = "title";
+        title.text = "测试";
+        title.fontSize = 24;
+        button.addChild(title);
+        title.relations.set(ERelationPinType.CENTER, button);
         
         let pkg = new PackageItem();
         Package.inst.addPackage(pkg);
@@ -81,13 +81,13 @@ class UIScene extends ViewScene {
         // nbtn.titleColor = 0xff0000;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
-        list.scrollPane.inertanceEffect = false;
-        list.scrollPane.bouncebackEffect = false;
+        list.scrollPane.inertanceEffect = true;
+        // list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
         // list.margin = new Margin(10, 0, 10);
 
         list.defaultItem = btnRes;
-        for(let i =0 ;i<8;i++) {
+        for(let i =0 ;i<10;i++) {
             let item = list.addItem() as UIButton;
             item.title = `button${i+1}`;
         }
@@ -180,10 +180,12 @@ export class App extends Phaser.Game {
 const config: Phaser.Types.Core.GameConfig = {
     title: "Starfall",
     parent: "game",
+    type: Phaser.WEBGL,
     width: 960,
     height: 540,
     backgroundColor: "#f0f0f0",    
     scene: [UIScene],  
+    resolution: 1,
     scale: {
         mode: Phaser.Scale.NONE,
         autoCenter: Phaser.Scale.CENTER_BOTH,

@@ -89,14 +89,16 @@ var GetTextSizeHorizontal = function (text: Phaser.GameObjects.Text, size:Phaser
             if(line) {
                 for(let char of line) {
                     let measure = context.measureText(char);
+                    let enableCalcHeight = measure.actualBoundingBoxAscent && measure.actualBoundingBoxDescent;
                     lineWidth += measure.width + (char != ' ' ? letterSpacing : 0);
-                    maxLineHeight = Math.max(measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent, maxLineHeight, size.fontSize);
+                    maxLineHeight = Math.max(enableCalcHeight ? measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent : 0, maxLineHeight, size.fontSize);
                 }
             }
         }else{       
             let measure = context.measureText(lines[i]);     
+            let enableCalcHeight = measure.actualBoundingBoxAscent && measure.actualBoundingBoxDescent;
             lineWidth += measure.width;
-            maxLineHeight =  Math.max(measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent, size.fontSize);
+            maxLineHeight =  Math.max(enableCalcHeight ? measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent : 0, size.fontSize);
         }
 
         if(style.strokeThickness) {

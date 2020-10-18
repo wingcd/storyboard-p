@@ -480,15 +480,13 @@ export class ScrollPaneComponent extends SerializableComponent {
            // remove event listener
            this._reset();
            ScrollPaneComponent._sScrollBeginCancelled = false;
-      
-           ScrollPaneComponent._draggingPane = this;
-  
-           this.owner.emit(Events.ScrollEvent.START, pointer);
   
            if(!ScrollPaneComponent._sScrollBeginCancelled) {
-              this._scrollBegin();
-           }
-           
+                this._scrollBegin();
+           }else{               
+                ScrollPaneComponent._draggingPane = this;        
+                this.owner.emit(Events.ScrollEvent.START);
+           }    
         } else if(ScrollPaneComponent._sStatus == EScrollStatus.SCROLL_BEGIN || ScrollPaneComponent._sStatus == EScrollStatus.SCROLLING) {
             //dragging
             if(ScrollPaneComponent._sStatus == EScrollStatus.SCROLL_BEGIN) {
@@ -502,20 +500,56 @@ export class ScrollPaneComponent extends SerializableComponent {
             let newPosX = Math.round(this.owner.container.x + this._moveOffset.x);
             let newPosY = Math.round(this.owner.container.y + this._moveOffset.y);
 
-            if(!this.bouncebackEffect) {
+            if(this.bouncebackEffect) {
+                // 模拟阻尼效果
+                let sx = (pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / (this._overlapSize.x || 1);
+                let sy = (pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / (this._overlapSize.y || 1);
+                if(sx != 0 || sy != 0) {
+                    if(this._overlapSize.x > 0) { 
+                        if(newPosX > 0) {
+                            // scroll to right
+                            if(this._overlapSize.x > 0 && sx > 0) {
+                                this._moveOffset.x *= MathUtils.clamp01(1-sx);
+                            }
+                        }else if(newPosX < -this._overlapSize.x){
+                            // scroll to left
+                            if(this._overlapSize.x > 0 && sx < 0) {
+                                this._moveOffset.x *= MathUtils.clamp01(1+sx);
+                            }
+                        }
+                        newPosX = Math.round(this.owner.container.x + this._moveOffset.x);
+                    }
+
+                    if(this._overlapSize.y > 0 ) {
+                        if(newPosY > 0) {
+                            // scroll to bottom
+                            if(this._overlapSize.y > 0 && sy > 0) {
+                                this._moveOffset.y *= MathUtils.clamp01(1-sy);
+                            }
+                        }else if(newPosY < -this._overlapSize.y){
+                            // scroll to top
+                            if(this._overlapSize.y > 0 && sy < 0) {
+                                this._moveOffset.y *= MathUtils.clamp01(1+sy);
+                            }
+                        }
+                        newPosY = Math.round(this.owner.container.y + this._moveOffset.y);
+                    }
+                }
+            }else{                
                 newPosX = this._clampX(newPosX);
                 newPosY = this._clampY(newPosY);
             }
 
             if(this.touchEffect) { 
                 if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Horizontal) {
+                    let limitX = this._overlapSize.x * 0.5;
                     if(newPosX > 0) {
                         // scroll to right
-                        let x = Math.round(Math.min(newPosX, this._viewSize.x * 0.5));
+                        let x = Math.round(Math.min(newPosX, limitX));
                         this.owner.scrollTo(x);
                     }else if(newPosX < -this._overlapSize.x){
                         // scroll to left
-                        let x = Math.round(Math.max((newPosX + this._overlapSize.x), -this._viewSize.x * 0.5) - this._overlapSize.x);
+                        let x = Math.round(Math.max((newPosX + this._overlapSize.x), -limitX) - this._overlapSize.x);
                         this.owner.scrollTo(x);
                     }else{
                         this.owner.scrollTo(newPosX);
@@ -523,13 +557,14 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }
 
                 if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Vertical) {
+                    let limitY = this._overlapSize.y * 0.5;
                     if(newPosY > 0) {
                         // scroll to bottom
-                        let y = Math.round(Math.min(newPosY, this._viewSize.y * 0.5));
+                        let y = Math.round(Math.min(newPosY, limitY));
                         this.owner.scrollTo(null, y);
                     }else if(newPosY < -this._overlapSize.y){
                         // scroll to top
-                        let y = Math.round(Math.max((newPosY + this._overlapSize.y), -this._viewSize.y * 0.5) - this._overlapSize.y);
+                        let y = Math.round(Math.max((newPosY + this._overlapSize.y), -limitY) - this._overlapSize.y);
                         this.owner.scrollTo(null, y);
                     }else{
                         this.owner.scrollTo(null, newPosY);
@@ -635,14 +670,14 @@ export class ScrollPaneComponent extends SerializableComponent {
                     this._clearAnimation();
 
                     let data = targets[0];
-                    if(status == EScrollAnimStatus.INERTANCE) {                        
+                    if(this.bouncebackEffect && status == EScrollAnimStatus.INERTANCE) {                        
                         this._endPos.x = -this._clampX(data.x);
                         this._endPos.y = -this._clampY(data.y);
-                        if(this._endPos.x + this.owner.container.x != 0 || this._endPos.y + this.owner.container.y != 0) {
+                        if(this._isInOutPosition()) {
                             this._animationInfo.status = EScrollAnimStatus.BOUNCE;
                         }
                         this._doAnimation();
-                    }else{
+                    }else{                        
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
                         this._scrollEnd();
                         this._syncScrollBar();
@@ -665,48 +700,43 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
         this._pointerId = -1;
 
-        if(this.touchEffect && this.inertanceEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
-            let dx: number = Math.round(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x);
-            let dy: number = Math.round(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y);
+        if(this.touchEffect && this.inertanceEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
+            let dx = (pointer.worldX - ScrollPaneComponent.sLastScrollPt.x) / (this._overlapSize.x||1) * 10000;
+            let dy = (pointer.worldY - ScrollPaneComponent.sLastScrollPt.y) / (this._overlapSize.y||1) * 10000;
 
-            // let sx = 1 - Math.abs(pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / this._viewSize.x;
-            // let sy = 1 - Math.abs(pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / this._viewSize.y;          
-            // dx *= sx;
-            // dy *= sy;
-
-            let sx = Math.abs(pointer.worldX - ScrollPaneComponent.sLastScrollPt.x) / this._viewSize.x * 100;
-            let sy = Math.abs(pointer.worldY - ScrollPaneComponent.sLastScrollPt.y) / this._viewSize.x * 100;
-            dx *= sx;
-            dy *= sy;
-
-            if(dx != 0 || dy != 0) {
+            if(dx != 0 && this._overlapSize.x > 0 || dy != 0 && this._overlapSize.y > 0) {
                 let canDo = false;
-                if(Math.abs(this.owner.container.x) < this._viewSize.x * 0.5) {
+                let ax = Math.abs(this.owner.container.x);
+                let ay = Math.abs(this.owner.container.y);
+                if(ax < this._overlapSize.x && ax > 0 && this._overlapSize.x > 0) {
                     this._endPos.x = -this._clampX(this.owner.container.x + dx, 1.2, 0.2);
                     canDo = true;
                 }
 
-                if(Math.abs(this.owner.container.y) < this._viewSize.y * 0.5) {
+                if(ay < this._overlapSize.y && ay > 0 && this._overlapSize.y > 0) {
                     this._endPos.y = -this._clampY(this.owner.container.y + dy, 1.2, 0.2);
                     canDo = true;
                 }
 
                 if(canDo) {
+                    if(!this.bouncebackEffect) {
+                        this._endPos.x = -MathUtils.clamp(-this._endPos.x, -this._overlapSize.x, 0);
+                        this._endPos.y = -MathUtils.clamp(-this._endPos.y, -this._overlapSize.y, 0);
+                    }
                     this._animationInfo.status = EScrollAnimStatus.INERTANCE;
                 }
             }
         }
 
         if(this.touchEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
-            if(this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x ||
-               this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y ) {
+            if(this._isInOutPosition()) {
                 this._animationInfo.status = EScrollAnimStatus.BOUNCE;
             }
         } 
 
         if (ScrollPaneComponent.draggingPane == this) {
             this._reset();    
-            if(this.bouncebackEffect && this._animationInfo.status != EScrollAnimStatus.NONE) {
+            if((this.bouncebackEffect || this.inertanceEffect) && this._animationInfo.status != EScrollAnimStatus.NONE) {
                 this._doAnimation();
             }else{
                 this._scrollEnd();  
@@ -716,13 +746,20 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
     }
 
-    private _scrollEnd(): void {      
-        this._reset();        
-        ScrollPaneComponent._draggingPane = null;
-        ScrollPaneComponent._sStatus = EScrollStatus.NONE;
-        ScrollPaneComponent._sScrollBeginCancelled = true;
+    private _isInOutPosition(): boolean {
+        return this._overlapSize.x > 0 && (this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x) ||
+               this._overlapSize.y > 0 && (this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y);
+    }
 
-        this.owner.emit(Events.ScrollEvent.END);
+    private _scrollEnd(): void {   
+        if(ScrollPaneComponent._draggingPane == this) {   
+            ScrollPaneComponent._draggingPane._reset();  
+            ScrollPaneComponent._sStatus = EScrollStatus.NONE;
+            ScrollPaneComponent._sScrollBeginCancelled = true;
+
+            ScrollPaneComponent._draggingPane.owner.emit(Events.ScrollEvent.END);
+            ScrollPaneComponent._draggingPane = null;
+        }
     }
 
     public startScroll(): void {
