@@ -49,9 +49,7 @@ export class UIList extends ViewGroup  implements IUIList{
     static SERIALIZE_INIT() 
     {      
         let fields = UIList.SERIALIZABLE_FIELDS;  
-        fields.overflowType.default = EOverflowType.Hidden;        
-        // fields.children.importAs = "__data__";
-        // fields.children.alias = "__data__";
+        fields.overflowType.default = EOverflowType.Hidden;
     }
 
     public itemRenderer: ListRenderer;

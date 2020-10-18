@@ -20,12 +20,7 @@ export class UIScrollBar extends ViewGroup implements IUIScrollBar{
             vertical: {importAs: "_vertical", default: true},
             fixedGripSize: {importAs: "_fixedGripSize", default: false},
         }
-    );   
-    static SERIALIZE_INIT() 
-    {      
-        let fields = UIScrollBar.SERIALIZABLE_FIELDS;  
-        fields.overflowType.default = EOverflowType.Hidden;
-    }
+    );  
 
     private _vertical: boolean = true;
     private _fixedGripSize: boolean = false;
