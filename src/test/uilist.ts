@@ -61,7 +61,7 @@ class UIScene extends ViewScene {
 
         let title = this.makeUI.textField();
         title.setSize(100, 80);
-        title.autoSize = EAutoSizeType.None;
+        title.autoSize = EAutoSizeType.Height;
         // title.textAlign = EAlignType.Center;
         title.verticalAlign = EVertAlignType.Middle;
         title.horizontalAlign = EHorAlignType.Center;
@@ -82,7 +82,7 @@ class UIScene extends ViewScene {
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
         list.scrollPane.inertanceEffect = true;
-        // list.scrollPane.bouncebackEffect = true;
+        list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
         // list.margin = new Margin(10, 0, 10);
 

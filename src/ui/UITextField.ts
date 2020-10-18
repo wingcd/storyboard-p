@@ -530,9 +530,9 @@ export class UITextField extends View  implements IUITextField {
 
     private _needMask(): boolean {
         if(this.verticalMode) {
-            return !this._heightAutoSize && !this._singleLine;
+            return !this._heightAutoSize && (this._textHeight+UITextField.GUTTER_Y) > this.height;
         }else{
-            return !this._widthAutoSize && !this._singleLine;
+            return !this._widthAutoSize && (this._textWidth+UITextField.GUTTER_X) > this.width;
         }
     }
 
