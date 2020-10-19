@@ -37,6 +37,7 @@ class UIScene extends ViewScene {
             height: 500,
         });
         list.opaque = true;
+        list.setBackgroundColor(0xffff00, true);
 
         let button = this.addUI.button({
             x: 250,
@@ -84,7 +85,7 @@ class UIScene extends ViewScene {
         list.scrollPane.inertanceEffect = true;
         list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
-        // list.margin = new Margin(10, 0, 10);
+        list.margin = new Margin(10, 0, 10);
 
         list.defaultItem = btnRes;
         for(let i =0 ;i<10;i++) {

@@ -6,7 +6,7 @@ import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
-import { ISerializeField, ISerializeFields } from "../types";
+import { ISerializeFields, IUIList } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { SerializableComponent } from "./SerializableComponent";
 import { UIScrollBar } from "../ui/UIScrollBar";
@@ -111,6 +111,13 @@ export class ScrollPaneComponent extends SerializableComponent {
     private _realDisplayType: EScrollBarDisplayType = EScrollBarDisplayType.Default;
     private _mouseIn = false;
 
+    /**@internal
+     * 0 - no loop
+     * 1 - x loop 
+     * 2 - y loop
+     */
+    loop: number = 2;
+
     //防止事件穿透的组件
     private _preventEventHBar: View;
     private _preventEventVBar: View;
@@ -154,7 +161,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         this.owner.off(Input.Events.POINTER_OVER, this._mouseOver, this);
         this.owner.off(Input.Events.POINTER_OUT, this._mouseOut, this);
         
-        this.owner.container.setPosition(0, 0);
+        this.owner.scrollTo(0, 0);
     }
 
     private onDispose() {
@@ -180,7 +187,7 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _init() {
-        this.owner.container.setPosition(0, 0);
+        this.owner.scrollTo(0, 0);
         this._viewSize.setTo(this.owner.scrollRect.width, this.owner.scrollRect.height);
         this._pageSize.setTo(this._viewSize.x, this._viewSize.y);
         this._contentSize.setTo(this.owner.bounds.width + this.owner.bounds.x, this.owner.bounds.height + this.owner.bounds.y);
@@ -441,11 +448,17 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _clampX(val: number, minRatio: number = 1, maxRatio: number = 0): number {
+        if(this.loop == 1) {
+            return val;
+        }
         let ret = MathUtils.clamp(val, -this._overlapSize.x*minRatio, this._overlapSize.x*maxRatio);
         return Math.round(ret);
     }
 
     private _clampY(val: number, minRatio: number = 1, maxRatio: number = 0): number {
+        if(this.loop == 2) {
+            return val;
+        }
         let ret = MathUtils.clamp(val, -this._overlapSize.y*minRatio, this._overlapSize.y*maxRatio);
         return Math.round(ret);
     }
@@ -505,7 +518,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 let sx = (pointer.worldX - ScrollPaneComponent.sGlobalScrollStart.x) / (this._overlapSize.x || 1);
                 let sy = (pointer.worldY - ScrollPaneComponent.sGlobalScrollStart.y) / (this._overlapSize.y || 1);
                 if(sx != 0 || sy != 0) {
-                    if(this._overlapSize.x > 0) { 
+                    if(this._overlapSize.x > 0 && this.loop != 1) { 
                         if(newPosX > 0) {
                             // scroll to right
                             if(this._overlapSize.x > 0 && sx > 0) {
@@ -520,7 +533,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                         newPosX = Math.round(this.owner.container.x + this._moveOffset.x);
                     }
 
-                    if(this._overlapSize.y > 0 ) {
+                    if(this._overlapSize.y > 0 && this.loop != 2) {
                         if(newPosY > 0) {
                             // scroll to bottom
                             if(this._overlapSize.y > 0 && sy > 0) {
@@ -542,7 +555,7 @@ export class ScrollPaneComponent extends SerializableComponent {
 
             if(this.touchEffect) { 
                 if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Horizontal) {
-                    let limitX = this._overlapSize.x * 0.5;
+                    let limitX = this.loop == 1 ? Infinity : this._overlapSize.x * 0.5;
                     if(newPosX > 0) {
                         // scroll to right
                         let x = Math.round(Math.min(newPosX, limitX));
@@ -557,7 +570,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }
 
                 if(this.scrollType == EScrollType.Both || this.scrollType == EScrollType.Vertical) {
-                    let limitY = this._overlapSize.y * 0.5;
+                    let limitY = this.loop == 2 ? Infinity : this._overlapSize.y * 0.5;
                     if(newPosY > 0) {
                         // scroll to bottom
                         let y = Math.round(Math.min(newPosY, limitY));
@@ -572,7 +585,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }
                 
                 this._endPos.x = this._posX = -this._clampX(this.owner.container.x);
-                this._endPos.y = this._posY = -this._clampY(this.owner.container.y);                
+                this._endPos.y = this._posY = -this._clampY(this.owner.container.y);          
             }else{
                 if(this._overlapSize.x == 0) {
                     this.setPosX(0);
@@ -585,7 +598,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 }else{
                     this.setPosY(-newPosY);
                 }
-            }             
+            }     
 
             this._syncScrollBar();
             ScrollPaneComponent.sLastScrollPt.setTo(pointer.worldX, pointer.worldY);
@@ -720,8 +733,12 @@ export class ScrollPaneComponent extends SerializableComponent {
 
                 if(canDo) {
                     if(!this.bouncebackEffect) {
-                        this._endPos.x = -MathUtils.clamp(-this._endPos.x, -this._overlapSize.x, 0);
-                        this._endPos.y = -MathUtils.clamp(-this._endPos.y, -this._overlapSize.y, 0);
+                        if(this.loop != 1) {
+                            this._endPos.x = -MathUtils.clamp(-this._endPos.x, -this._overlapSize.x, 0);
+                        }
+                        if(this.loop != 2) {
+                            this._endPos.y = -MathUtils.clamp(-this._endPos.y, -this._overlapSize.y, 0);
+                        }
                     }
                     this._animationInfo.status = EScrollAnimStatus.INERTANCE;
                 }
@@ -747,8 +764,8 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _isInOutPosition(): boolean {
-        return this._overlapSize.x > 0 && (this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x) ||
-               this._overlapSize.y > 0 && (this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y);
+        return this.loop != 1 && this._overlapSize.x > 0 && (this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x) ||
+               this.loop != 2 &&this._overlapSize.y > 0 && (this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y);
     }
 
     private _scrollEnd(): void {   

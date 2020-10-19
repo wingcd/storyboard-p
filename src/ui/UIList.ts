@@ -49,7 +49,7 @@ export class UIList extends ViewGroup  implements IUIList{
     static SERIALIZE_INIT() 
     {      
         let fields = UIList.SERIALIZABLE_FIELDS;  
-        fields.overflowType.default = EOverflowType.Hidden;
+        fields.overflowType.default = EOverflowType.Scroll;
     }
 
     public itemRenderer: ListRenderer;
@@ -66,11 +66,12 @@ export class UIList extends ViewGroup  implements IUIList{
     private _autoResizeItem: boolean = true;
     private _horizontalAlign: EHorAlignType;
     private _verticalAlign: EVertAlignType;
+    private _loop: boolean = true;
 
     public constructor(scene: ViewScene) {
         super(scene);
 
-        this.overflowType = EOverflowType.Hidden;
+        this.overflowType = EOverflowType.Scroll;
     }
 
     public get layoutType(): EListLayoutType {
@@ -173,6 +174,19 @@ export class UIList extends ViewGroup  implements IUIList{
     //     if(this._)
     // }
 
+    protected applyOverflow() {
+        super.applyOverflow();
+
+    }
+
+    scrollTo(x?: number, y?: number) {
+        super.scrollTo(x, y);
+
+        if(this._loop) {
+            this._update();
+        }
+    }
+
     private _update() {
         this.layout();
     }
@@ -180,15 +194,32 @@ export class UIList extends ViewGroup  implements IUIList{
     onChildrenChanged() {
         super.onChildrenChanged();
 
-        this.layout();
+        this._update();
     }
 
     protected layout() {
         this._layoutSingleColumn();
-    }
+    }    
 
     private _layoutSingleColumn() {
-        let posx= this.scrollRect.x, posy = this.scrollRect.y;
+        let posx= 0, posy = 0;
+        if(this._loop && this.container2) {
+            for(let i in this.children) {
+                let c = this.children[i];
+                let py = posy + this.container.y;
+
+                if(py + c.height <= 0 || py >= this.height) {
+                    this.container2.add(c.rootContainer);
+                }else{
+                    this.container.add(c.rootContainer);
+                }
+                
+                posy += c.height + this._rowGap;
+            }        
+            
+            posx= posy = 0;
+        }
+
         for(let c of this.children) {
             c.x = posx;
             c.y = posy;
@@ -198,6 +229,21 @@ export class UIList extends ViewGroup  implements IUIList{
                 c.width = c._initWidth;
             }
             posy += c.height + this._rowGap;
+        }
+
+        if(this.container2) {
+            this.container2.x = this.container.x;
+            if(this.container.y >= 0) {
+                this.container2.y = this.container.y - this.bounds.height - this._rowGap;
+            }else {
+                this.container2.y = this.container.y + this.bounds.height + this._rowGap;
+            }
+            
+            let height = this.bounds.height;
+            if(height > 0) {
+                this.container.y %= height;
+                this.container2.y %= height;
+            }
         }
     }
 

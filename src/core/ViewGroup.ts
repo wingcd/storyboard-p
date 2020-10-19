@@ -34,6 +34,7 @@ export class ViewGroup extends View implements IViewGroup{
 
     private _scrollContainer: Container;
     private _container: Container;
+    private _container2: Container;
     private _bounds: Rectangle = new Rectangle(0, 0, 100, 100);
     private _scrollPane: ScrollPaneComponent = null;
 
@@ -61,6 +62,11 @@ export class ViewGroup extends View implements IViewGroup{
     get container(): Container {
         return this._container;
     }    
+
+    /**@internal */
+    get container2(): Container {
+        return this._container2;
+    }
 
     /**
      * @description if enable touch in empty area, default is false
@@ -494,10 +500,15 @@ export class ViewGroup extends View implements IViewGroup{
                     }
                 }
 
-                if(!this._scrollContainer) {
+                if(!this._scrollContainer) {                            
+                    this._updateHideMask(true);
+
                     this._scrollContainer = this.scene.make.container({});
                     this.rootContainer.add(this._scrollContainer);
                     this._scrollContainer.add(this._container);
+
+                    this._container2 = this.scene.make.container({});
+                    this._scrollContainer.add(this._container2);
 
                     this._scrollContainer.setPosition(this._scrollRect.x, this.scrollRect.y);
                     this._scrollContainer.setSize(this._scrollRect.width, this._scrollRect.height);
@@ -516,10 +527,14 @@ export class ViewGroup extends View implements IViewGroup{
         if(this._overflowType != EOverflowType.Scroll) {
             this.removeComponent(this._scrollPane);
 
-            if(this._scrollContainer) {
+            if(this._scrollContainer) {                
+                this._updateHideMask(true);
+
                 this.rootContainer.add(this._container);
-                this._scrollContainer.destroy();
                 this._scrollContainer = null;
+
+                this._container2.destroy();
+                this._container2 = null;
             }
         }
             
@@ -556,9 +571,13 @@ export class ViewGroup extends View implements IViewGroup{
         }
     }
 
+    private _getMaskContainer(): Container {
+        return this._scrollContainer || this._container;
+    }
+
     private _updateHideMask(clear: boolean = false) {
         let scale = this.getLossyScale();
-        this.updateGraphicsMask(this._container, this._scrollRect.x, this._scrollRect.y,
+        this.updateGraphicsMask(this._getMaskContainer(), this._scrollRect.x, this._scrollRect.y,
                                 (this.width - this._margin.left - this._margin.right + this._scrollOffsetSize.x) * scale.x, 
                                 (this.height - this._margin.top - this._margin.bottom + this._scrollOffsetSize.y) * scale.y, clear);
     }

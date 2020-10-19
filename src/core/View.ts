@@ -1283,6 +1283,34 @@ export class View implements IView {
         }
     }
 
+    public localToView(view: View, ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (!resultPoint) {
+            resultPoint = View.sHelperPoint;
+        }
+        if(view == this) {
+            resultPoint.setTo(ax, ay);
+            return resultPoint;
+        }
+
+        this.localToGlobal(ax, ay, resultPoint);
+        view.globalToLocal(resultPoint.x, resultPoint.y, resultPoint);
+        return resultPoint;
+    }
+
+    public viewToLocal(view: View, ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
+        if (!resultPoint) {
+            resultPoint = View.sHelperPoint;
+        }
+        if(view == this) {
+            resultPoint.setTo(ax, ay);
+            return resultPoint;
+        }
+
+        view.localToGlobal(ax, ay, resultPoint);
+        this.globalToLocal(resultPoint.x, resultPoint.y, resultPoint);
+        return resultPoint;
+    }
+
     public localToGlobal(ax: number = 0, ay: number = 0, resultPoint?: Point): Point {
         if (this._pivotAsAnchor) {
             ax += this._pivot.x * this._width;
