@@ -116,7 +116,7 @@ export class ScrollPaneComponent extends SerializableComponent {
      * 1 - x loop 
      * 2 - y loop
      */
-    loop: number = 2;
+    loop: number = 0;
 
     //防止事件穿透的组件
     private _preventEventHBar: View;
@@ -654,7 +654,7 @@ export class ScrollPaneComponent extends SerializableComponent {
 
         if(status != EScrollAnimStatus.NONE) { 
             let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 150);
-            let easing: any = Easing.Linear;
+            let easing: any = status != EScrollAnimStatus.INERTANCE ? Easing.Linear : Easing.Bounce;
             let tween = this._owner.scene.tweens.create({
                 targets: {
                     x: this.owner.container.x, 

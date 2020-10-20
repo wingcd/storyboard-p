@@ -5,20 +5,6 @@ import { SetValue } from "./Object";
 import { Templates } from "../core/Templates";
 import { Package } from "../core/Package";
 
-export function addIgnoreFields(target: any, fields: string[]) {
-    if(target && typeof(target) == 'object') {
-        let ret = target.SERIALIZE_IGNORE_FIELDS || [];    
-        ret = ret.concat(fields);
-        target.SERIALIZE_IGNORE_FIELDS = ret;
-    }
-}
-
-export function clearIgnoreFields(target: any) {
-    if(target && typeof(target) == 'object') {
-        delete target.SERIALIZE_IGNORE_FIELDS;
-    }
-}
-
 export function clone(obj: any): any {
     var o:any;
     if (typeof obj == "object") {
@@ -43,7 +29,7 @@ export function clone(obj: any): any {
     return o;
 }
 
-function store(source: any, info: ISerializeField, tpl: any): any {
+function store(source: any, info: ISerializeField, tpl: any, parent: any): any {
     if(source == undefined) {
         return null;
     }
@@ -52,31 +38,41 @@ function store(source: any, info: ISerializeField, tpl: any): any {
     if(info.raw) {
         item = Object.assign({}, source);
     }else{ 
+        let ignores = info.ignores;
+        if(ignores && parent && parent.getSerializeIgnores) {
+            ignores = ignores.concat(parent.getSerializeIgnores());
+        }
+
         if(source.toJSON) {
-            item = source.toJSON(tpl);            
+            item = source.toJSON(tpl, ignores);
         }
         
         if(!item && info.type && info.type.SERIALIZE) {
-            item = info.type.SERIALIZE(source, tpl);
+            item = info.type.SERIALIZE(source, tpl, ignores);
         }
         
         if(!item) {
             item = SerializeFactory.inst.serialize(source);
             if(!item) {
-                item = Serialize(source, tpl);
+                item = Serialize(source, tpl, ignores);
             }  
         }
     } 
     return item;
 }
 
-function restore(target: any, targetProp: string, data: any, tpl: any, info: ISerializeField, depth: number) {
+function restore(target: any, targetProp: string, data: any, tpl: any, info: ISerializeField, depth: number, parent: any) {
     if(!target) {
         return target;
     }
     
     if(!SerializeFactory.inst.deserialize(target, data)) {
-        if(!Deserialize(target, data, tpl, depth)) {
+        let ignores = info.ignores;
+        if(ignores && parent && parent.getSerializeIgnores) {
+            ignores = ignores.concat(parent.getSerializeIgnores());
+        }
+
+        if(!Deserialize(target, data, tpl, depth, ignores, parent)) {
             SetValue(target, targetProp, data);
         }
     }
@@ -91,11 +87,6 @@ function serializeProperty(target:any, info: ISerializeField, source: any, tpl: 
 
     let targetProp = info.alias || info.property;
     let sourceProp = info.property;
-    
-    // 过滤一些重复字段
-    if(source.SERIALIZE_IGNORE_FIELDS && source.SERIALIZE_IGNORE_FIELDS.indexOf(targetProp) >= 0) {
-        return;
-    }
 
     if(tpl) {
         let t = tpl[info.alias || info.importAs];
@@ -133,7 +124,7 @@ function serializeProperty(target:any, info: ISerializeField, source: any, tpl: 
                                 t = tpl[i];
                             }
 
-                            let item = store(sourceData[i], info, t);
+                            let item = store(sourceData[i], info, t, source);
 
                             // 不添加0属性对象
                             if(raw.constructor.CATEGORY != undefined && raw.constructor.CATEGORY == sourceData[i].constructor.CATEGORY) {
@@ -155,7 +146,7 @@ function serializeProperty(target:any, info: ISerializeField, source: any, tpl: 
 
                         target[targetProp] = rets;
                     } else if (typeof(sourceData) == 'object') {
-                        target[targetProp] = store(sourceData, info, tpl);
+                        target[targetProp] = store(sourceData, info, tpl, source);
                     }else{
                         target[targetProp] = sourceData;
                     } 
@@ -186,7 +177,7 @@ function getConfigPropName(info: ISerializeField, config: any, tpl:any = null) {
     return info.alias && (config.hasOwnProperty(info.alias) || (tpl && tpl.hasOwnProperty(info.alias))) ? info.alias : info.property;;
 }
 
-function deserializeProperty(target:any, info: ISerializeField, config: any, tpl:any = null, depth:number = 0) {
+function deserializeProperty(target:any, info: ISerializeField, config: any, tpl:any = null, depth:number = 0, parent?: any) {
     if(!config && tpl) {
         config = {};
     }
@@ -276,7 +267,7 @@ function deserializeProperty(target:any, info: ISerializeField, config: any, tpl
                         }
 
                         if(needRestore) {
-                            restore(ritem, i, itemData, t, info, depth);
+                            restore(ritem, i, itemData, t, info, depth, target);
                         }
 
                         if(isarray) {
@@ -316,7 +307,7 @@ function deserializeProperty(target:any, info: ISerializeField, config: any, tpl
                         }
 
                         if(needRestore) {
-                            restore(ritem, targetProp, cfgData, tpl, info, depth);
+                            restore(ritem, targetProp, cfgData, tpl, info, depth, target);
                         }
 
                         target[targetProp] = ritem;
@@ -342,7 +333,7 @@ function deserializeProperty(target:any, info: ISerializeField, config: any, tpl
  * @param source 被序列化的对象 
  * @param tpl 模板对象，当设置此参数后，只序列化差异化数据
  */
-export function Serialize(source: any, tpl?: any) { 
+export function Serialize(source: any, tpl?: any, ignores?: string[]) { 
     if(source.constructor.SERIALIZE_INIT) {
         source.constructor.SERIALIZE_INIT();
     }
@@ -352,7 +343,11 @@ export function Serialize(source: any, tpl?: any) {
 
     let shoudproc = true;
     for(let item of pnames) {
-        if(item.must) {
+        let ignore = false;
+        if(ignores) {
+            ignore = ignores.indexOf(item.property) >= 0;
+        }
+        if(ignore && item.must) {
             let cfgProp = getConfigPropName(item, source, tpl);
             if(item.static) {
                 if(source.constructor && source.constructor[cfgProp] == null) {
@@ -364,6 +359,7 @@ export function Serialize(source: any, tpl?: any) {
                 }
             }
         }
+        item.ignore = ignore;
     }
 
     if(shoudproc) {
@@ -387,7 +383,7 @@ export function Serialize(source: any, tpl?: any) {
  * @param config 序列化后的数据
  * @param tpl 模板对象，当设置此参数后，需要将模板数据一起赋值
  */
-export function Deserialize(target: any, config: any, tpl?:any, depth?:number): boolean {
+export function Deserialize(target: any, config: any, tpl?:any, depth?:number, ignores?: string[], parent?: any): boolean {
     if(!tpl && config && config.resourceUrl) {
         tpl = Package.inst.getTemplateFromUrl(config.resourceUrl);
     }
@@ -410,13 +406,17 @@ export function Deserialize(target: any, config: any, tpl?:any, depth?:number): 
     });
 
     for(let item of pnames) {
+        if(ignores) {
+            item.ignore = ignores.indexOf(item.property) >= 0;
+        }
+
         if(!item.ignore && !item.readOnly) {
-            deserializeProperty(target, item, config, tpl, depth);
+            deserializeProperty(target, item, config, tpl, depth, parent);
         }
     }          
 
-    if(target && target.constructFromJson) {
-        target.constructFromJson(config, tpl);
+    if(target && target.fromConfig) {
+        target.fromConfig(config, tpl);
     }
 
     return true;

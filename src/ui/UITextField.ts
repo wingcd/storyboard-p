@@ -100,12 +100,12 @@ export class TextStyle implements ITextStyle, ITemplatable {
         return new TextStyle().fromJSON(json);
     }   
 
-    public toJSON(tpl?: any): any {
+    public toJSON(tpl?: any, ignores?: string[]): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp || tpl);
+        return Serialize(this, temp || tpl, ignores);
     }
 
     public fromJSON(config: any, template?: any): this {
@@ -221,8 +221,8 @@ export class UITextField extends View  implements IUITextField {
         this.render();
     }
 
-    protected constructFromJson(config: any, tpl?:any) {
-        super.constructFromJson(config, tpl);
+    protected fromConfig(config: any, tpl?:any) {
+        super.fromConfig(config, tpl);
 
         this._updateTextField();
         this._updateAutoSize();

@@ -85,7 +85,7 @@ export class View implements IView {
     protected static sHelperPoint: Point = new Point();
     protected static sHelperRect: Rectangle = new Rectangle();
 
-    protected constructFromJson(config: any, tpl?:any) {
+    protected fromConfig(config: any, tpl?:any) {
         this.reconstruct();
         this._inBuilding = false;
     }
@@ -1692,18 +1692,41 @@ export class View implements IView {
         return this.scene.addUI.create(json);
     }
 
-    public toJSON(tpl?: any): any {
+    // /**@internal */
+    // getSerializeIgnores(): string[] {
+    //     return null;
+    // }
+
+    public toJSON(tpl?: any, ignores?: string[]): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp || tpl);
+        return Serialize(this, temp || tpl, ignores);
+    }
+
+    protected setTemplateValue(template: any, targetName: string, propName: string, defaultValue?: any) {
+        if(!template) {
+            return;
+        }
+
+        let fields = View.SERIALIZABLE_FIELDS;
+        let item = fields[propName];
+        if(item) {
+            let name = item.alias || item.property || propName;
+            (this as any)[targetName] = template[name] || defaultValue;
+        }
     }
 
     public fromJSON(config: any, template?: any): this {
         if(config || template) {
             this._inBuilding = true;
             Deserialize(this, config, template);
+
+            if(template) { 
+                this.setTemplateValue(template, "_initWidth", 'width', 100);
+                this.setTemplateValue(template, "_initHeight", 'height', 100);
+            }
         }        
 
         return this;

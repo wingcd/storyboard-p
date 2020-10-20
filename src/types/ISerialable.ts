@@ -1,5 +1,5 @@
 export interface ISerialable {
-    toJSON(tpl?: any): any;
+    toJSON(tpl?: any, ignores?: string[]): any;
     fromJSON(config: any, template?: any): this;
 }
 
@@ -19,6 +19,7 @@ export interface ISerializeField {
     must?: boolean; // 必须包含属性，不存在则不进行后续序列化
     keepArray?: boolean; // 保证输出数组大小不变
     ignore?: boolean; //一般用户子类，忽略父类中的此属性
+    ignores?: string[]; //导出时忽略的参数
 }
 
 export interface ISerializeFields {

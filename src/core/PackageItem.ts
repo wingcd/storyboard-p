@@ -9,7 +9,7 @@ export class PackageItem {
         templates: {property: "_templates", default: null, raw: true},
     }
 
-    protected constructFromJson() {
+    protected fromConfig() {
         let templates = this._templates.slice();
         this._templates.length = 0;
         for(let t of templates) {

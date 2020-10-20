@@ -72,8 +72,8 @@ export class UIImage extends View  implements IUIImage {
         this.touchable = false;
     }
 
-    protected constructFromJson(config: any, tpl?:any) {
-        super.constructFromJson(config, tpl);
+    protected fromConfig(config: any, tpl?:any) {
+        super.fromConfig(config, tpl);
         
         this._updateTexture();
     }

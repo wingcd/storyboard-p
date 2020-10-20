@@ -911,12 +911,12 @@ export class TimelineManager extends EventEmitter implements ITemplatable {
         this._groups.length = 0;
     }
 
-    public toJSON(tpl?: any): any {
+    public toJSON(tpl?: any, ignores?: string[]): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp || tpl);
+        return Serialize(this, temp || tpl, ignores);
     }
 
     public fromJSON(config: any, template?: any): this {

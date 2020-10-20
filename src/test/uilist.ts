@@ -2,7 +2,7 @@ import { Settings } from "../core/Setting";
 import { StageScalePlugin, EStageScaleMode, EStageOrientation, Pointer, Tween, } from "../phaser";
 import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
-import { EAlignType, EAutoSizeType, EButtonMode, EHorAlignType, EOverflowType, ERelationPinType, EScrollType, EVertAlignType } from "../core/Defines";
+import { EAlignType, EAutoSizeType, EButtonMode, EHorAlignType, EListLayoutType, EOverflowType, ERelationPinType, EScrollType, EVertAlignType } from "../core/Defines";
 import { PropertyComponent } from "../components/PropertyComponent";
 import { UIButton } from "../ui/UIButton";
 import { PackageItem } from "../core/PackageItem";
@@ -31,10 +31,10 @@ class UIScene extends ViewScene {
 
     create(): void {
         let list = this.addUI.list({
-            x: 50,
+            x: 10,
             y: 50,
-            width: 300,
-            height: 500,
+            width: 200,
+            height: 400,
         });
         list.opaque = true;
         list.setBackgroundColor(0xffff00, true);
@@ -59,27 +59,32 @@ class UIScene extends ViewScene {
         button.addChild(img);
         img.relations.set(ERelationPinType.LEFT, button);
         img.relations.set(ERelationPinType.RIGHT, button);
+        img.relations.set(ERelationPinType.TOP, button);
+        img.relations.set(ERelationPinType.BOTTOM, button);
 
         let title = this.makeUI.textField();
         title.setSize(100, 80);
-        title.autoSize = EAutoSizeType.Height;
+        title.autoSize = EAutoSizeType.Both;
         // title.textAlign = EAlignType.Center;
-        title.verticalAlign = EVertAlignType.Middle;
-        title.horizontalAlign = EHorAlignType.Center;
+        // title.verticalAlign = EVertAlignType.Middle;
+        // title.horizontalAlign = EHorAlignType.Center;
         title.name = "title";
         title.text = "测试";
         title.fontSize = 24;
         button.addChild(title);
         title.relations.set(ERelationPinType.CENTER, button);
+        title.relations.set(ERelationPinType.MIDDLE, button);
         
         let pkg = new PackageItem();
         Package.inst.addPackage(pkg);
         let btnRes = pkg.addTemplate(button.toJSON());
         button.visible = false;
+        console.log(button.toJSON());
 
         // r.opaque = true;
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
+        list.layoutType = EListLayoutType.SingleColumn;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
         list.scrollPane.inertanceEffect = true;
@@ -124,7 +129,9 @@ class UIScene extends ViewScene {
 
         let listRes = pkg.addTemplate(list.toJSON());
         let newList = Package.inst.createObjectFromUrl(this, listRes) as UIList;
-        newList.x = 400;
+        newList.x = 220;
+        newList.layoutType = EListLayoutType.SingleRow;
+        newList.scrollPane.scrollType = EScrollType.Horizontal;
 
         // this.tweens.add({
         //     targets: {}, //list.scrollPane,

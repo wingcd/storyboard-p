@@ -497,12 +497,12 @@ export class PropertyManager extends EventEmitter implements ITemplatable {
         return this;
     }
 
-    public toJSON(tpl?: any): any {
+    public toJSON(tpl?: any, ignores?: string[]): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp || tpl);
+        return Serialize(this, temp || tpl, ignores);
     }
 
     public fromJSON(config: any, template?: any): this {

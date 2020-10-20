@@ -64,8 +64,8 @@ export class UISlider extends ViewGroup  implements IUISlider{
         this.on(Events.PointerEvent.DOWN, this.__barMouseDown, this);
     } 
 
-    protected constructFromJson(config: any, tpl?:any) {
-        super.constructFromJson(config, tpl);
+    protected fromConfig(config: any, tpl?:any) {
+        super.fromConfig(config, tpl);
 
         this.update();
     }

@@ -69,8 +69,8 @@ export class FillMask {
         this._updateMask();
     }
 
-    public toJSON(tpl?: any): any {
-        return Serialize(this, tpl);
+    public toJSON(tpl?: any, ignores?: string[]): any {
+        return Serialize(this, tpl, ignores);
     }
 
     public fromJSON(config?: any, tpl?: any): this {

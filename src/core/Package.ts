@@ -10,7 +10,7 @@ export class Package {
         packages: {property: "_packages", type: PackageItem},
     };
 
-    protected constructFromJson() {
+    protected fromConfig() {
         let packages = this._packages.slice();
         this._packages.length = 0;
         for(let t of packages) {
@@ -61,15 +61,15 @@ export class Package {
             return null;
         }
 
-        return `res://${pkg.id}/${item.id}`;
+        return `tpl://${pkg.id}/${item.id}`;
     }
 
     public getTemplateFromUrl(url: string): ITemplatable {
-        if(!url.startsWith("res://")) {
+        if(!url.startsWith("tpl://")) {
             return null;
         }
 
-        url = url.replace("res://", "");
+        url = url.replace("tpl://", "");
         let strs = url.split("/");
         return this.getTemplate(strs[0], strs[1]);
     }

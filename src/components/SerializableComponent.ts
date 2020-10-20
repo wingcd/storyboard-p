@@ -37,7 +37,7 @@ export class SerializableComponent extends BaseComponent implements ISerializabl
         this._id = `${Package.getUniqueID()}`;        
     }
 
-    protected constructFromJson(config: any, tpl?:any) {
+    protected fromConfig(config: any, tpl?:any) {
         this._inBuilding = false;
     }
 
@@ -54,12 +54,12 @@ export class SerializableComponent extends BaseComponent implements ISerializabl
         return ComponentFactory.inst.create(json) as SerializableComponent;
     }   
 
-    public toJSON(tpl?: any): any {
+    public toJSON(tpl?: any, ignores?: string[]): any {
         let temp = null;
         if(this.resourceUrl) {
             temp = Package.inst.getTemplateFromUrl(this.resourceUrl);
         }
-        return Serialize(this, temp || tpl);
+        return Serialize(this, temp || tpl, ignores);
     }
 
     public fromJSON(config: any, template?: any): this {
