@@ -52,15 +52,19 @@ export class UITextInput extends UITextField  implements IUITextField{
     public constructor(scene: ViewScene) {
         super(scene);
 
+        this.on(DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);
+        this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
+    }    
+
+    protected fromConstruct() {
+        super.fromConstruct();
+
         this.touchable = true;
         this.focusable = true;
         this.inputType = EInputType.TEXT;
 
-        this.on(DisplayObjectEvent.PARENT_CHANGED, this._onParentChanged, this);
-        this.on(DisplayObjectEvent.VISIBLE_CHANGED, this._onVisiableChanged, this);
-
         this.render();
-    }    
+    }
 
     protected constructFromJson(config: any, tpl?:any) {
         super.constructFromJson(config, tpl);

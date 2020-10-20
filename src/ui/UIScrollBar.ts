@@ -36,12 +36,11 @@ export class UIScrollBar extends ViewGroup implements IUIScrollBar{
     private _dragOffset: Point = new Point();
     private _gripDragging: boolean = false;
 
-    
-    public constructor(scene: ViewScene) {
-        super(scene);
+    protected fromConstruct() {
+        super.fromConstruct();
 
         this.overflowType = EOverflowType.Hidden;
-    } 
+    }
 
     protected constructFromJson(config: any, tpl?:any) {
         super.constructFromJson(config, tpl);

@@ -212,11 +212,10 @@ export class UITextField extends View  implements IUITextField {
     public static GUTTER_X: number = 2;
     public static GUTTER_Y: number = 2;
 
-    public constructor(scene: ViewScene) {
-        super(scene);
+    protected fromConstruct() {
+        super.fromConstruct();        
 
         this.touchable = false;  //base GTextField has no interaction
-
         this._updateTextField();
         this._updateAutoSize();
         this.render();

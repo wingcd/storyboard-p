@@ -43,10 +43,6 @@ export class ViewGroup extends View implements IViewGroup{
     private _gBounds: Graphics;
     private _buildingDisplayList: boolean = false;
 
-    constructor(scene: ViewScene) {
-        super(scene);
-    }
-
     protected bind(scene: ViewScene): boolean {
         if(super.bind(scene)) {            
             this._container = scene.make.container({}, false);
@@ -689,7 +685,10 @@ export class ViewGroup extends View implements IViewGroup{
 
     protected onComponentChanged() {
         super.onComponentChanged();
-        this._scrollPane = this.getComponent(ScrollPaneComponent) as ScrollPaneComponent;
+
+        if(this._overflowType == EOverflowType.Scroll) {            
+            this.changeDefaultComponent("_scrollPane", ScrollPaneComponent);
+        }
     }
 
     protected onChildrenChanged() {
@@ -698,7 +697,6 @@ export class ViewGroup extends View implements IViewGroup{
 
     protected relayout() {
         super.relayout();
-
         this.applyOverflow();
     }
 

@@ -16,8 +16,8 @@ export class UIRichTextField extends UITextField  implements IUITextField{
     private _isDownOnArea = false;
     private _pointerMgr = new MultiPointerManager();
 
-    constructor(scene: ViewScene) {
-        super(scene);
+    protected fromConstruct() {
+        super.fromConstruct();
 
         this._canUseBitmap = false;
         this.touchable = true;

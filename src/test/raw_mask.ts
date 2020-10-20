@@ -9,13 +9,16 @@ class UIScene extends Phaser.Scene {
     }
 
     create() {
+        let g = this.add.graphics({x: 0, y: 0});
+        g.visible = false;           
+        g.fillStyle(0x1, 1);
+        for(let i=0;i<10;i++) { 
+            g.fillCircle(i*10+100, i*10+100, 50);
+        }
+
         for(let i=0;i<10;i++) {
             let img = this.add.image(i*10+100, i*10+100, 'aaa');
-            let g = this.add.graphics({x: i*10 + 100, y: i*10 + 100});
-            g.fillStyle(0x1, 1);
-            g.fillCircle(0, 0, 50);
-            g.visible = false;
-            img.setMask(g.createGeometryMask());
+            img.mask = img.createGeometryMask(g);
         }
     }
 

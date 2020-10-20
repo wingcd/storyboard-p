@@ -68,9 +68,9 @@ export class UIList extends ViewGroup  implements IUIList{
     private _verticalAlign: EVertAlignType;
     private _loop: boolean = true;
 
-    public constructor(scene: ViewScene) {
-        super(scene);
-
+    protected fromConstruct() {     
+        super.fromConstruct();
+        
         this.overflowType = EOverflowType.Scroll;
     }
 

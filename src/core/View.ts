@@ -173,6 +173,18 @@ export class View implements IView {
         this.bind(scene);
     }
 
+    public init(config?:any, template?:any) {
+        if(config || template) {
+            this.fromJSON(config, template);
+        }else {
+            this.fromConstruct();
+        }
+    }
+
+    protected fromConstruct() {
+
+    }
+
     /**@internal */
     protected bind(scene: ViewScene): boolean {
         if(!this._scene) {
@@ -1460,6 +1472,9 @@ export class View implements IView {
         if(!comp) {
             throw new Error(`Invalid component`);
         }
+        if(comp.owner) {
+            comp.owner.removeComponent(comp);
+        }
         
         this._checkComponent();
         this._checkComponentMetadata(comp.constructor);
@@ -1481,7 +1496,6 @@ export class View implements IView {
 
         this._components.push(comp);
         comp.regist(this);
-
         
         if(!this._batchAddComponents) {
             this.onComponentChanged();
@@ -1627,10 +1641,23 @@ export class View implements IView {
         this.onComponentChanged();
     }
 
-    protected onComponentChanged(){        
-        this._dragComponent = this.getComponent(DragComponent) as DragComponent;
-        this._propertyComponent = this.getComponent(PropertyComponent) as PropertyComponent;
-        this._animationComponent = this.getComponent(AnimationComponent) as AnimationComponent;
+    protected changeDefaultComponent(propName: string, type: Function) {
+        let comp = this.getComponent(type);
+        let that = this as any;
+        if(that[propName] && that[propName] != comp) {
+            that[propName].unRegist();
+            that[propName].dispose();
+        }
+        that[propName] = comp;
+    }
+
+    protected onComponentChanged(){     
+        if(this._draggable) {   
+            this._dragComponent         
+            this.changeDefaultComponent("_dragComponent", DragComponent);
+        }
+        this.changeDefaultComponent("_propertyComponent", PropertyComponent);
+        this.changeDefaultComponent("_animationComponent", AnimationComponent);
     }
 
     protected setDefaultValues() {

@@ -45,10 +45,6 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
     private _barStartY: number;
 
     private _tweener: Tween;
-    
-    public constructor(scene: ViewScene) {
-        super(scene);
-    } 
 
     /**
      * params: 

@@ -38,9 +38,9 @@ export class ViewFactory {
         }
     }
 
-    private _add(cls: {new (scene:ViewScene):View}, config?:any, template?: any): View {
+    private _add(cls: {new (scene:ViewScene, config?:any, template?:any):View}, config?:any, template?: any): View {
         let view = new cls(this._scene);
-        view.fromJSON(config, template);
+        view.init(config, template);
         if(this._addToRoot) {
             this._scene.root.addChild(view);
         }

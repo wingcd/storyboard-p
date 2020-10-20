@@ -68,9 +68,7 @@ export class UIImage extends View  implements IUIImage {
 
     private _requireRender: boolean;
 
-    constructor(scene: ViewScene) {
-        super(scene);
-
+    protected fromConstruct() {     
         this.touchable = false;
     }
 

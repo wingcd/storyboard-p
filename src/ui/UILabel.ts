@@ -10,10 +10,6 @@ export class UILabel extends ViewGroup  implements IUILabel{
 
     protected _titleObject: UITextInput;
     protected _iconObject: UIImage;
-    
-    public constructor(scene: ViewScene) {
-        super(scene);
-    } 
 
     public get icon(): string {
         if(this._iconObject) {

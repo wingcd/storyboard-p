@@ -465,7 +465,7 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     public get isDragging(): boolean {
         return ScrollPaneComponent._draggingPane == this && 
-            (ScrollPaneComponent._sStatus == EScrollStatus.SCROLL_BEGIN || ScrollPaneComponent._sStatus == EScrollStatus.SCROLLING);
+            (ScrollPaneComponent._sStatus != EScrollStatus.NONE && ScrollPaneComponent._sStatus != EScrollStatus.SCROLL_END);
     }
 
     private _moving(pointer: Pointer): void {     
