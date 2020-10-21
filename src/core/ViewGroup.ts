@@ -413,6 +413,11 @@ export class ViewGroup extends View implements IViewGroup{
             }
         });
 
+        minx = minx == Number.POSITIVE_INFINITY ? 0 : minx;
+        miny = miny == Number.POSITIVE_INFINITY ? 0 : miny;
+        maxx = maxx == Number.POSITIVE_INFINITY ? 0 : maxx;
+        maxy = maxy == Number.POSITIVE_INFINITY ? 0 : maxy;
+
         this._bounds.x = minx;
         this._bounds.y = miny;
         this._bounds.width = maxx - minx;

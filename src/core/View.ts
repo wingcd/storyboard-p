@@ -465,7 +465,8 @@ export class View implements IView {
             this._y = yv;
         
             this.handleXYChanged();     
-            this.handleBorderChange();    
+            this.handleBorderChange(); 
+            this.updateMask();   
 
             this.addDirty(EDirtyType.FrameChanged | EDirtyType.BorderChanged);
             if(this.parent) {
@@ -501,6 +502,7 @@ export class View implements IView {
 
             this._rootContainer.setScale(sx, sy);
             this._applyPivot();
+            this.updateMask();
 
             this.addDirty(EDirtyType.FrameChanged);
             if(this._parent) {
@@ -540,6 +542,7 @@ export class View implements IView {
             }  
             this.handleBorderChange();
             this.handleSizeChanged();
+            this.updateMask();
 
             this.addDirty(EDirtyType.FrameChanged | EDirtyType.BorderChanged);
             if(this._parent) {
@@ -844,7 +847,7 @@ export class View implements IView {
     }    
 
     protected updateBorder() {        
-        this.updateMask();
+        
     }
 
     /**
@@ -1026,8 +1029,8 @@ export class View implements IView {
                 self.update(time, delta);
             }
         }
-
-        this.checkDirty();
+        
+        // this.checkDirty();
     }
 
     /**@internal */
@@ -1473,6 +1476,9 @@ export class View implements IView {
             throw new Error(`Invalid component`);
         }
         if(comp.owner) {
+            if(comp.owner == this) {
+                return comp;
+            }
             comp.owner.removeComponent(comp);
         }
         

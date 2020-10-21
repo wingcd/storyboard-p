@@ -41,7 +41,7 @@ class UIScene extends ViewScene {
             height: 40,
             x: 20,
         });
-        bar.fillMask.fillType = EFillType.Horizontal;
+        bar.fillType = EFillType.Horizontal;
         bar.fillMask.origin = EDirectionType.Right;
         bar.fillMask.value = 1;           
         scroll.addChild(bar);

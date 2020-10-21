@@ -64,7 +64,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         if(this._min != val) {
             this._min = val;
 
-            this.update();
+            this.refresh();
         }
     }
 
@@ -76,7 +76,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         if(this._max != val) {
             this._max = val;
             
-            this.update();
+            this.refresh();
         }
     }
 
@@ -88,7 +88,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         if(this._titleType != val) {
             this._titleType = val;
 
-            this.update();
+            this.refresh();
         }
     }
 
@@ -100,7 +100,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         if(this._reverse != val) {
             this._reverse = val;
 
-            this.update();
+            this.refresh();
         }
     }
 
@@ -114,7 +114,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         if(val != this._value) {
             this._value = val;
 
-            this.update();
+            this.refresh();
         }
     }
 
@@ -217,7 +217,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         }
     }
 
-    public update() {
+    protected refresh() {
         this._update(this._value);
     }
 
@@ -235,7 +235,10 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
                 ease: Phaser.Math.Easing.Linear,      
                 duration: duration * 1000,      
                 props: {
-                    value: value,         
+                    value: {
+                        from: this._value,    
+                        to: value,
+                    }     
                 },
                 onUpdate: (tween, target)=>{
                     this._update(target.value);
@@ -259,6 +262,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
         let oldVBar = this._vBar;
         let oldHAnchor = this._hAnchor;
         let oldVAnchor = this._vAnchor;
+        let oldTitle = this._titleObject;
 
         this._hBar = this.getChild("bar");
         this._vBar = this.getChild("bar_v");
@@ -290,9 +294,11 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
             this._barMaxHeightDelta = 0;
         }
 
-        let changed = oldHBar != this._hBar || oldVBar != this._vBar || oldHAnchor != this._hAnchor || oldVAnchor != this._vAnchor;
+        let changed = oldHBar != this._hBar || oldVBar != this._vBar || 
+                      oldHAnchor != this._hAnchor || oldVAnchor != this._vAnchor || 
+                      this._titleObject != oldTitle;
         if(changed) {
-            this.update();
+            this.refresh();
         }
     }
 
@@ -307,7 +313,7 @@ export class UIProgressBar extends ViewGroup  implements IUIProgressBar {
             this._barMaxHeight = this.height - this._barMaxHeightDelta;
         }
 
-        this.update();
+        this.refresh();
     }
 
     public dispose() {

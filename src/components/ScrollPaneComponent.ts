@@ -689,9 +689,11 @@ export class ScrollPaneComponent extends SerializableComponent {
                         if(this._isInOutPosition()) {
                             this._animationInfo.status = EScrollAnimStatus.BOUNCE;
                         }
+                        this.owner.scrollTo(data.x, data.y);
                         this._doAnimation();
-                    }else{                        
+                    }else{          
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
+                        this.owner.scrollTo(data.x, data.y);
                         this._scrollEnd();
                         this._syncScrollBar();
                     }   

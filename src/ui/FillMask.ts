@@ -18,8 +18,8 @@ export class FillMask {
         value: {importAs:"_value", default: 0},
         origin: {importAs:"_origin", default: EDirectionType.None},
         anticlockwise: {importAs:"_anticlockwise", default: false},
-        outterRadius: {importAs:"_outterRadius", default: null},
-        innerRadius: {importAs:"_innerRadius", default: null},
+        outterRadius: {property:"_outterRadius", default: null},
+        innerRadius: {property:"_innerRadius", default: null},
     }
 
     private _target:IMaskable = null;
@@ -153,29 +153,29 @@ export class FillMask {
                 {
                     this._mask.fillStyle(0x1, 1);
                     let startx = 0;
-                    let width = this._value * this._owner.width;
+                    let width = this._value * this._owner.actualWidth;
                     if(this._origin == EDirectionType.Right) {
-                        startx = this._owner.width - width;
+                        startx = this._owner.actualWidth - width;
                     }
-                    this._mask.fillRect(startx, 0, width, this._owner.height);
+                    this._mask.fillRect(startx, 0, width, this._owner.actualHeight);
                     break;
                 }
             case EFillType.Vertical:
                 {
                     this._mask.fillStyle(0x1, 1);
                     let starty = 0;
-                    let height = this._value * this._owner.height;
+                    let height = this._value * this._owner.actualHeight;
                     if(this._origin == EDirectionType.Bottom) {
-                        starty = this._owner.height - height;
+                        starty = this._owner.actualHeight - height;
                     }
-                    this._mask.fillRect(0, starty, this._owner.width, height);                
+                    this._mask.fillRect(0, starty, this._owner.actualWidth, height);                
                     break;
                 }
             case EFillType.Rotate90:
                 {
                     let simple = this.innerRadius == 0;
                     let value = this._anticlockwise ? 1 - this._value : this._value;
-                    let width = this._owner.width, height = this._owner.height;
+                    let width = this._owner.actualWidth, height = this._owner.actualHeight;
                     let posx = 0, posy = 0, startAngle = this.anticlockwise ? PI_2 : 0, endAngle = PI_2 * value;
                     let angleOffset = 0;
                     
@@ -211,22 +211,22 @@ export class FillMask {
                 {
                     let simple = this.innerRadius == 0;
                     let value = this._anticlockwise ? 1 - this._value : this._value;
-                    let width = this._owner.width, height = this._owner.height;
+                    let width = this._owner.actualWidth, height = this._owner.actualHeight;
                     let posx = 0, posy = 0, startAngle = this.anticlockwise ? Math.PI : 0, endAngle = Math.PI * value;
                     let angleOffset = 0;
                     
                     if(this._origin == EDirectionType.Left) {
-                        posy = this._owner.height * 0.5;
+                        posy = this._owner.actualHeight * 0.5;
                         angleOffset = -Math.PI * 0.5;
                     }else if(this._origin == EDirectionType.Top) {
-                        posx = this._owner.width * 0.5;
+                        posx = this._owner.actualWidth * 0.5;
                     }else if(this._origin == EDirectionType.Right) {
-                        posx = this._owner.width;
-                        posy = this._owner.height * 0.5;
+                        posx = this._owner.actualWidth;
+                        posy = this._owner.actualHeight * 0.5;
                         angleOffset = Math.PI * 0.5;
                     }else if(this._origin == EDirectionType.Bottom) {
-                        posx = this._owner.width * 0.5;
-                        posy = this._owner.height;
+                        posx = this._owner.actualWidth * 0.5;
+                        posy = this._owner.actualHeight;
                         angleOffset = Math.PI;
                     }
 
@@ -241,7 +241,7 @@ export class FillMask {
                 {
                     let simple = this.innerRadius == 0;
                     let value = this._anticlockwise ? 1 - this._value : this._value;
-                    let width = this._owner.width, height = this._owner.height;
+                    let width = this._owner.actualWidth, height = this._owner.actualHeight;
                     let posx = width * 0.5, posy = height * 0.5, startAngle = this.anticlockwise ? Math.PI * 2 : 0, endAngle = Math.PI * 2 * value;
                     let angleOffset = 0;
                     

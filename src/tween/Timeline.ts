@@ -54,7 +54,7 @@ export class KeyFrameGroup {
     }
 
     static DESERIALIZE(config: any, target: TimelineManager, configProp: string, targetProp: string, tpl: any, index?: number) {
-        return new KeyFrameGroup(target, config.prop);
+        return new KeyFrameGroup(target, config.propPath);
     }
 
     private _parent: TimelineManager;

@@ -36,7 +36,7 @@ class UIScene extends ViewScene {
             width: 200,
             height: 40,
         });
-        bar.fillMask.fillType = EFillType.Horizontal;
+        bar.fillType = EFillType.Horizontal;
         bar.fillMask.origin = EDirectionType.Right;           
         slider.addChild(bar);
         slider.reverse = true;
@@ -75,7 +75,7 @@ class UIScene extends ViewScene {
         pg1.removeComponentByType(AnimationComponent);
         pg1.y = 300;
         img = pg1.getChild('bar') as UIImage;
-        img.fillMask.fillType = EFillType.None;
+        img.fillType = EFillType.None;
 
 
         //v-slider
@@ -93,7 +93,7 @@ class UIScene extends ViewScene {
             width: 40,
             height: 200,
         });
-        vbar.fillMask.fillType = EFillType.Vertical;
+        vbar.fillType = EFillType.Vertical;
         vbar.fillMask.origin = EDirectionType.Top;           
         vslider.addChild(vbar);
         vslider.value = 100;
