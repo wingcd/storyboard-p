@@ -643,8 +643,11 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _doAnimation() {
-        let dx = Math.abs(this._endPos.x + this.owner.container.x);
-        let dy = Math.abs(this._endPos.y + this.owner.container.y);
+        let cx = this.owner.container.x;
+        let cy = this.owner.container.y;
+
+        let dx = Math.abs(this._endPos.x + cx);
+        let dy = Math.abs(this._endPos.y + cy);
         
         let status = this._animationInfo.status;
         if(dx == 0 && dy == 0) {
@@ -653,12 +656,16 @@ export class ScrollPaneComponent extends SerializableComponent {
         this._clearAnimation();
 
         if(status != EScrollAnimStatus.NONE) { 
-            let time = Math.max(Math.max(dx, dy) / this.scrollSpeed * 2, 150);
-            let easing: any = status != EScrollAnimStatus.INERTANCE ? Easing.Linear : Easing.Bounce;
+            let t = Math.max(dx, dy) / this.scrollSpeed * 2;
+            let time = Math.max(t, 150);
+            let easing: any = Easing.Linear;            
+            if(status == EScrollAnimStatus.INERTANCE) {
+                easing = Easing.Bounce;
+            }
             let tween = this._owner.scene.tweens.create({
                 targets: {
-                    x: this.owner.container.x, 
-                    y: this.owner.container.y,
+                    x: cx,
+                    y: cy,
                 },
                 ease: easing,
                 props:{x: -this._endPos.x, y: -this._endPos.y},
@@ -857,6 +864,15 @@ export class ScrollPaneComponent extends SerializableComponent {
             else {
                 rect.x = target.x;
                 rect.y = target.y;
+                if(this.loop == 1) {
+                    if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
+                        rect.x = target.x - this.owner.bounds.width - ((this.owner as any).columnGap || 0);
+                    }
+                }else if(this.loop == 2) {
+                    if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
+                        rect.y = target.y - this.owner.bounds.height - ((this.owner as any).rowGap || 0);
+                    }
+                }
                 rect.width = target.width;
                 rect.height = target.height;
             }

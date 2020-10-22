@@ -75,7 +75,6 @@ export class UIList extends ViewGroup  implements IUIList{
         super.fromConstruct();
         
         this.overflowType = EOverflowType.Scroll;
-        this.on(Events.ScrollEvent.END, this._onScrollEnd, this);
     }
 
     protected fromConfig(config: any, tpl?:any) {
@@ -229,10 +228,6 @@ export class UIList extends ViewGroup  implements IUIList{
         this._update();
     }
 
-    private _onScrollEnd() {
-        this._update();
-    }
-
     protected layout() {
         switch(this._layoutType) {
             case EListLayoutType.SingleColumn:
@@ -302,11 +297,28 @@ export class UIList extends ViewGroup  implements IUIList{
 
     private _layoutSingleColumn() {
         let posx= 0, posy = 0;
-        //计算长宽
-        for(let c of this.children) {
-            let width = c._initHeight;
-            let height = c.height;
+        if(this._loop && this.container2) {
+            for(let i in this.children) {
+                let c = this.children[i];
+                let py = posy + this.container.y;
 
+                if(py + c.height <= 0 || py >= this.height) {
+                    this.container2.add(c.rootContainer);
+                }else{
+                    this.container.add(c.rootContainer);
+                }
+                
+                posy += c.height + this._rowGap;
+            }        
+            
+            posx = posy = 0;
+        }
+
+        for(let c of this.children) {
+            c.x = posx;
+            c.y = posy;
+            let width = c.width;
+            let height = c._initHeight;
             if(this._autoResizeItem) {
                 width = this.scrollRect.width;
                 if(this._keepResizeAspect) {
@@ -315,74 +327,23 @@ export class UIList extends ViewGroup  implements IUIList{
             }else{
                 width = c._initWidth;
             }
+
             c.setSize(width, height);
+            posy += c.height + this._rowGap;
         }
 
-        let loopFunc = (more?: boolean)=>{
-            let fronts: View[] = [];
-            let ends: View[] = [];
-            let middleMin = Infinity, middleMax = 0;
-            for(let c of this.children) {
-                c.x = posx;
-
-                let py = posy + this.container.y;
-                if(py + c.height <= 0) { //在顶部，需要移到底部
-                    ends.push(c);
-                }else if(py >= this.height) { //在底部, 需要移动到顶部
-                    fronts.push(c);
-                }else{ // 在中间区域
-                    middleMin = Math.min(c.y, middleMin);
-                    middleMax = Math.max(posy + c.height + this._rowGap, middleMax);
-                    c.y = posy;
-                }
-                posy += c.height + this._rowGap;
-            }
-
-            fronts = fronts.reverse();
-            posy = middleMin == Infinity ? 0 : middleMin;
-            // 显示前部分，
-            for(let c of fronts) {
-                posy = posy - c.height - this._rowGap;
-                c.y = posy;
-            }
-            posy = middleMax;
-            // 显示尾部分，
-            for(let c of ends) {
-                c.y = posy;
-                posy = posy + c.height + this._rowGap;
+        if(this.container2) {
+            this.container2.x = this.container.x;
+            if(this.container.y >= 0) {
+                this.container2.y = this.container.y - this.bounds.height - this._rowGap;
+            }else {
+                this.container2.y = this.container.y + this.bounds.height + this._rowGap;
             }
             
-            // 拉倒最后
-            let height = this.scrollRect.height;
-            let viewHeight = this.bounds.height - height + this._rowGap;
-            if(viewHeight > 0 && height > 0) {
-                if(this.container.y >= height) {
-                    this.container.y = -viewHeight + (this.container.y - height);
-                    for(let c of this.children) {
-                        c.y %= height;
-                    }
-                    if(more) {
-                        loopFunc();
-                    }
-                }else if(this.container.y <= -viewHeight){ //拉倒最上面
-                    this.container.y = height - (viewHeight + this.container.y);
-                    for(let c of this.children) {
-                        c.y %= viewHeight;
-                    }
-                    if(more) {
-                        loopFunc();
-                    }
-                }
-            }
-        };
-
-        //设置位置
-        if(this._loop) {
-            loopFunc();
-        }else{
-            for(let c of this.children) {
-                c.setXY(posx, posy);
-                posy += c.height + this._rowGap;
+            let height = this.bounds.height;
+            if(height > 0) {
+                this.container.y %= height;
+                this.container2.y %= height;
             }
         }
     }
@@ -485,6 +446,10 @@ export class UIList extends ViewGroup  implements IUIList{
                 this.container.y %= height;
                 this.container2.y %= height;
             }
+
+            // if(this.container.y > this.bounds.height) {
+            //     this.swapContainer();
+            // }
         }
     }
 
@@ -492,6 +457,7 @@ export class UIList extends ViewGroup  implements IUIList{
         super.reconstruct();
 
         this.children.forEach(child => {
+            child.removeClick(this._clickItem, this);
             child.onClick(this._clickItem, this);
         });
     }
@@ -503,6 +469,7 @@ export class UIList extends ViewGroup  implements IUIList{
             child.selected = false;
             // child.changeStateOnClick = false;
         }
+        child.removeClick(this._clickItem, this);
         child.onClick(this._clickItem, this);
         return this;
     }

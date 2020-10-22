@@ -64,6 +64,11 @@ export class ViewGroup extends View implements IViewGroup{
         return this._container2;
     }
 
+    /**@internal */
+    swapContainer(): void {
+        [this._container,this._container2] = [this._container2,this._container];
+    }
+
     /**
      * @description if enable touch in empty area, default is false
      */
@@ -534,8 +539,11 @@ export class ViewGroup extends View implements IViewGroup{
                 this.rootContainer.add(this._container);
                 this._scrollContainer = null;
 
+                this._container2.removeAll();
                 this._container2.destroy();
                 this._container2 = null;
+
+                this.appendChildrenList();
             }
         }
             
