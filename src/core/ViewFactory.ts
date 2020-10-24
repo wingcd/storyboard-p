@@ -43,6 +43,8 @@ export class ViewFactory {
         view.init(config, template);
         if(this._addToRoot) {
             this._scene.root.addChild(view);
+        }else{
+            view.setRoot(this._scene.root);
         }
         return view;
     }

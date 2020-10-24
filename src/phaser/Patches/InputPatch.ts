@@ -38,11 +38,28 @@ function searchInputParent(result: any[], gameObject: Phaser.GameObjects.GameObj
     return true;
 }
 
+
+
+function sortGameObjectsByParent(gameObjects: Phaser.GameObjects.GameObject[]): Phaser.GameObjects.GameObject[] {
+    let rets: any[] = [];
+    gameObjects.forEach(g=>{
+        if(g.input && (g.input.enabled || g.input.dropZone)) {
+            rets.push(g);
+        }
+    });
+    rets = rets.sort((a, b)=>{
+        return (a.viewDepth || 0) - (b.viewDepth  || 0);
+    });
+    return rets;
+}
+
 /**
  * 主要修复父节点有Input时并且子节点超出范围后还能继续响应事件的问题
  */
 Phaser.Input.InputManager.prototype.hitTest = function (pointer, gameObjects, camera, output)
 {
+    gameObjects = sortGameObjectsByParent(gameObjects);
+
     let that: any = this;
     let thatCamera: any = camera;
 

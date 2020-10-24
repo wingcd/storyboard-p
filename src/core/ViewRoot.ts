@@ -15,6 +15,7 @@ export class ViewRoot extends ViewGroup {
 
         this._attachTo(scene);
         this.opaque = true;
+        (this.rootContainer as any).viewDepth = 0;
     }
 
     private _attachTo(scene: ViewScene) {

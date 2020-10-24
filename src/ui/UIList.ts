@@ -296,6 +296,7 @@ export class UIList extends ViewGroup  implements IUIList{
     }
 
     private _layoutSingleColumn() {
+        let boundHeight = Math.max(this.bounds.height, this.scrollRect.height);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
             for(let i in this.children) {
@@ -335,15 +336,14 @@ export class UIList extends ViewGroup  implements IUIList{
         if(this.container2) {
             this.container2.x = this.container.x;
             if(this.container.y >= 0) {
-                this.container2.y = this.container.y - this.bounds.height - this._rowGap;
+                this.container2.y = this.container.y - boundHeight - this._rowGap;
             }else {
-                this.container2.y = this.container.y + this.bounds.height + this._rowGap;
+                this.container2.y = this.container.y + boundHeight + this._rowGap;
             }
             
-            let height = this.bounds.height;
-            if(height > 0) {
-                this.container.y %= height;
-                this.container2.y %= height;
+            if(boundHeight > 0) {
+                this.container.y %= boundHeight;
+                this.container2.y %= boundHeight;
             }
         }
     }

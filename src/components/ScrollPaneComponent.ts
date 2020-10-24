@@ -40,7 +40,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         {},
         clone(SerializableComponent.SERIALIZABLE_FIELDS),
         {
-            scrollType: {default: EScrollType.Both,type: EScrollType},
+            scrollType: {importAs: "_scrollType", default: EScrollType.Both,type: EScrollType},
             scrollSpeed: {alias: "speed",default: Settings.defaultScrollSpeed},
             enableMouseWheel: {alias: "mouseWheel",default: true},
             mouseScrollSpeed: {alias: "mouseSpeed",default: Settings.defaultScrollSpeed * 2},
@@ -68,7 +68,6 @@ export class ScrollPaneComponent extends SerializableComponent {
     private   static _sScrollBeginCancelled: boolean;    
     protected static _sStatus: EScrollStatus = EScrollStatus.NONE;
 
-    public scrollType: EScrollType = EScrollType.Both;
     public enableMouseWheel: boolean = true;
     public touchEffect: boolean = true;
     // 是否允许惯性
@@ -85,6 +84,8 @@ export class ScrollPaneComponent extends SerializableComponent {
     // 是否自动为滚动条留出空位，当需要透明浮层滚动条时，可将值设置为假
     private _autoLayoutView: boolean = true;
 
+    
+    private _scrollType: EScrollType = EScrollType.Both;
     private _vScrollBarRes: string;
     private _hScrollBarRes: string;
     private _pageMode: boolean = false;
@@ -301,6 +302,19 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
 
         this._syncScrollBar();
+    }
+
+    public get scrollType(): EScrollType {
+        return this._scrollType;
+    }
+
+    public set scrollType(val: EScrollType) {
+        if(val != this._scrollType) {
+            this._scrollType = val;
+
+            this._init();   
+            this._syncScrollBar();
+        }
     }
 
     public get scrollBarDisplay(): EScrollBarDisplayType {
@@ -866,11 +880,21 @@ export class ScrollPaneComponent extends SerializableComponent {
                 rect.y = target.y;
                 if(this.loop == 1) {
                     if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        rect.x = target.x - this.owner.bounds.width - ((this.owner as any).columnGap || 0);
+                        let offset = this.owner.bounds.width + ((this.owner as any).columnGap || 0);
+                        if(this.owner.container.y < 0) {
+                            rect.x = target.x + offset;
+                        }else{
+                            rect.x = target.x - offset;
+                        }
                     }
                 }else if(this.loop == 2) {
                     if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        rect.y = target.y - this.owner.bounds.height - ((this.owner as any).rowGap || 0);
+                        let offset = this.owner.bounds.height + ((this.owner as any).rowGap || 0);
+                        if(this.owner.container.y < 0) {
+                            rect.y = target.y + offset;
+                        }else{
+                            rect.y = target.y - offset;
+                        }
                     }
                 }
                 rect.width = target.width;

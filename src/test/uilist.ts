@@ -39,7 +39,7 @@ class UIScene extends ViewScene {
         list.opaque = true;
         list.setBackgroundColor(0xffff00, true);
 
-        let button = this.addUI.button({
+        let button = this.makeUI.button({
             x: 250,
             y: 25,
             width: 100,
@@ -98,9 +98,9 @@ class UIScene extends ViewScene {
             item.title = `button${i+1}`;
         }
 
-        list.onClick(()=>{
-            console.log('click');
-        }, this);
+        // list.onClick(()=>{
+        //     console.log('click');
+        // }, this);
 
         let debug = this.addUI.textField({
             width: 100,

@@ -383,13 +383,33 @@ export class View implements IView {
         return this._parent;
     }
 
+    private get viewDepth(): number {
+        return (this.rootContainer as any).viewDepth;
+    }
+
+    private set viewDepth(val: number) {
+        let con = (this.rootContainer as any);
+        if(con.viewDepth != val) {
+            con.viewDepth = val;
+
+            if(this instanceof ViewGroup) {
+                this.children.forEach(c=>{
+                    c.viewDepth = val + 1;
+                })
+            }
+        }
+    }
+
     public set parent(parent: ViewGroup) {
         if(this._parent != parent) {
             this.removeFromParent();       
             let oldParent = this._parent;
             this._parent = parent;
             if(parent) {
+                this.viewDepth = parent.viewDepth + 1;
                 this.setRoot(parent.root);
+            }else{
+                this.viewDepth = 0;
             }
 
             this.onParentChanged();
@@ -1477,6 +1497,9 @@ export class View implements IView {
         }
         if(comp.owner) {
             if(comp.owner == this) {
+                if(this._components.indexOf(comp) <= 0) {
+                    this._components.push(comp);
+                }
                 return comp;
             }
             comp.owner.removeComponent(comp);
