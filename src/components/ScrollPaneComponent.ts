@@ -40,20 +40,20 @@ export class ScrollPaneComponent extends SerializableComponent {
         {},
         clone(SerializableComponent.SERIALIZABLE_FIELDS),
         {
-            scrollType: {importAs: "_scrollType", default: EScrollType.Both,type: EScrollType},
+            scrollType: {importAs: "_scrollType", default: EScrollType.Both},
             scrollSpeed: {alias: "speed",default: Settings.defaultScrollSpeed},
             enableMouseWheel: {alias: "mouseWheel",default: true},
             mouseScrollSpeed: {alias: "mouseSpeed",default: Settings.defaultScrollSpeed * 2},
             touchEffect: {default: true},
             inertanceEffect: {default: false},
-            bouncebackEffect: {default: false},
+            bouncebackEffect: {default: false},      
             
             scrollBarDisplay: {importAs: "_scrollBarDisplay", alias: "barDispType", default: EScrollBarDisplayType.Default},
             scrollBarMargin: {importAs: "_scrollBarMargin", alias: "barMargin", type: Margin},           
             displayOnLeft: {importAs: "_displayOnLeft", alias: "barOnLeft", default: false},         
             autoLayoutView: {importAs: "_autoLayoutView", alias: "autoLayout", default: true},      
             vScrollBarRes: {importAs: "_vScrollBarRes", alias: "vbarRes"},
-            hScrollBarRes: {importAs: "_hScrollBarRes", alias: "hbarRes"},
+            hScrollBarRes: {importAs: "_hScrollBarRes", alias: "hbarRes"},      
         }
     );
 
@@ -190,7 +190,7 @@ export class ScrollPaneComponent extends SerializableComponent {
     private _init() {
         this.owner.scrollTo(0, 0);
         this._viewSize.setTo(this.owner.scrollRect.width, this.owner.scrollRect.height);
-        this._pageSize.setTo(this._viewSize.x, this._viewSize.y);
+        this._pageSize.setTo(this._viewSize.x + this._columnGap(), this._viewSize.y + this._rowGap());
         this._contentSize.setTo(this.owner.bounds.width + this.owner.bounds.x, this.owner.bounds.height + this.owner.bounds.y);
         this._updateOverlap();
     }
@@ -339,6 +339,24 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
     }
 
+    /**@internal */
+    get pageMode(): boolean {
+        return this._pageMode;
+    }
+
+    /**@internal */
+    set pageMode(val: boolean) {
+        if(val != this._pageMode) {
+            this._pageMode = val;
+
+            if(val) {
+                this._endPos.x = this._clampX(this._endPos.x);
+                this._endPos.y = this._clampY(this._endPos.y);
+                this._refresh(false);
+            }
+        }
+    }
+
     public setPosX(val: number, ani?: boolean) {
         this.owner.ensureBoundsCorrect();
         val = Math.round(val);
@@ -462,6 +480,11 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _clampX(val: number, minRatio: number = 1, maxRatio: number = 0): number {
+        if(this._pageMode) {
+            let w = this._pageSize.x;
+            val = Math.round(val / w) * w;
+        }
+
         if(this.loop == 1) {
             return val;
         }
@@ -470,6 +493,11 @@ export class ScrollPaneComponent extends SerializableComponent {
     }
 
     private _clampY(val: number, minRatio: number = 1, maxRatio: number = 0): number {
+        if(this._pageMode) {
+            let h = this._pageSize.y;
+            val = Math.round(val / h) * h;
+        }
+
         if(this.loop == 2) {
             return val;
         }
@@ -703,18 +731,17 @@ export class ScrollPaneComponent extends SerializableComponent {
                 onComplete: (t, targets)=>{
                     this._clearAnimation();
 
-                    let data = targets[0];
-                    if(this.bouncebackEffect && status == EScrollAnimStatus.INERTANCE) {                        
-                        this._endPos.x = -this._clampX(data.x);
-                        this._endPos.y = -this._clampY(data.y);
+                    let data = targets[0];                
+                    this._endPos.x = -this._clampX(data.x);
+                    this._endPos.y = -this._clampY(data.y);
+                    if(this.bouncebackEffect && status == EScrollAnimStatus.INERTANCE) {        
                         if(this._isInOutPosition()) {
                             this._animationInfo.status = EScrollAnimStatus.BOUNCE;
                         }
-                        this.owner.scrollTo(data.x, data.y);
+                        this.owner.scrollTo(-this._endPos.x, -this._endPos.y);
                         this._doAnimation();
                     }else{          
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
-                        this.owner.scrollTo(data.x, data.y);
                         this._scrollEnd();
                         this._syncScrollBar();
                     }   
@@ -768,7 +795,7 @@ export class ScrollPaneComponent extends SerializableComponent {
             }
         }
 
-        if(this.touchEffect && this.bouncebackEffect && this._animationInfo.status == EScrollAnimStatus.NONE) {
+        if((this._pageMode || this.touchEffect && this.bouncebackEffect) && this._animationInfo.status == EScrollAnimStatus.NONE) {
             if(this._isInOutPosition()) {
                 this._animationInfo.status = EScrollAnimStatus.BOUNCE;
             }
@@ -786,13 +813,22 @@ export class ScrollPaneComponent extends SerializableComponent {
         }
     }
 
+    // 是否拉出边缘，从而引发弹性效果
     private _isInOutPosition(): boolean {
+        if(this._pageMode) {
+            return (this.loop == 1 || this._contentSize.x > this._pageSize.x) ||
+                   (this.loop == 2 || this._contentSize.y > this._pageSize.y);
+        }
         return this.loop != 1 && this._overlapSize.x > 0 && (this.owner.container.x > 0 || this.owner.container.x < -this._overlapSize.x) ||
-               this.loop != 2 &&this._overlapSize.y > 0 && (this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y);
+               this.loop != 2 && this._overlapSize.y > 0 && (this.owner.container.y > 0 || this.owner.container.y < -this._overlapSize.y);
     }
 
     private _scrollEnd(): void {   
         if(ScrollPaneComponent._draggingPane == this) {   
+            this._posX = -this._clampX(this.owner.container.x);
+            this._posY = -this._clampY(this.owner.container.y);
+            this.owner.scrollTo(-this._posX, -this._posY);
+
             ScrollPaneComponent._draggingPane._reset();  
             ScrollPaneComponent._sStatus = EScrollStatus.NONE;
             ScrollPaneComponent._sScrollBeginCancelled = true;
@@ -862,6 +898,14 @@ export class ScrollPaneComponent extends SerializableComponent {
             this.setPosX(this._posX + this.scrollSpeed * ratio, ani);
     }
 
+    private _columnGap() {
+        return ((this.owner as any).columnGap || 0);
+    }
+
+    private _rowGap() {
+        return ((this.owner as any).rowGap || 0);
+    }
+
     public scrollToView(target: View | Rectangle, ani: boolean = false, snapToFirst: boolean = false): void {
         this.owner.ensureBoundsCorrect();
         // if (this._needRefresh)
@@ -880,7 +924,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                 rect.y = target.y;
                 if(this.loop == 1) {
                     if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        let offset = this.owner.bounds.width + ((this.owner as any).columnGap || 0);
+                        let offset = this.owner.bounds.width + this._columnGap();
                         if(this.owner.container.y < 0) {
                             rect.x = target.x + offset;
                         }else{
@@ -889,7 +933,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                     }
                 }else if(this.loop == 2) {
                     if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        let offset = this.owner.bounds.height + ((this.owner as any).rowGap || 0);
+                        let offset = this.owner.bounds.height + this._rowGap();
                         if(this.owner.container.y < 0) {
                             rect.y = target.y + offset;
                         }else{
@@ -1067,6 +1111,10 @@ export class ScrollPaneComponent extends SerializableComponent {
             this._vScrollBar.y = this._scrollBarMargin.top;
         }
     } 
+
+    public updateSize() {
+        this._init();
+    }
 
     public setSize(width: number, height: number): void {
         this._setSize(width, height);

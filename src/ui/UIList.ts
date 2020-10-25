@@ -69,7 +69,7 @@ export class UIList extends ViewGroup  implements IUIList{
     private _keepResizeAspect: boolean = false;
     private _horizontalAlign: EHorAlignType;
     private _verticalAlign: EVertAlignType;
-    private _loop: boolean = true;
+    private _loop: boolean = false;
 
     protected fromConstruct() {     
         super.fromConstruct();
@@ -184,6 +184,14 @@ export class UIList extends ViewGroup  implements IUIList{
     //     if(this._)
     // }
 
+    private _applyPageMode() {
+        if(!this.scrollPane) {
+            return;
+        }
+
+        this.scrollPane.pageMode = this._layoutType == EListLayoutType.Pagination;
+    }
+
     private _applyLoop() {
         if(!this.scrollPane) {
             return;
@@ -216,7 +224,8 @@ export class UIList extends ViewGroup  implements IUIList{
 
     private _update() {
         if(!this.inBuilding) {
-            this._applyLoop();
+            this._applyPageMode();
+            this._applyLoop();            
 
             this.layout();
         }
@@ -243,6 +252,7 @@ export class UIList extends ViewGroup  implements IUIList{
     }    
 
     private _layoutSingleRow() {
+        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
             for(let i in this.children) {
@@ -279,24 +289,25 @@ export class UIList extends ViewGroup  implements IUIList{
             posx += c.width + this._columnGap;
         }
 
-        if(this.container2) {
+        if(this._loop && this.container2) {
             this.container2.y = this.container.y;
             if(this.container.x >= 0) {
-                this.container2.x = this.container.x - this.bounds.width - this._columnGap;
+                this.container2.x = this.container.x - boundWidth;
             }else {
-                this.container2.x = this.container.x + this.bounds.width + this._columnGap;
+                this.container2.x = this.container.x + boundWidth;
             }
             
-            let width = this.bounds.width;
-            if(width > 0) {
-                this.container.x %= width;
-                this.container2.x %= width;
+            if(boundWidth > 0) {
+                this.container.x %= boundWidth;
+                this.container2.x %= boundWidth;
             }
-        }
+        }       
+        
+        this.scrollPane.updateSize();
     }
 
     private _layoutSingleColumn() {
-        let boundHeight = Math.max(this.bounds.height, this.scrollRect.height);
+        let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
             for(let i in this.children) {
@@ -333,12 +344,12 @@ export class UIList extends ViewGroup  implements IUIList{
             posy += c.height + this._rowGap;
         }
 
-        if(this.container2) {
+        if(this._loop && this.container2) {
             this.container2.x = this.container.x;
             if(this.container.y >= 0) {
-                this.container2.y = this.container.y - boundHeight - this._rowGap;
+                this.container2.y = this.container.y - boundHeight;
             }else {
-                this.container2.y = this.container.y + boundHeight + this._rowGap;
+                this.container2.y = this.container.y + boundHeight;
             }
             
             if(boundHeight > 0) {
@@ -346,6 +357,8 @@ export class UIList extends ViewGroup  implements IUIList{
                 this.container2.y %= boundHeight;
             }
         }
+        
+        this.scrollPane.updateSize();
     }
 
     private _layoutPage() {
@@ -359,7 +372,8 @@ export class UIList extends ViewGroup  implements IUIList{
         }
     }
 
-    private _layoutHorizontalPage() {
+    private _layoutHorizontalPage() {        
+        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
             for(let i in this.children) {
@@ -388,23 +402,25 @@ export class UIList extends ViewGroup  implements IUIList{
             posx += c.width + this._columnGap;
         }
 
-        if(this.container2) {
+        if(this._loop && this.container2) {
             this.container2.y = this.container.y;
             if(this.container.x >= 0) {
-                this.container2.x = this.container.x - this.bounds.width - this._columnGap;
+                this.container2.x = this.container.x - boundWidth;
             }else {
-                this.container2.x = this.container.x + this.bounds.width + this._columnGap;
+                this.container2.x = this.container.x + boundWidth;
             }
             
-            let width = this.bounds.width;
-            if(width > 0) {
-                this.container.x %= width;
-                this.container2.x %= width;
+            if(boundWidth > 0) {
+                this.container.x %= boundWidth;
+                this.container2.x %= boundWidth;
             }
-        }
+        }        
+        
+        this.scrollPane.updateSize();
     }
 
     private _layoutVerticalPage() {
+        let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
             for(let i in this.children) {
@@ -433,24 +449,21 @@ export class UIList extends ViewGroup  implements IUIList{
             posy += height + this._rowGap;
         }
 
-        if(this.container2) {
+        if(this._loop && this.container2) {
             this.container2.x = this.container.x;
             if(this.container.y >= 0) {
-                this.container2.y = this.container.y - this.bounds.height - this._rowGap;
+                this.container2.y = this.container.y - boundHeight;
             }else {
-                this.container2.y = this.container.y + this.bounds.height + this._rowGap;
+                this.container2.y = this.container.y + boundHeight;
             }
             
-            let height = this.bounds.height;
-            if(height > 0) {
-                this.container.y %= height;
-                this.container2.y %= height;
+            if(boundHeight > 0) {
+                this.container.y %= boundHeight;
+                this.container2.y %= boundHeight;
             }
-
-            // if(this.container.y > this.bounds.height) {
-            //     this.swapContainer();
-            // }
-        }
+        }        
+        
+        this.scrollPane.updateSize();
     }
 
     protected reconstruct() {  

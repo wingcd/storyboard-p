@@ -84,7 +84,7 @@ class UIScene extends ViewScene {
         // r.opaque = true;
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
-        list.layoutType = EListLayoutType.SingleColumn;
+        list.layoutType = EListLayoutType.Pagination;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
         list.scrollPane.inertanceEffect = true;
@@ -130,8 +130,8 @@ class UIScene extends ViewScene {
         let listRes = pkg.addTemplate(list.toJSON());
         let newList = Package.inst.createObjectFromUrl(this, listRes) as UIList;
         newList.x = 220;
-        newList.layoutType = EListLayoutType.SingleRow;
         newList.scrollPane.scrollType = EScrollType.Horizontal;
+        newList.layoutType = EListLayoutType.Pagination;
 
         // this.tweens.add({
         //     targets: {}, //list.scrollPane,

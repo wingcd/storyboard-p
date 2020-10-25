@@ -64,11 +64,6 @@ export class ViewGroup extends View implements IViewGroup{
         return this._container2;
     }
 
-    /**@internal */
-    swapContainer(): void {
-        [this._container,this._container2] = [this._container2,this._container];
-    }
-
     /**
      * @description if enable touch in empty area, default is false
      */
@@ -704,7 +699,7 @@ export class ViewGroup extends View implements IViewGroup{
         }
     }
 
-    protected onChildrenChanged() {
+    protected onChildrenChanged() {        
 
     }
 
