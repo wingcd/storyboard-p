@@ -231,6 +231,12 @@ export class UIList extends ViewGroup  implements IUIList{
         }
     }
 
+    onScrollStatusChanged() {
+        super.onScrollStatusChanged();
+
+        this._update();
+    }
+
     onChildrenChanged() {
         super.onChildrenChanged();
 

@@ -703,6 +703,11 @@ export class ViewGroup extends View implements IViewGroup{
 
     }
 
+    /**@internal */
+    onScrollStatusChanged() {
+
+    }
+
     protected relayout() {
         super.relayout();
         this.applyOverflow();
