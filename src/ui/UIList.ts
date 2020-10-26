@@ -44,6 +44,7 @@ export class UIList extends ViewGroup  implements IUIList{
             keepResizeAspect: {importAs: "keepResizeAspect", default: false},
             horizontalAlign: {importAs: "_horizontalAlign", alias: "hAlign", default: EHorAlignType.Left},
             verticalAlign: {importAs: "_verticalAlign", alias: "vAlign", default: EVertAlignType.Top},
+            loop: {importAs: "_loop", default: false},
         }
     );
 
@@ -71,6 +72,8 @@ export class UIList extends ViewGroup  implements IUIList{
     private _verticalAlign: EVertAlignType;
     private _loop: boolean = false;
 
+    private _updating = false;
+
     protected fromConstruct() {     
         super.fromConstruct();
         
@@ -81,7 +84,7 @@ export class UIList extends ViewGroup  implements IUIList{
         super.fromConfig(config, tpl);
 
         this.applyOverflow();
-        this._update();
+        this._update(true);
     }
 
     public get layoutType(): EListLayoutType {
@@ -91,7 +94,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set layoutType(val: EListLayoutType) {
         if(val != this._layoutType) {
             this._layoutType = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -110,7 +113,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set autoResizeItem(val: boolean) {
         if(val != this._autoResizeItem) {
             this._autoResizeItem = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -121,7 +124,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set rowGap(val: number) {
         if(val != this._rowGap) {
             this._rowGap = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -132,7 +135,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set columnGap(val: number) {
         if(val != this._columnGap) {
             this._columnGap = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -143,7 +146,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set rowCount(val: number) {
         if(val != this._rowCount) {
             this._rowCount = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -154,7 +157,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set columnCount(val: number) {
         if(val != this._columnCount) {
             this._columnCount = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -165,7 +168,7 @@ export class UIList extends ViewGroup  implements IUIList{
     public set horizontalAlign(val: EHorAlignType) {
         if(val != this._horizontalAlign) {
             this._horizontalAlign = val;
-            this._update();
+            this._update(true);
         }
     }
 
@@ -176,13 +179,20 @@ export class UIList extends ViewGroup  implements IUIList{
     public set verticalAlign(val: EVertAlignType) {
         if(val != this._verticalAlign) {
             this._verticalAlign = val;
-            this._update();
+            this._update(true);
         }
     }
 
-    // private _defaultItemProvider(index: number): string {
-    //     if(this._)
-    // }
+    public get loop(): boolean {
+        return this._loop;
+    }
+
+    public set loop(val: boolean) {
+        if(this._loop != val) {
+            this._loop = val;
+            this._update(true);
+        }
+    }
 
     private _applyPageMode() {
         if(!this.scrollPane) {
@@ -222,12 +232,13 @@ export class UIList extends ViewGroup  implements IUIList{
         }
     }
 
-    private _update() {
-        if(!this.inBuilding) {
+    private _update(focus?: boolean) {
+        if(!this.inBuilding && !this._updating) {
+            this._updating = true;
             this._applyPageMode();
-            this._applyLoop();            
-
-            this.layout();
+            this._applyLoop();
+            this.layout(focus);
+            this._updating = false;
         }
     }
 
@@ -240,27 +251,39 @@ export class UIList extends ViewGroup  implements IUIList{
     onChildrenChanged() {
         super.onChildrenChanged();
 
-        this._update();
+        this._update(true);
     }
 
-    protected layout() {
+    protected layout(focus?: boolean) {
         switch(this._layoutType) {
             case EListLayoutType.SingleColumn:
-                this._layoutSingleColumn();
+                this._layoutSingleColumn(focus);
                 break;
             case EListLayoutType.SingleRow:
-                this._layoutSingleRow();
+                this._layoutSingleRow(focus);
                 break;
             case EListLayoutType.Pagination:
-                this._layoutPage();
+                this._layoutPage(focus);
                 break;
         }
     }    
 
-    private _layoutSingleRow() {
+    private _layoutSingleRow(focus?: boolean) {
         let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
+            this.container2.y = this.container.y;
+            if(this.container.x >= 0) {
+                this.container2.x = this.container.x - boundWidth;
+            }else {
+                this.container2.x = this.container.x + boundWidth;
+            }
+            
+            if(boundWidth > 0) {
+                this.container.x %= boundWidth;
+                this.container2.x %= boundWidth;
+            }
+
             for(let i in this.children) {
                 let c = this.children[i];
                 let px = posx + this.container.x;
@@ -277,6 +300,10 @@ export class UIList extends ViewGroup  implements IUIList{
             posx= posy = 0;
         }
 
+        if(!focus && !this.needHRelayout()) {
+            return;
+        }
+        
         for(let c of this.children) {
             c.x = posx;
             c.y = posy;
@@ -293,29 +320,27 @@ export class UIList extends ViewGroup  implements IUIList{
 
             c.setSize(width, height);
             posx += c.width + this._columnGap;
-        }
-
-        if(this._loop && this.container2) {
-            this.container2.y = this.container.y;
-            if(this.container.x >= 0) {
-                this.container2.x = this.container.x - boundWidth;
-            }else {
-                this.container2.x = this.container.x + boundWidth;
-            }
-            
-            if(boundWidth > 0) {
-                this.container.x %= boundWidth;
-                this.container2.x %= boundWidth;
-            }
         }       
         
         this.scrollPane.updateSize();
     }
 
-    private _layoutSingleColumn() {
+    private _layoutSingleColumn(focus?: boolean) {
         let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
+            this.container2.x = this.container.x;
+            if(this.container.y >= 0) {
+                this.container2.y = this.container.y - boundHeight;
+            }else {
+                this.container2.y = this.container.y + boundHeight;
+            }
+            
+            if(boundHeight > 0) {
+                this.container.y %= boundHeight;
+                this.container2.y %= boundHeight;
+            }
+
             for(let i in this.children) {
                 let c = this.children[i];
                 let py = posy + this.container.y;
@@ -330,6 +355,10 @@ export class UIList extends ViewGroup  implements IUIList{
             }        
             
             posx = posy = 0;
+        }
+
+        if(!focus && !this.needVRelayout()) {
+            return;
         }
 
         for(let c of this.children) {
@@ -349,39 +378,61 @@ export class UIList extends ViewGroup  implements IUIList{
             c.setSize(width, height);
             posy += c.height + this._rowGap;
         }
-
-        if(this._loop && this.container2) {
-            this.container2.x = this.container.x;
-            if(this.container.y >= 0) {
-                this.container2.y = this.container.y - boundHeight;
-            }else {
-                this.container2.y = this.container.y + boundHeight;
-            }
-            
-            if(boundHeight > 0) {
-                this.container.y %= boundHeight;
-                this.container2.y %= boundHeight;
-            }
-        }
         
         this.scrollPane.updateSize();
     }
 
-    private _layoutPage() {
+    private _layoutPage(focus?: boolean) {
         let sp = this.scrollPane;
         if(sp) {
             if(sp.scrollType == EScrollType.Horizontal) {
-                this._layoutHorizontalPage();
+                this._layoutHorizontalPage(focus);
             } else if(sp.scrollType == EScrollType.Vertical) {
-                this._layoutVerticalPage();
+                this._layoutVerticalPage(focus);
             }
         }
     }
 
-    private _layoutHorizontalPage() {        
-        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
+    private needHRelayout() {
+        if(this.scrollPane.prePosX == 0 && this.scrollPane.posX == 0) {
+            return true;
+        }
+
+        if(Math.sign(this.scrollPane.prePosX) == Math.sign(this.scrollPane.posX)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private needVRelayout() {
+        if(this.scrollPane.prePosY == 0 && this.scrollPane.posY == 0) {
+            return true;
+        }
+
+        if(Math.sign(this.scrollPane.prePosY) == Math.sign(this.scrollPane.posY)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private _layoutHorizontalPage(focus?: boolean) {        
+        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);     
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
+            this.container2.y = this.container.y;
+            if(this.container.x >= 0) {
+                this.container2.x = this.container.x - boundWidth;
+            }else {
+                this.container2.x = this.container.x + boundWidth;
+            }
+            
+            if(boundWidth > 0) {
+                this.container.x %= boundWidth;
+                this.container2.x %= boundWidth;
+            }            
+
             for(let i in this.children) {
                 let c = this.children[i];
                 let px = posx + this.container.x;
@@ -396,6 +447,10 @@ export class UIList extends ViewGroup  implements IUIList{
             }        
             
             posx= posy = 0;
+        }   
+
+        if(!focus && !this.needHRelayout()) {
+            return;
         }
 
         for(let c of this.children) {
@@ -406,29 +461,28 @@ export class UIList extends ViewGroup  implements IUIList{
 
             c.setSize(width, height);
             posx += c.width + this._columnGap;
-        }
-
-        if(this._loop && this.container2) {
-            this.container2.y = this.container.y;
-            if(this.container.x >= 0) {
-                this.container2.x = this.container.x - boundWidth;
-            }else {
-                this.container2.x = this.container.x + boundWidth;
-            }
-            
-            if(boundWidth > 0) {
-                this.container.x %= boundWidth;
-                this.container2.x %= boundWidth;
-            }
-        }        
+        }     
         
         this.scrollPane.updateSize();
     }
 
-    private _layoutVerticalPage() {
-        let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
+    private _layoutVerticalPage(focus?: boolean) {
+        let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height); 
         let posx= 0, posy = 0;
+
         if(this._loop && this.container2) {
+            this.container2.x = this.container.x;
+            if(this.container.y >= 0) {
+                this.container2.y = this.container.y - boundHeight;
+            }else {
+                this.container2.y = this.container.y + boundHeight;
+            }
+            
+            if(boundHeight > 0) {
+                this.container.y %= boundHeight;
+                this.container2.y %= boundHeight;
+            }
+
             for(let i in this.children) {
                 let c = this.children[i];
                 let py = posy + this.container.y;
@@ -443,6 +497,10 @@ export class UIList extends ViewGroup  implements IUIList{
             }        
             
             posx= posy = 0;
+        }  
+
+        if(!focus && !this.needVRelayout()) {
+            return;
         }
 
         for(let c of this.children) {
@@ -453,21 +511,7 @@ export class UIList extends ViewGroup  implements IUIList{
 
             c.setSize(width, height);
             posy += height + this._rowGap;
-        }
-
-        if(this._loop && this.container2) {
-            this.container2.x = this.container.x;
-            if(this.container.y >= 0) {
-                this.container2.y = this.container.y - boundHeight;
-            }else {
-                this.container2.y = this.container.y + boundHeight;
-            }
-            
-            if(boundHeight > 0) {
-                this.container.y %= boundHeight;
-                this.container2.y %= boundHeight;
-            }
-        }        
+        }      
         
         this.scrollPane.updateSize();
     }

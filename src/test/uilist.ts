@@ -84,6 +84,7 @@ class UIScene extends ViewScene {
         // r.opaque = true;
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
+        list.loop = true;
         list.layoutType = EListLayoutType.Pagination;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
