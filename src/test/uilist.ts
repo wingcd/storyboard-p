@@ -13,8 +13,8 @@ import { UIList } from "../ui";
 import * as Events from "../events";
 require("../components");
 
-// Settings.showDebugBorder = true;
-// Settings.showDebugFrame = true;
+Settings.showDebugBorder = true;
+Settings.showDebugFrame = true;
 
 class UIScene extends ViewScene {
     constructor() {
@@ -84,7 +84,7 @@ class UIScene extends ViewScene {
         // r.opaque = true;
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
-        list.loop = true;
+        // list.loop = true;
         list.layoutType = EListLayoutType.Pagination;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;

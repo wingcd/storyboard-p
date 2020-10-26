@@ -733,18 +733,18 @@ export class ScrollPaneComponent extends SerializableComponent {
         let cx = this.owner.container.x;
         let cy = this.owner.container.y;
 
-        let dx = Math.abs(this._endPos.x + cx);
-        let dy = Math.abs(this._endPos.y + cy);
+        let dx = Math.abs(this._endPos.x - cx);
+        let dy = Math.abs(this._endPos.y - cy);
         
         let status = this._animationInfo.status;
-        if(dx == 0 && dy == 0) {
+        let t = Math.max(dx, dy) / this.scrollSpeed * 2 * 10;
+        if(dx == 0 && dy == 0 || t < 10) {
             status = EScrollAnimStatus.NONE;
         }
         this._clearAnimation();
 
         if(status != EScrollAnimStatus.NONE) { 
-            let t = Math.max(dx, dy) / this.scrollSpeed * 2;
-            let time = Math.max(t, 150);
+            let time = MathUtils.clamp(t, 150, 250);
             let easing: any = Easing.Linear;            
             if(status == EScrollAnimStatus.INERTANCE) {
                 easing = Easing.Bounce;
@@ -783,7 +783,6 @@ export class ScrollPaneComponent extends SerializableComponent {
                         if(this._isInOutPosition()) {
                             this._animationInfo.status = EScrollAnimStatus.BOUNCE;
                         }
-                        this._scrollTo(-this._endPos.x, -this._endPos.y);
                         this._doAnimation();
                     }else{          
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
