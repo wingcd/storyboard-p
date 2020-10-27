@@ -71,6 +71,7 @@ class UIScene extends ViewScene {
         title.name = "title";
         title.text = "测试";
         title.fontSize = 24;
+        title.setPivot(0.5, 0.5);
         button.addChild(title);
         title.relations.set(ERelationPinType.CENTER, button);
         title.relations.set(ERelationPinType.MIDDLE, button);
@@ -91,7 +92,7 @@ class UIScene extends ViewScene {
         list.scrollPane.inertanceEffect = true;
         list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
-        list.margin = new Margin(10, 0, 10);
+        list.margin = new Margin(10, 10, 10, 10);
 
         list.defaultItem = btnRes;
         for(let i =0 ;i<10;i++) {

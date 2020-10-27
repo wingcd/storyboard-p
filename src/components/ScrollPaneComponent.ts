@@ -427,9 +427,9 @@ export class ScrollPaneComponent extends SerializableComponent {
     private _scrollTo(x?: number, y?: number) {
         let ox = -this.owner.container.x;
         let oy = -this.owner.container.y;
-        let nx = x || ox;
-        let ny = y || oy;
-        if(nx != this._prePosX || this._prePosY != ny) {
+        let nx = x == undefined ? ox : x;
+        let ny = y == undefined ? oy : y;
+        if(nx != ox || oy != ny) {
             this._prePosY = ox;
             this._prePosY = oy;
             this.owner.scrollTo(x, y);
@@ -765,9 +765,9 @@ export class ScrollPaneComponent extends SerializableComponent {
                             break;
                         case EScrollAnimStatus.INERTANCE:
                         case EScrollAnimStatus.SLITHER:
-                            this._posX = -this._clampX(data.x);
-                            this._posY = -this._clampY(data.y);
-                            this._scrollTo(data.x, data.y);
+                            this._posX = -data.x;
+                            this._posY = -data.y;
+                            this._scrollTo(-this._posX, -this._posY);
                             this.owner.emit(Events.ScrollEvent.SCROLLING);
                             break;                            
                     }                    
@@ -782,7 +782,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                     if(this._realBouncebackEffect && status == EScrollAnimStatus.INERTANCE) {        
                         if(this._isInOutPosition()) {
                             this._animationInfo.status = EScrollAnimStatus.BOUNCE;
-                        }
+                        }                        
                         this._doAnimation();
                     }else{          
                         ScrollPaneComponent._sStatus = EScrollStatus.SCROLL_END;
@@ -837,7 +837,7 @@ export class ScrollPaneComponent extends SerializableComponent {
                     this._animationInfo.status = EScrollAnimStatus.INERTANCE;
 
                     this._endPos.x = -this._limitBounaryX(-this._endPos.x)
-                    this._endPos.y = -this._limitBounaryX(-this._endPos.y)
+                    this._endPos.y = -this._limitBounaryY(-this._endPos.y)
                 }
             }
         }

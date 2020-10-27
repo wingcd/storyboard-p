@@ -207,9 +207,8 @@ export class UIList extends ViewGroup  implements IUIList{
             return;
         }
 
-        if(!this._loop) {
-            this.scrollPane.loop = 0;
-        }else {
+        this.scrollPane.loop = 0;
+        if(this._loop) {
             if(this._layoutType == EListLayoutType.SingleRow) {
                 this.scrollPane.loop = 1;
             }else if(this._layoutType == EListLayoutType.SingleColumn) {
