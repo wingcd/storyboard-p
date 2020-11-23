@@ -86,12 +86,14 @@ class UIScene extends ViewScene {
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
         // list.loop = true;
-        list.layoutType = EListLayoutType.Pagination;
+        list.layoutType = EListLayoutType.FlowVertical;
         list.overflowType = EOverflowType.Scroll;
-        list.scrollPane.scrollType = EScrollType.Vertical;
+        list.scrollPane.scrollType = EScrollType.Horizontal;
         list.scrollPane.inertanceEffect = true;
         list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
+        list.rowCount = 3;
+        list.columnGap = 10;
         list.margin = new Margin(10, 10, 10, 10);
 
         list.defaultItem = btnRes;
