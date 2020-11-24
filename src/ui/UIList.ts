@@ -40,7 +40,7 @@ export class UIList extends ViewGroup  implements IUIList{
             rowGap: {importAs: "_rowGap", default: 0},
             columnCount: {importAs: "_columnCount", default: 0},
             columnGap: {importAs: "_columnGap", default: 0},
-            autoResizeItem: {importAs: "_autoResizeItem", default: true},
+            autoResizeItem: {importAs: "_autoResizeItem", default: false},
             keepResizeAspect: {importAs: "keepResizeAspect", default: false},
             horizontalAlign: {importAs: "_horizontalAlign", alias: "hAlign", default: EHorAlignType.Left},
             verticalAlign: {importAs: "_verticalAlign", alias: "vAlign", default: EVertAlignType.Top},
@@ -66,7 +66,7 @@ export class UIList extends ViewGroup  implements IUIList{
     private _rowGap: number = 0;
     private _columnGap: number = 0;    
     private _defaultItem: string;
-    private _autoResizeItem: boolean = true;
+    private _autoResizeItem: boolean = false;
     private _keepResizeAspect: boolean = false;
     private _horizontalAlign: EHorAlignType;
     private _verticalAlign: EVertAlignType;
@@ -267,6 +267,9 @@ export class UIList extends ViewGroup  implements IUIList{
             case EListLayoutType.FlowVertical:
                 this._layoutVerticalFlow(focus);
                 break;
+            case EListLayoutType.FlowHorizontal:
+                this._layoutHorizontalFlow(focus);
+                break;
         }
     }    
 
@@ -364,8 +367,7 @@ export class UIList extends ViewGroup  implements IUIList{
         }
 
         for(let c of this.children) {
-            c.x = posx;
-            c.y = posy;
+            c.setXY(posx, posy);
             let width = c.width;
             let height = c._initHeight;
             if(this._autoResizeItem) {
@@ -388,9 +390,9 @@ export class UIList extends ViewGroup  implements IUIList{
         let sp = this.scrollPane;
         if(sp) {
             if(sp.scrollType == EScrollType.Horizontal) {
-                this._layoutHorizontalPage(focus);
+                this._layoutVerticalFlow(focus, true);
             } else if(sp.scrollType == EScrollType.Vertical) {
-                this._layoutVerticalPage(focus);
+                this._layoutHorizontalFlow(focus, true);
             }
         }
     }
@@ -456,8 +458,7 @@ export class UIList extends ViewGroup  implements IUIList{
         }
 
         for(let c of this.children) {
-            c.x = posx;
-            c.y = posy;
+            c.setXY(posx, posy);
             let width = this.scrollRect.width;
             let height = this.scrollRect.height;
 
@@ -506,8 +507,7 @@ export class UIList extends ViewGroup  implements IUIList{
         }
 
         for(let c of this.children) {
-            c.x = posx;
-            c.y = posy;            
+            c.setXY(posx, posy);         
             let width = this.scrollRect.width;
             let height = this.scrollRect.height;
 
@@ -518,7 +518,7 @@ export class UIList extends ViewGroup  implements IUIList{
         this.scrollPane.updateSize();
     }
 
-    private _layoutVerticalFlow(focus?: boolean, rtl?: boolean) {
+    private _layoutVerticalFlow(focus?: boolean, page?: boolean) {
         let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
         let posx= 0, posy = 0;        
         let maxWidth = 0;
@@ -556,17 +556,32 @@ export class UIList extends ViewGroup  implements IUIList{
             return;
         }
 
-        let autoHeight = this._rowCount > 0 && this._autoResizeItem;
+        let rowCount = page ? (this._rowCount || 1) : this._rowCount;
+        let columnCount = page ? (this._columnCount || 1) : this._columnCount;
+
+        let autoHeight = page || (rowCount > 0 && this._autoResizeItem);
         let avgHeight = 0;
         if(autoHeight) {
-            avgHeight = Math.floor((this.scrollRect.height - this._rowGap*(Math.max(0, this._rowCount-1))) / this._rowCount);
+            avgHeight = Math.floor((this.scrollRect.height - this._rowGap*(Math.max(0, rowCount-1))) / rowCount);
         }
+        
+        let autoWidth = page;
+        let avgWidth = 0;
+        if(autoWidth) {
+            avgWidth = Math.floor((this.scrollRect.width - this._columnGap*(Math.max(0, columnCount-1))) / columnCount);
+        }
+
+        let rowNum = 0;
         for(let c of this.children) {
+            rowNum++;
+
             let width = c._initWidth;
             let height = c.height;
             if(autoHeight) {
-                height = autoHeight ? avgHeight : this.scrollRect.height;
-                if(this._keepResizeAspect) {
+                height = avgHeight;
+                if(autoWidth) {
+                    width = avgWidth;
+                }else if(this._keepResizeAspect) {
                     width = (c._initWidth / c._initHeight) * height;
                 }
             }else{
@@ -576,7 +591,9 @@ export class UIList extends ViewGroup  implements IUIList{
             c.setSize(width, height);
 
             maxWidth = Math.max(maxWidth, width);
-            if(posy + c.height > this.scrollRect.height) {
+            if(rowNum > rowCount ||
+                autoHeight && posy + c.height > this.scrollRect.height) {
+                rowNum = 1;
                 posy = 0;
                 posx += maxWidth + this._columnGap;
                 maxWidth = 0;
@@ -585,6 +602,94 @@ export class UIList extends ViewGroup  implements IUIList{
                 c.setXY(posx, posy);           
             }
             posy += c.height + this._rowGap;
+        }
+        
+        this.scrollPane.updateSize();
+    }
+
+    private _layoutHorizontalFlow(focus?: boolean, page?: boolean) {
+        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
+        let posx= 0, posy = 0;        
+        let maxHeight = 0;
+
+        if(this._loop && this.container2) {
+            this.container2.y = this.container.y;
+            if(this.container.x >= 0) {
+                this.container2.x = this.container.x - boundWidth;
+            }else {
+                this.container2.x = this.container.x + boundWidth;
+            }
+            
+            if(boundWidth > 0) {
+                this.container.x %= boundWidth;
+                this.container2.x %= boundWidth;
+            }
+
+            for(let i in this.children) {
+                let c = this.children[i];
+                let px = posx + this.container.x;
+
+                if(px + c.width <= 0 || px >= this.width) {
+                    this.container2.add(c.rootContainer);
+                }else{
+                    this.container.add(c.rootContainer);
+                }
+                
+                posx += c.width + this._columnGap;
+            }        
+            
+            posx= posy = 0;
+        }
+
+        if(!focus && !this.needVRelayout()) {
+            return;
+        }
+
+        let rowCount = page ? (this._rowCount || 1) : this._rowCount;
+        let columnCount = page ? (this._columnCount || 1) : this._columnCount;
+
+        let autoWidth = page || (columnCount > 0 && this._autoResizeItem);
+        let avgWidth = 0;
+        if(autoWidth) {
+            avgWidth = Math.floor((this.scrollRect.width - this._columnGap*(Math.max(0, columnCount-1))) / columnCount);
+        }
+
+        let autoHeight = page;
+        let avgHeight = 0;
+        if(autoHeight) {
+            avgHeight = Math.floor((this.scrollRect.height - this._rowGap*(Math.max(0, rowCount-1))) / rowCount);
+        }
+
+        let columnNum = 0;
+        for(let c of this.children) {
+            columnNum++;
+            let width = c.width;
+            let height = c._initHeight;
+            if(autoWidth) {
+                width = avgWidth;
+                if(autoHeight) {
+                    height = avgHeight;
+                }else if(this._keepResizeAspect) {
+                    height = (c._initHeight / c._initWidth) * width;
+                }
+            }else{
+                width = c._initWidth;
+            }
+
+            c.setSize(width, height);
+
+            maxHeight = Math.max(maxHeight, height);
+            if(columnNum > columnCount ||
+               autoWidth && posx + c.width > this.scrollRect.width) {
+                columnNum = 1;
+                posy += maxHeight + this._rowGap;
+                posx = 0;
+                maxHeight = 0;
+                c.setXY(posx, posy);
+            }else{     
+                c.setXY(posx, posy);           
+            }
+            posx += c.width + this._columnGap;
         }
         
         this.scrollPane.updateSize();

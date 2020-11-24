@@ -872,9 +872,11 @@ export class ScrollPaneComponent extends SerializableComponent {
 
     private _scrollEnd(): void {   
         if(ScrollPaneComponent._draggingPane == this) {   
-            this._posX = -this._clampX(this.owner.container.x);
-            this._posY = -this._clampY(this.owner.container.y);
-            this._scrollTo(-this._posX, -this._posY);
+            if(!this._pageMode) {
+                this._posX = -this._clampX(this.owner.container.x);
+                this._posY = -this._clampY(this.owner.container.y);
+                this._scrollTo(-this._posX, -this._posY);
+            }
 
             ScrollPaneComponent._draggingPane._reset();  
             ScrollPaneComponent._sStatus = EScrollStatus.NONE;
