@@ -85,14 +85,14 @@ class UIScene extends ViewScene {
         // r.opaque = true;
         // let nbtn = Package.inst.createObjectFromUrl(this, btnRes) as UIButton;
         // nbtn.titleColor = 0xff0000;
-        // list.loop = true;
-        list.layoutType = EListLayoutType.FlowHorizontal;
+        list.loop = true;
+        list.layoutType = EListLayoutType.SingleColumn;
         list.overflowType = EOverflowType.Scroll;
         list.scrollPane.scrollType = EScrollType.Vertical;
         list.scrollPane.inertanceEffect = true;
         list.scrollPane.bouncebackEffect = true;
         list.rowGap = 20;
-        list.rowCount = 2;
+        list.rowCount = 3;
         list.columnCount = 2;
         list.columnGap = 10;
         list.autoResizeItem = true;
@@ -136,8 +136,8 @@ class UIScene extends ViewScene {
         let listRes = pkg.addTemplate(list.toJSON());
         let newList = Package.inst.createObjectFromUrl(this, listRes) as UIList;
         newList.x = 220;
-        newList.scrollPane.scrollType = EScrollType.Vertical;
-        newList.layoutType = EListLayoutType.Pagination;
+        newList.scrollPane.scrollType = EScrollType.Horizontal;
+        newList.layoutType = EListLayoutType.FlowVertical;
 
         // this.tweens.add({
         //     targets: {}, //list.scrollPane,

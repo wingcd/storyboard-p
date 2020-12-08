@@ -1,11 +1,11 @@
 import { ISerializeFields } from "../types";
-import { EAlignType, EHorAlignType, EListLayoutType, EOverflowType, EScrollType, EVertAlignType } from "../core/Defines";
+import { EAlignType, EDirtyType, EHorAlignType, EListLayoutType, EOverflowType, EScrollType, EVertAlignType } from "../core/Defines";
 import { ViewGroup } from "../core/ViewGroup";
 import { ViewScene } from "../core/ViewScene";
 import { View } from "../core/View";
 import { IUIList } from "../types/IUIList";
 import { UIButton } from "./UIButton";
-import { Pointer } from "../phaser";
+import { Pointer, Size } from "../phaser";
 import * as Events from "../events";
 import { Package } from "../core/Package";
 import { clone } from "../utils/Serialize";
@@ -24,7 +24,7 @@ class ItemInfo {
     public width: number = 0;
     public height: number = 0;
     public view: View;
-    public updateFlag: number = 0;
+    public computed: boolean = false;
     public selected: boolean = false;
 }
                     
@@ -73,6 +73,7 @@ export class UIList extends ViewGroup  implements IUIList{
     private _loop: boolean = false;
 
     private _updating = false;
+    private _itemsInfo: ItemInfo[] = [];
 
     protected fromConstruct() {     
         super.fromConstruct();
@@ -256,7 +257,8 @@ export class UIList extends ViewGroup  implements IUIList{
     protected layout(focus?: boolean) {
         switch(this._layoutType) {
             case EListLayoutType.SingleColumn:
-                this._layoutSingleColumn(focus);
+                // this._layoutSingleColumn(focus);
+                this._layoutHorizontalFlowEx(focus, 1, 1, false);
                 break;
             case EListLayoutType.SingleRow:
                 this._layoutSingleRow(focus);
@@ -331,9 +333,9 @@ export class UIList extends ViewGroup  implements IUIList{
     }
 
     private _layoutSingleColumn(focus?: boolean) {
-        let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
         let posx= 0, posy = 0;
         if(this._loop && this.container2) {
+            let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
             this.container2.x = this.container.x;
             if(this.container.y >= 0) {
                 this.container2.y = this.container.y - boundHeight;
@@ -361,6 +363,26 @@ export class UIList extends ViewGroup  implements IUIList{
             
             posx = posy = 0;
         }
+
+        // if(this._loop) {
+        //     let boundHeight = Math.max(this.bounds.height + this._rowGap, this.scrollRect.height);
+        //     let offset = 0;
+        //     if(this.container.y >= 0) {
+        //         offset = this.container.y;
+        //     }else if(this.container.y < -this.scrollRect.height){
+        //         // 向上时拉倒顶了
+        //         offset = boundHeight - 
+        //     }
+        //     for(let i in this.children) {
+        //         let c = this.children[i];
+        //         if(c.y + c.height < 0) {
+                    
+        //         }
+                
+        //         posy += (c.height + this._rowGap) % boundHeight;
+        //     }    
+        //     posx = posy = 0;
+        // }
 
         if(!focus && !this.needVRelayout()) {
             return;
@@ -608,11 +630,11 @@ export class UIList extends ViewGroup  implements IUIList{
     }
 
     private _layoutHorizontalFlow(focus?: boolean, page?: boolean) {
-        let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
         let posx= 0, posy = 0;        
         let maxHeight = 0;
 
         if(this._loop && this.container2) {
+            let boundWidth = Math.max(this.bounds.width + this._columnGap, this.scrollRect.width);
             this.container2.y = this.container.y;
             if(this.container.x >= 0) {
                 this.container2.x = this.container.x - boundWidth;
@@ -690,6 +712,185 @@ export class UIList extends ViewGroup  implements IUIList{
                 c.setXY(posx, posy);           
             }
             posx += c.width + this._columnGap;
+        }
+        
+        this.scrollPane.updateSize();
+    }    
+
+    private _estimateSize: Size = new Size(0, 0);
+
+    private _getItemInfo(index: number, loop: boolean) {
+        let idx = loop ? index % this._itemsInfo.length : index;
+        return this._itemsInfo[idx];
+    }
+
+    // protected updateBounds() {
+        
+
+    //     this.bounds.x = minx;
+    //     this.bounds.y = miny;
+    //     this.bounds.width = maxx - minx;
+    //     this.bounds.height = maxy - miny;
+
+    //     this.removeDirty(EDirtyType.BoundsChanged);
+
+    //     if(this.scrollPane) {
+    //         this.scrollPane.setContentSize(maxx, maxy);
+    //     }
+    // }   
+
+    private _refreshItemsInfo() {
+        if(this._itemsInfo.length != this.children.length) {
+            this._itemsInfo.length = 0;
+            for(let c of this.children) {
+                let item = new ItemInfo();
+                item.width = c.width;
+                item.height = c.height;
+                item.selected = item.selected;
+                item.computed = false;
+                item.view = c;
+
+                this._estimateSize.width = Math.max(this._estimateSize.width, c.width);
+                this._estimateSize.height = Math.max(this._estimateSize.height, c.height);
+                this._itemsInfo.push(item);
+            }
+        }
+    }
+
+    private _calcFirstIndex(vertical: boolean): number {
+        let idx = 0;
+        if(vertical) {
+            idx = Number.isFinite(this._estimateSize.height) && this._estimateSize.height > 0 ? Math.floor(this.scrollPane.posY % this._estimateSize.height): 0;
+        }else{
+            idx = Number.isFinite(this._estimateSize.width) && this._estimateSize.width > 0 ? Math.floor(this.scrollPane.posX % this._estimateSize.width) : 0;
+        }
+        if(idx < 0) {
+            idx = (idx % this._itemsInfo.length + this._itemsInfo.length) % this._itemsInfo.length;
+        }
+        return idx;
+    }
+
+    private _calcShowCount(vertical: boolean): number {
+        let count = 0;
+        if(vertical) {
+            count = Number.isFinite(this._estimateSize.height) && this._estimateSize.height > 0 ? Math.ceil(this.scrollRect.height / (this._estimateSize.height + this._rowGap)) : 0;
+        }else{
+            count = Number.isFinite(this._estimateSize.width) && this._estimateSize.width > 0 ? Math.ceil(this.scrollRect.width / (this._estimateSize.width + this._columnGap)) : 0;
+        }
+        return Math.min(count, this._itemsInfo.length);
+    }
+
+    private _layoutHorizontalFlowEx(focus?: boolean, rowCount?: number, columnCount?: number, page?: boolean) {
+        this._refreshItemsInfo();
+
+        rowCount = rowCount || 1;
+        columnCount = columnCount || 1;
+
+        let posx= 0, posy = 0;        
+        let maxHeight = 0;
+
+        // if(!focus && !this.needVRelayout()) {
+        //     return;
+        // }
+
+        rowCount = page ? rowCount : this._rowCount;
+        columnCount = page ? columnCount: this._columnCount;
+
+        let autoWidth = page || (columnCount > 0 && this._autoResizeItem);
+        let avgWidth = 0;
+        if(autoWidth) {
+            avgWidth = Math.floor((this.scrollRect.width - this._columnGap*(Math.max(0, columnCount-1))) / columnCount);
+        }
+
+        let autoHeight = page;
+        let avgHeight = 0;
+        if(autoHeight) {
+            avgHeight = Math.floor((this.scrollRect.height - this._rowGap*(Math.max(0, rowCount-1))) / rowCount);
+        }
+
+        let columnNum = 0;
+        let start = 0;   
+        let viewHeight = Math.max(this.scrollRect.height, this.bounds.height);
+        this.container.y %= viewHeight;
+
+        
+        if(this.container.y <= 0) {
+            for(let i=0;i<this._itemsInfo.length;i++) {
+                let item = this._getItemInfo(i+start, this._loop);
+                if(!item) {
+                    continue;
+                }
+
+                if(posy + item.height + this._rowGap >= -this.container.y) {
+                    start = i;
+                    break;
+                }
+                posy += item.height + this._rowGap;
+            }
+            posy %= viewHeight;
+        }
+        else {
+            for(let i=this._itemsInfo.length-1;i>=0;i--) {
+                let item = this._getItemInfo(i+start, this._loop);
+                if(!item) {
+                    continue;
+                }
+
+                posy = posy - item.height - this._rowGap;
+                if(posy + item.height + this._rowGap <= -this.container.y) {
+                    start = i;
+                    break;
+                }
+            }       
+            
+            posy %= (viewHeight*2);        
+        }
+
+        let count = this._calcShowCount(true) + 1;   
+        for(let i=0;i<count;i++) {
+            let item = this._getItemInfo(i+start, this._loop);
+            if(!item) {
+                continue;
+            }
+
+            columnNum++;
+
+            let width = 0;
+            let height = 0;
+            if(!item.computed) {
+                width = item.width;
+                height = item.height;
+            }else{                
+                width = item.view.width;
+                height = item.view._initHeight;
+                if(autoWidth) {
+                    width = avgWidth;
+                    if(autoHeight) {
+                        height = avgHeight;
+                    }else if(this._keepResizeAspect) {
+                        height = (item.view._initHeight / item.view._initWidth) * width;
+                    }
+                }else{
+                    width = item.view._initWidth;
+                }
+                
+                item.width = width;
+                item.height = height;
+                item.computed = true;
+            }
+            item.view.setSize(width, height);
+
+            maxHeight = Math.max(maxHeight, height);
+            if(autoWidth && posx + item.width > this.scrollRect.width) {
+                columnNum = 1;
+                posy += maxHeight + this._rowGap;
+                posx = 0;
+                maxHeight = 0;
+                item.view.setXY(posx, posy);
+            }else{     
+                item.view.setXY(posx, posy);
+            }
+            posx += item.width + this._columnGap;
         }
         
         this.scrollPane.updateSize();

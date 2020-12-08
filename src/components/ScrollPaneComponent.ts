@@ -430,7 +430,7 @@ export class ScrollPaneComponent extends SerializableComponent {
         let nx = x == undefined ? ox : x;
         let ny = y == undefined ? oy : y;
         if(nx != ox || oy != ny) {
-            this._prePosY = ox;
+            this._prePosX = ox;
             this._prePosY = oy;
             this.owner.scrollTo(x, y);
         }
