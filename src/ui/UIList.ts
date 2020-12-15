@@ -262,9 +262,9 @@ export class UIList extends ViewGroup  implements IUIList{
         this.scrollPane.loop = 0;
         if(this._loop) {
             if(this._layoutType == EListLayoutType.FlowHorizontal) {                
-                this.scrollPane.loop = this._columnCount <= 1 ? 1 : 0;
+                this.scrollPane.loop = this._columnCount <= 1 ? 2 : 0;
             }else if(this._layoutType == EListLayoutType.FlowVertical) {
-                this.scrollPane.loop = this._rowCount <= 1 ? 2 : 0;
+                this.scrollPane.loop = this._rowCount <= 1 ? 1 : 0;
             }
         }
     }
@@ -314,6 +314,10 @@ export class UIList extends ViewGroup  implements IUIList{
     }    
 
     private needHRelayout() {
+        if(this._loop) {
+            return true;
+        }
+        
         if(this.scrollPane.prePosX == 0 && this.scrollPane.posX == 0) {
             return true;
         }
@@ -326,6 +330,10 @@ export class UIList extends ViewGroup  implements IUIList{
     }
 
     private needVRelayout() {
+        if(this._loop) {
+            return true;
+        }
+
         if(this.scrollPane.prePosY == 0 && this.scrollPane.posY == 0) {
             return true;
         }
