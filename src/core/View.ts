@@ -760,6 +760,18 @@ export class View implements IView {
         this.grayed = !value;
         this.touchable = value;
     }
+
+    public recover(): this {
+        if(this._displayObject) {
+            this.parent = null;
+        }
+        return this;
+    }
+
+    public reset(): this {           
+        this._isDisposed = false;    
+        return this;
+    }
     
     protected updateGraphicsMask(targetObj: Phaser.GameObjects.Components.Mask, x?: number, y?: number, width?: number, height?: number, clear: boolean = false) {
         if(clear) {
@@ -1063,12 +1075,6 @@ export class View implements IView {
             this._gBorder.destroy();
             this._gBorder = null;
         }
-    }
-
-    public reset(): this {              
-        this._isDisposed = false;       
-
-        return this;
     }
 
     public dispose() {

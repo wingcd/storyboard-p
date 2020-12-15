@@ -907,6 +907,10 @@ export class ScrollPaneComponent extends SerializableComponent {
         return MathUtils.clamp(-this._group.container.y, 0, this._overlapSize.y);
     }
 
+    public get pageSize(): Point {
+        return this._pageSize;
+    }
+
     public scrollTop(ani?: boolean): void {
         this.setPercY(0, ani);
     }
@@ -971,25 +975,6 @@ export class ScrollPaneComponent extends SerializableComponent {
             else {
                 rect.x = target.x;
                 rect.y = target.y;
-                if(this.loop == 1) {
-                    if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        let offset = this.owner.bounds.width + this._columnGap();
-                        if(this.owner.container.y < 0) {
-                            rect.x = target.x + offset;
-                        }else{
-                            rect.x = target.x - offset;
-                        }
-                    }
-                }else if(this.loop == 2) {
-                    if(this.owner.container2.list.indexOf(target.rootContainer) >= 0) {
-                        let offset = this.owner.bounds.height + this._rowGap();
-                        if(this.owner.container.y < 0) {
-                            rect.y = target.y + offset;
-                        }else{
-                            rect.y = target.y - offset;
-                        }
-                    }
-                }
                 rect.width = target.width;
                 rect.height = target.height;
             }

@@ -34,7 +34,6 @@ export class ViewGroup extends View implements IViewGroup{
 
     private _scrollContainer: Container;
     private _container: Container;
-    private _container2: Container;
     private _bounds: Rectangle = new Rectangle(0, 0, 100, 100);
     private _scrollPane: ScrollPaneComponent = null;
 
@@ -57,11 +56,6 @@ export class ViewGroup extends View implements IViewGroup{
     /**@internal */
     get container(): Container {
         return this._container;
-    }    
-
-    /**@internal */
-    get container2(): Container {
-        return this._container2;
     }
 
     /**
@@ -508,9 +502,6 @@ export class ViewGroup extends View implements IViewGroup{
                     this.rootContainer.add(this._scrollContainer);
                     this._scrollContainer.add(this._container);
 
-                    this._container2 = this.scene.make.container({});
-                    this._scrollContainer.add(this._container2);
-
                     this._scrollContainer.setPosition(this._scrollRect.x, this.scrollRect.y);
                     this._scrollContainer.setSize(this._scrollRect.width, this._scrollRect.height);
 
@@ -533,10 +524,6 @@ export class ViewGroup extends View implements IViewGroup{
 
                 this.rootContainer.add(this._container);
                 this._scrollContainer = null;
-
-                this._container2.removeAll();
-                this._container2.destroy();
-                this._container2 = null;
 
                 this.appendChildrenList();
             }
