@@ -4,6 +4,7 @@ import { View } from "./View";
 import { GetViewByRelativePath, GetViewRelativePath, IsViewChild } from "../utils/Object";
 import { ISerializeFields } from "../types";
 import { ERelationPinType } from "./Defines";
+import { Serialize } from "../utils/Serialize";
 
 let relationPinTypes = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CENTER", "MIDDLE"];
 
@@ -487,4 +488,17 @@ export class Relations {
         let opType = Relations.getOppositeType(pinType);
         return this.getPin(opType);
     } 
+
+    public toJSON(tpl?: any, ignores?: string[]): any {
+        let temp = null;
+        return Serialize(this, temp || tpl, ignores);
+    }
+
+    public fromJSON(config: any, template?: any): this {
+        if(config || template) {
+            Serialize(this, config, template);
+        }        
+
+        return this;
+    }
 }

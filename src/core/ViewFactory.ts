@@ -10,6 +10,8 @@ import { IViewConfig, IViewGroupConfig, IUIImageConfig, IUITextFieldConfig, IUIT
     
 import { UIButton,UILabel,UIRichTextField,UIProgressBar,
     UISlider,UIScrollBar,UIImage,UITextInput,UITextField, UIList } from "../ui";
+import { IUIGraphConfig } from "../types/IUIGraph";
+import { UIGraph } from "../ui/UIGraphic";
 
 export interface IPrefab {
     id: number;
@@ -109,6 +111,11 @@ export class ViewFactory {
         return this._add(type, config, template) as UIList;
     } 
 
+    public graph(config?: IUIGraphConfig, template?: any): UIGraph {
+        let type: any = ViewFactory.getType("graph");
+        return this._add(type, config, template) as UIGraph;
+    } 
+
     public create(config?: any, template?: any): View {
         let viewType = (config ? config.__type__ : null) || (template ? template.__type__ : null);
         if(!viewType) {
@@ -137,3 +144,4 @@ ViewFactory.regist(UITextField);
 ViewFactory.regist(UIRichTextField);
 ViewFactory.regist(UITextInput);
 ViewFactory.regist(UIList);
+ViewFactory.regist(UIGraph);

@@ -201,7 +201,7 @@ export class View implements IView {
 
     protected setDisplayObject(display: GameObject) {
         if(this._displayObject) {
-            this._rootContainer.remove(this._displayObject);
+            this._rootContainer.remove(this._displayObject, true);
         }
         this._displayObject = display;
         if(display) {
@@ -1259,7 +1259,7 @@ export class View implements IView {
 
         if (!this._hitArea) {
             this._hitArea = new Rectangle();
-            this._rootContainer.setInteractive(this._hitArea, Rectangle.Contains);
+            this._rootContainer.setInteractive(this._hitArea, this.hitTest);
         }
 
         this._rootContainer.input.enabled = true;
@@ -1269,6 +1269,10 @@ export class View implements IView {
         h.width = this.width;
         h.height = this.height;
     } 
+
+    public hitTest(rect: Rectangle, x: number, y: number): boolean {
+        return Rectangle.Contains(rect, x, y);
+    }
 
     protected handleBorderChange() {
         this.applyBackgroundChange();

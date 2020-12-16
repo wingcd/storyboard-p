@@ -13,6 +13,7 @@ class UIScene extends ViewScene {
 
     preload() {
         this.load.image('nine', './res/44.png');
+        this.load.svg('role', './res/imgs/role.svg');
     }
 
     create(): void {

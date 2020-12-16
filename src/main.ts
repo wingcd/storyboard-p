@@ -1,1 +1,1 @@
-require('./test/uilist')
+require('./test/graph')
