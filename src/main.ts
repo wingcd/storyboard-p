@@ -1,1 +1,1 @@
-require('./test/graph')
+require('./test/graphic')

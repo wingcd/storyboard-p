@@ -15,6 +15,10 @@ export function colorToString(value: number): string {
     return Color.RGBToString(color.r, color.g, color.b, color.a);
 }
 
+/**
+ * 
+ * @param value [0]: color, [1]:alpha
+ */
 export function splitColorAndAlpha(value: number): number[] {
     let color = value;
     let alpha = 1;
