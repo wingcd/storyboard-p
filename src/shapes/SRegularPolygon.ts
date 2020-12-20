@@ -1,11 +1,22 @@
 import { Graphics, Point, Polygon } from "../phaser";
-import { IView } from "../types";
+import { ISerializeFields, IView } from "../types";
 import { MathUtils } from "../utils/Math";
 import { GetValue } from "../utils/Object";
+import { clone } from "../utils/Serialize";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SRegularPolygon extends Shape {
-    public static TYPE = 7;
+    public static TYPE = "r-polygon";
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        clone(Shape.SERIALIZABLE_FIELDS),
+        {
+            sideNumber: {default: 3},
+            startAngle: {default: 0},
+            distances: {raw: true},  
+        }
+    );
 
     public sideNumber: number = 3;
     public startAngle: number = 0;
@@ -68,3 +79,5 @@ export class SRegularPolygon extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SRegularPolygon);

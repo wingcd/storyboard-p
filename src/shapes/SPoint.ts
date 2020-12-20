@@ -1,11 +1,21 @@
 import { Circle, Graphics } from "../phaser";
-import { IView } from "../types";
+import { ISerializeFields, IView } from "../types";
 import { GetValue } from "../utils/Object";
+import { clone } from "../utils/Serialize";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SPoint extends Shape {
-    public static TYPE = 1;
-    size: number = 5;
+    public static TYPE = "point";
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        clone(Shape.SERIALIZABLE_FIELDS),
+        {
+            size: {default: 5},       
+        }
+    );
+
+    public size: number = 5;
 
     private _x: number = 0;
     private _y: number = 0;
@@ -41,3 +51,5 @@ export class SPoint extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SPoint);

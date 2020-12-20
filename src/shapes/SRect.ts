@@ -1,11 +1,21 @@
 import { Graphics } from "../phaser";
-import { IView } from "../types";
+import { ISerializeFields, IView } from "../types";
 import { GetValue } from "../utils/Object";
+import { clone } from "../utils/Serialize";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SRect extends Shape {
-    public static TYPE = 3;
-    cornerRadius: number | number[];
+    public static TYPE = "rect";
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        clone(Shape.SERIALIZABLE_FIELDS),
+        {
+            cornerRadius: {raw: true},  
+        }
+    );
+
+    public cornerRadius: number | number[];
 
     private _cornerRadius: number[] = [0,0,0,0];  
 
@@ -61,3 +71,5 @@ export class SRect extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SRect);

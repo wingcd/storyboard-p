@@ -29,14 +29,14 @@ class UIScene extends ViewScene {
         let line = this.addUI.graphic();
         line.setXY(100, 250);
         let sline = new SLine();
-        sline.lineWidth = 5;
+        sline.lineSize = 5;
         line.draw(sline);
 
         let rect = this.addUI.graphic();
         rect.setXY(200, 300);
         let rshape = new SRect();
         rshape.cornerRadius = [5, 5, 10, 10];
-        rshape.lineWidth = 2;
+        rshape.lineSize = 2;
         rshape.lineColor = 0xff00ff;
         rect.draw(rshape);
 
@@ -46,7 +46,7 @@ class UIScene extends ViewScene {
         let cshape = new SCircle();
         cshape.lineColor = 0xffff00;
         cshape.fillColor = 0xff00ff50;
-        cshape.lineWidth = 3;
+        cshape.lineSize = 3;
         circle.draw(cshape);
         
         let elli = this.addUI.graphic();
@@ -55,25 +55,27 @@ class UIScene extends ViewScene {
         let eshape = new SEllipse();
         eshape.lineColor = 0xffff00;
         eshape.fillColor = 0xff000050;
-        eshape.lineWidth = 3;
+        eshape.lineSize = 3;
         elli.draw(eshape);
 
         let rpoly = this.addUI.graphic();
         rpoly.setXY(300, 100);
         rpoly.setSize(200, 200);
         let reshape = new SRegularPolygon();
-        reshape.lineWidth = 3;
+        reshape.lineSize = 3;
         reshape.lineColor = 0xffff00;
         reshape.fillColor = 0xff000050;
         reshape.sideNumber = 10;
         reshape.distances = [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1];
         rpoly.draw(reshape);
+        console.log(rpoly.toJSON());
+        rpoly.clone().setXY(100, 50);
 
         let poly = this.addUI.graphic();
         poly.setXY(500, 100);
         poly.setSize(200, 200);
         let pshape = new SPolygon();
-        pshape.lineWidth = 3;
+        pshape.lineSize = 3;
         pshape.lineColor = 0xffff00;
         pshape.fillColor = 0xff000050;
         pshape.points = [0,0, 100,100, 200,200, 100,200, 300,400, 50, 400];

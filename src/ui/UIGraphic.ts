@@ -12,20 +12,12 @@ export class UIGraphic extends View {
         {},
         clone(View.SERIALIZABLE_FIELDS),
         {
-            type: {property: "_type", default: 0},
-            lineSize: {property: "_lineSize", default: 1},  
-            lineColor: {property: "_lineColor", default: 0},  
-            fillColor: {property: "_fillColor", default: 0xffffff},
-            cornerRadius: {property: "_cornerRadius", raw: true},
-            sides: {property: "_sides"},
-            startAngle: {property: "_startAngle"},
-            polygonPoints: {property: "_polygonPoints", raw: true},    
-            distances: {property: "_distances", raw: true},           
+            shape: {property: "_shape", type: Shape},         
         }
     );
 
-    _shape: Shape;
-
+    private _shape: Shape;
+    
     private _graphics: Graphics;
 
     constructor(scene: ViewScene) {

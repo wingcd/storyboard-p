@@ -1,9 +1,10 @@
 import { Circle, Ellipse, Graphics } from "../phaser";
 import { IView } from "../types";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SEllipse extends Shape {
-    public static TYPE = 5;
+    public static TYPE = "ellipse";
 
     private _x: number = 0;
     private _y: number = 0;
@@ -38,3 +39,5 @@ export class SEllipse extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SEllipse);

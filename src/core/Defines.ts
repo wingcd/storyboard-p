@@ -21,6 +21,7 @@ export enum ECategoryType {
     Timeline = "timeline",
     TweenPlugin = "tween-plugin",
     TextStyle = "text-style",
+    Shape = "shape",
 };
 
 export enum EDirectionType {

@@ -1,9 +1,10 @@
 import { Circle, Graphics } from "../phaser";
 import { IView } from "../types";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SCircle extends Shape {
-    public static TYPE = 4;
+    public static TYPE = "circle";
 
     private _x: number = 0;
     private _y: number = 0;
@@ -36,3 +37,5 @@ export class SCircle extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SCircle);

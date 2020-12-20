@@ -1,10 +1,20 @@
 import { Graphics, Point, Polygon } from "../phaser";
-import { IView } from "../types";
+import { ISerializeFields, IView } from "../types";
 import { GetValue } from "../utils/Object";
+import { clone } from "../utils/Serialize";
 import { Shape } from "./Shape";
+import { ShapeFactory } from "./ShapeFactory";
 
 export class SPolygon extends Shape {
-    public static TYPE = 6;
+    public static TYPE = "polygon";
+    static SERIALIZABLE_FIELDS: ISerializeFields = Object.assign(
+        {},
+        clone(Shape.SERIALIZABLE_FIELDS),
+        {
+            points: {raw: true},  
+        }
+    );
+
     public points: number[] = [];
 
     private _points: Point[] = [];
@@ -45,3 +55,5 @@ export class SPolygon extends Shape {
         return this;
     }
 }
+
+ShapeFactory.regist(SPolygon);
