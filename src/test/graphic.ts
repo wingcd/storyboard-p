@@ -3,9 +3,13 @@ import { UIManager } from "../core/UIManager";
 import { ViewScene } from "../core/ViewScene";
 import { ETextureScaleType } from "../core/Defines";
 import { Settings } from "../core/Setting";
-import { PointStyle, SPoint } from "../shapes/SPoint";
-import { LineStyle, SLine } from "../shapes/SLine";
-import { RectStyle, SRect } from "../shapes/SRect";
+import { SPoint } from "../shapes/SPoint";
+import { SLine } from "../shapes/SLine";
+import { SRect } from "../shapes/SRect";
+import { SEllipse } from "../shapes/SEllipse";
+import { SCircle } from "../shapes/SCircle";
+import { SRegularPolygon } from "../shapes/SRegularPolygon";
+import { SPolygon } from "../shapes/SPolygon";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -19,43 +23,61 @@ class UIScene extends ViewScene {
         let pt = this.addUI.graphic();
         pt.setXY(100, 100);
         pt.setSize(200, 100);
-        pt.shape = new SPoint();
-        let ps = new PointStyle();       
-        pt.draw(ps);
+        pt.shape = new SPoint(); 
+        pt.draw();
 
         let line = this.addUI.graphic();
         line.setXY(100, 250);
-        line.shape = new SLine();
-        let ls = new LineStyle();
-        ls.lineWidth = 5;
-        line.draw(ls);
+        let sline = new SLine();
+        sline.lineWidth = 5;
+        line.draw(sline);
 
         let rect = this.addUI.graphic();
         rect.setXY(200, 300);
-        rect.shape = new SRect();
-        let rs = new RectStyle();
-        rs.cornerRadius = [5, 5, 10, 10];
-        rs.lineWidth = 2;
-        rs.lineColor = 0xff00ff;
-        rect.draw(rs);
+        let rshape = new SRect();
+        rshape.cornerRadius = [5, 5, 10, 10];
+        rshape.lineWidth = 2;
+        rshape.lineColor = 0xff00ff;
+        rect.draw(rshape);
 
-        // rect.drawRect(2, 0xff0000, 0x00ff00, [5,5,5,5]);
+        let circle = this.addUI.graphic();
+        circle.setXY(300, 250);
+        circle.setSize(200, 100);
+        let cshape = new SCircle();
+        cshape.lineColor = 0xffff00;
+        cshape.fillColor = 0xff00ff50;
+        cshape.lineWidth = 3;
+        circle.draw(cshape);
+        
+        let elli = this.addUI.graphic();
+        elli.setXY(300, 200);
+        elli.setSize(200, 100);
+        let eshape = new SEllipse();
+        eshape.lineColor = 0xffff00;
+        eshape.fillColor = 0xff000050;
+        eshape.lineWidth = 3;
+        elli.draw(eshape);
 
-        // let elli = this.addUI.graphic();
-        // elli.setXY(100, 150);
-        // elli.setSize(200, 100);
-        // elli.drawEllipse(3, 0xffff00, 0xff000050);
+        let rpoly = this.addUI.graphic();
+        rpoly.setXY(300, 100);
+        rpoly.setSize(200, 200);
+        let reshape = new SRegularPolygon();
+        reshape.lineWidth = 3;
+        reshape.lineColor = 0xffff00;
+        reshape.fillColor = 0xff000050;
+        reshape.sideNumber = 10;
+        reshape.distances = [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1];
+        rpoly.draw(reshape);
 
-        // let rpoly = this.addUI.graphic();
-        // rpoly.setXY(300, 100);
-        // rpoly.setSize(200, 200);
-        // rpoly.drawRegularPolygon(3, 0xffff00, 0xff000050, 10, 0, [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1]);
-        // rpoly.clone().setXY(400, 300);
-
-        // let poly = this.addUI.graphic();
-        // poly.setXY(500, 100);
-        // poly.setSize(200, 200);
-        // poly.drawPolygon(3, 0xffff00, 0xff000050, [0,0, 100,100, 200,200, 100,200, 300,400, 50, 400]);
+        let poly = this.addUI.graphic();
+        poly.setXY(500, 100);
+        poly.setSize(200, 200);
+        let pshape = new SPolygon();
+        pshape.lineWidth = 3;
+        pshape.lineColor = 0xffff00;
+        pshape.fillColor = 0xff000050;
+        pshape.points = [0,0, 100,100, 200,200, 100,200, 300,400, 50, 400];
+        poly.draw(pshape);
     }
 }
 

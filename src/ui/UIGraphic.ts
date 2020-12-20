@@ -1,10 +1,8 @@
 import { View } from "../core/View";
 import { ViewScene } from "../core/ViewScene";
-import { Graphics, Point } from "../phaser";
-import { Shape, ShapeStyle } from "../shapes/Shape";
+import { Graphics } from "../phaser";
+import { Shape } from "../shapes/Shape";
 import { ISerializeFields } from "../types";
-import { splitColorAndAlpha } from "../utils/Color";
-import { MathUtils } from "../utils/Math";
 import { clone } from "../utils/Serialize";
 
 export class UIGraphic extends View {
@@ -26,7 +24,6 @@ export class UIGraphic extends View {
         }
     );
 
-    _style: ShapeStyle;
     _shape: Shape;
 
     private _graphics: Graphics;
@@ -45,6 +42,13 @@ export class UIGraphic extends View {
         return ret;
     }
 
+    public hitTest(area: any, x: number, y: number) {
+        if(!this._shape) {
+            return super.hitTest(area, x, y);
+        }
+        return this._shape.contains(this, x, y);
+    }
+
     public get shape(): Shape {
         return this._shape;
     }
@@ -53,19 +57,12 @@ export class UIGraphic extends View {
         this._shape = val;
     }
 
-    public get style(): ShapeStyle {
-        return this._style;
-    }
-
-    public set style(val: ShapeStyle) {
-        this._style = val;
-    }
-
-    public draw(style?: ShapeStyle) {
-        this._updateGraph(style);
+    public draw(shape?: Shape) {
+        this._updateGraph(shape);
     }
     
-    private _updateGraph(style?: ShapeStyle): void {
+    private _updateGraph(shape?: Shape): void {
+        this._shape = shape || this._shape;
         if (!this._shape) {
             return;
         }
@@ -78,8 +75,7 @@ export class UIGraphic extends View {
         if (w == 0 || h == 0)
             return;
 
-        var style = style || this._style || new ShapeStyle();
-        this._shape.draw(this, gr, style);
+        this._shape.draw(this, gr);
     }
 
     public replaceMe(target: View): void {

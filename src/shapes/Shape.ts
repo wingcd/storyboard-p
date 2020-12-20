@@ -1,4 +1,4 @@
-import { Graphics } from "../phaser";
+import { Graphics, Rectangle } from "../phaser";
 import { IView } from "../types";
 import { IShape } from "../types/IShape";
 import { splitColorAndAlpha } from "../utils/Color";
@@ -11,64 +11,70 @@ export enum EShapeShowType {
     All,
 }
 
-export class ShapeStyle {
+export class Shape implements IShape{
+    public static TYPE = 0;
+    public static MIN_HITTEST_SIZE = 5;
+    
     showType: EShapeShowType = EShapeShowType.All;
     lineWidth?: number;
     fillColor?: number;  
     lineColor?: number;  
-}
 
-export class Shape implements IShape{
-    public static TYPE = 0;
+    constructor(config?: any) {
+        this.showType = GetValue(config, "showType", EShapeShowType.All);
+        this.lineWidth = GetValue(config, "lineWidth", 1);
+        this.lineColor = GetValue(config, "lineColor", 0x0);
+        this.fillColor = GetValue(config, "fillColor", 0xffffff);
+    }
 
-    hitTest(): boolean {
-        return false;
-    }    
+    protected _shape: any;
+    contains(view: IView, x:number, y: number): boolean {
+        return Rectangle.Contains(this._shape, x, y);
+    }  
 
-    protected reset(view: IView, g: Graphics, style: ShapeStyle) {
-
+    protected reset(view: IView, g: Graphics) {
+        this._shape = new Rectangle(0, 0, Math.min(Shape.MIN_HITTEST_SIZE, view.width), Math.min(Shape.MIN_HITTEST_SIZE, view.height));
     } 
 
-    protected needFill(style: ShapeStyle): boolean {
-        let showType = GetValue(style, "showType", EShapeShowType.All);
-        return showType == EShapeShowType.Fill || showType == EShapeShowType.All;
+    protected needFill(): boolean {
+        return this.showType == EShapeShowType.Fill || this.showType == EShapeShowType.All;
     }
 
-    protected needLine(style: ShapeStyle): boolean {
-        let showType = GetValue(style, "showType", EShapeShowType.All);
-        return showType == EShapeShowType.Line || showType == EShapeShowType.All;
+    protected needLine(): boolean {
+        return this.showType == EShapeShowType.Line || this.showType == EShapeShowType.All;
     }
 
-    protected config(view: IView, g: Graphics, style: ShapeStyle) {
-        if(this.needFill(style)) {
-            let lineWidth = GetValue(style, "lineWidth", 1);
-            let lineColor = GetValue(style, "lineColor", 0x0);
-            let lColor = splitColorAndAlpha(lineColor);
-            g.lineStyle(lineWidth, lColor[0], lColor[1]);
+    protected config(view: IView, g: Graphics) {
+        if(this.needFill()) {
+            let lColor = splitColorAndAlpha(this.lineColor);
+            g.lineStyle(this.lineWidth, lColor[0], lColor[1]);
         }
-        if(this.needLine(style)) {
-            let fillColor = GetValue(style, "fillColor", 0xffffff);
-            let fcolor = splitColorAndAlpha(fillColor);
+        if(this.needLine()) {
+            let fcolor = splitColorAndAlpha(this.fillColor);
             g.fillStyle(fcolor[0], fcolor[1]);
         }
     }
 
-    fill(view: IView, g: Graphics, style: ShapeStyle): this {
+    public get shape(): any {
+        return this._shape;
+    }
+
+    public fill(view: IView, g: Graphics): this {
         return this;
     }
 
-    storke(view: IView, g: Graphics, style: ShapeStyle): this {
+    public storke(view: IView, g: Graphics): this {
         return this;
     }
     
-    draw(view: IView, g: Graphics, style: ShapeStyle): this {        
-        if(style.showType  == EShapeShowType.None) {
+    public draw(view: IView, g: Graphics): this {        
+        if(this.showType  == EShapeShowType.None) {
             return this;
         }
-        this.reset(view, g, style);
-        this.config(view, g, style);
-        this.fill(view, g, style);
-        this.storke(view, g, style);
+        this.reset(view, g);
+        this.config(view, g);
+        this.fill(view, g);
+        this.storke(view, g);
         return this;
     }
 }

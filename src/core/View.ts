@@ -1259,7 +1259,7 @@ export class View implements IView {
 
         if (!this._hitArea) {
             this._hitArea = new Rectangle();
-            this._rootContainer.setInteractive(this._hitArea, this.hitTest);
+            this._rootContainer.setInteractive(this._hitArea, this.hitTest.bind(this));
         }
 
         this._rootContainer.input.enabled = true;
@@ -1270,8 +1270,8 @@ export class View implements IView {
         h.height = this.height;
     } 
 
-    public hitTest(rect: Rectangle, x: number, y: number): boolean {
-        return Rectangle.Contains(rect, x, y);
+    public hitTest(area: any, x: number, y: number): boolean {
+        return Rectangle.Contains(area, x, y);
     }
 
     protected handleBorderChange() {

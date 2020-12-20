@@ -1,41 +1,44 @@
 import { Graphics } from "../phaser";
 import { IView } from "../types";
+import { GetValue } from "../utils/Object";
 import { Shape } from "./Shape";
-import { PointStyle } from "./SPoint";
-
-export class RectStyle extends PointStyle{
-    width: number = 1;
-    cornerRadius: number | number[];
-}
 
 export class SRect extends Shape {
     public static TYPE = 3;
+    cornerRadius: number | number[];
 
-    private _cornerRadius: number[] = [0,0,0,0];
-    protected reset(view: IView, g: Graphics, style: RectStyle) {
-        super.reset(view, g, style);
+    private _cornerRadius: number[] = [0,0,0,0];  
 
-        if(Array.isArray(style.cornerRadius)) {
+    constructor(config?: any) {
+        super(config);
+
+        this.cornerRadius = GetValue(config, "cornerRadius", 0);
+    }
+
+    protected reset(view: IView, g: Graphics) {
+        super.reset(view, g);
+
+        if(Array.isArray(this.cornerRadius)) {
             for(let i=0;i<4;i++){
-                if(style.cornerRadius.length > i) {
-                    this._cornerRadius[i] = style.cornerRadius[i];
+                if(this.cornerRadius.length > i) {
+                    this._cornerRadius[i] = this.cornerRadius[i];
                 }else{
                     this._cornerRadius[i] = 0;
                 }
             }
         }else{
             for(let i=0;i<4;i++){
-                this._cornerRadius[i] = style.cornerRadius || 0;
+                this._cornerRadius[i] = this.cornerRadius || 0;
             } 
         }
     }
 
-    public fill(view: IView, g: Graphics, style: RectStyle): this {
-        if(!this.needFill(style)) {
+    public fill(view: IView, g: Graphics): this {
+        if(!this.needFill()) {
             return this;
         }
 
-        if(!style.cornerRadius) {
+        if(!this.cornerRadius) {
             g.fillRect(0,0, view.width, view.height);
         }else{
             g.fillRoundedRect(0,0, view.width, view.height,{tl:this._cornerRadius[0], tr: this._cornerRadius[1], bl: this._cornerRadius[2], br: this._cornerRadius[3]});
@@ -44,12 +47,12 @@ export class SRect extends Shape {
         return this;
     }
 
-    public storke(view: IView, g: Graphics, style: RectStyle): this {
-        if(!this.needLine(style)) {
+    public storke(view: IView, g: Graphics): this {
+        if(!this.needLine()) {
             return this;
         }
 
-        if(!style.cornerRadius) {
+        if(!this.cornerRadius) {
             g.strokeRect(0,0, view.width, view.height);
         }else{
             g.strokeRoundedRect(0,0, view.width, view.height,{tl:this._cornerRadius[0], tr: this._cornerRadius[1], bl: this._cornerRadius[2], br: this._cornerRadius[3]});

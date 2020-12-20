@@ -1,30 +1,32 @@
-import { Graphics } from "../phaser";
+import { Graphics, Rectangle } from "../phaser";
 import { IView } from "../types";
-import { GetValue } from "../utils/Object";
-import { Shape, ShapeStyle } from "./Shape";
-
-export class LineStyle extends ShapeStyle{
-    size: number = 5;
-}
+import { Shape } from "./Shape";
 
 export class SLine extends Shape {
     public static TYPE = 2;
 
-    private _points: number[] = [0,0];
+    private _points: number[] = [0,0]; 
+    private _height: number = 0;   
 
-    protected reset(view: IView, g: Graphics, style: LineStyle) {
-        super.reset(view, g, style);
+    contains(view: IView, x:number, y: number): boolean {
+        return Rectangle.Contains(this._shape, x, y);
+    } 
+
+    protected reset(view: IView, g: Graphics) {
+        super.reset(view, g);
 
         this._points[0] = 0;
-        this._points[1] = style.size ? (view.height - style.size) / 2 : view.height / 2;
+        this._points[1] = this.lineWidth ? (view.height - this.lineWidth) / 2 : view.height / 2;
+        this._height = this.lineWidth || view.height;
+        this._shape = new Rectangle(this._points[0], this._points[1], Math.min(Shape.MIN_HITTEST_SIZE,view.width), Math.min(Shape.MIN_HITTEST_SIZE, this._height));
     }
 
-    public fill(view: IView, g: Graphics, style: LineStyle): this {
+    public fill(view: IView, g: Graphics): this {
         return this;
     }
 
-    public storke(view: IView, g: Graphics, style: LineStyle): this {
-        if(!this.needLine(style)) {
+    public storke(view: IView, g: Graphics): this {
+        if(!this.needLine()) {
             return this;
         }
 
