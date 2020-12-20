@@ -10,6 +10,7 @@ import { SEllipse } from "../shapes/SEllipse";
 import { SCircle } from "../shapes/SCircle";
 import { SRegularPolygon } from "../shapes/SRegularPolygon";
 import { SPolygon } from "../shapes/SPolygon";
+import { UIGraphic } from "../ui/UIGraphic";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -24,6 +25,7 @@ class UIScene extends ViewScene {
         pt.setXY(100, 100);
         pt.setSize(200, 100);
         pt.shape = new SPoint(); 
+        pt.shape.fillColor = 0xff0000;
         pt.draw();
 
         let line = this.addUI.graphic();
@@ -69,7 +71,11 @@ class UIScene extends ViewScene {
         reshape.distances = [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1];
         rpoly.draw(reshape);
         console.log(rpoly.toJSON());
-        rpoly.clone().setXY(100, 50);
+        let cloneG = (rpoly.clone() as UIGraphic).setXY(100, 50);
+        (cloneG.shape as SRegularPolygon).onGetDistance = (i: number)=>{
+            return i * 0.1;
+        };
+        cloneG.draw();
 
         let poly = this.addUI.graphic();
         poly.setXY(500, 100);

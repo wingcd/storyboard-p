@@ -22,6 +22,7 @@ export class SRegularPolygon extends Shape {
     public startAngle: number = 0;
     public distances?: number[];
 
+    public onGetDistance: Function;
     private _points: Point[] = [];
 
     constructor(config?: any) {
@@ -48,10 +49,17 @@ export class SRegularPolygon extends Shape {
         var deltaAngle: number = 2 * Math.PI / sides;
         var dist: number;
         for (var i: number = 0; i < sides; i++) {
-            if (this.distances) {
-                dist = this.distances[i];
-                if (isNaN(dist))
+            if(this.onGetDistance) {
+                dist = this.onGetDistance(i, this, view);
+                if (isNaN(dist)) {
                     dist = 1;
+                }
+            }
+            else if (this.distances) {
+                dist = this.distances[i];
+                if (isNaN(dist)) {
+                    dist = 1;
+                }
             }
             else
                 dist = 1;
