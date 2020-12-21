@@ -1,6 +1,6 @@
 import { ObjectFactory } from "../core/ObjectFactory";
 import { ECategoryType } from "../core/Defines";
-import { IShape } from "../types/IShape";
+import { IShape } from "../types/views/IShape";
 
 export class ShapeFactory {
     private static _inst: ShapeFactory;

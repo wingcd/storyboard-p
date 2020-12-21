@@ -1,8 +1,8 @@
 import { StageScalePlugin, EStageScaleMode, EStageOrientation, Rectangle } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EDirectionType, EFillType, ETextureScaleType } from "../core/Defines";
-import { UIImage } from "../ui/UIImage";
+import { Image } from "../views/Image";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -55,7 +55,7 @@ class UIScene extends ViewScene {
 
         console.log(view2.toJSON());
         
-        let view3 = view.clone() as UIImage;
+        let view3 = view.clone() as Image;
         view3.x = 400;
         view3.fillType = EFillType.Horizontal;
         view3.fillMask.value = 1;
@@ -108,7 +108,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

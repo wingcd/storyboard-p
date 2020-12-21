@@ -1,12 +1,12 @@
 import { Settings } from "../core/Setting";
 import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EDirectionType, EFillType, EHorAlignType, EProgressTitleType, ERelationPinType, EVertAlignType } from "../core/Defines";
 import { AnimationComponent } from "../components/AnimationComponent";
-import { UIProgressBar } from "../ui/UIProgressBar";
-import { UIImage } from "../ui/UIImage";
-import { UISlider } from "../ui/UISlider";
+import { ProgressBar } from "../views/ProgressBar";
+import { Image } from "../views/Image";
+import { Slider } from "../views/Slider";
 
 // Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -141,7 +141,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

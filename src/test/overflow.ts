@@ -1,12 +1,12 @@
 import { Settings } from "../core/Setting";
 import { StageScalePlugin, Pointer, EventData, GameObject, EStageScaleMode, EStageOrientation, Point } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EDirectionType, EFillType, EOverflowType, ERelationPinType, EScrollbarDisplayType, EScrollType } from "../core/Defines";
 import { Margin } from "../utils/Margin";
 import { Package } from "../core/Package";
 import { PackageItem } from "../core/PackageItem";
-import { UIScrollBar } from "../ui/UIScrollBar";
+import { ScrollBar } from "../views/ScrollBar";
 
 // Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -181,7 +181,7 @@ class UIScene extends ViewScene {
         Package.inst.addPackage(pkg);
         let hScroll = pkg.addTemplate(scroll.toJSON());    
         let vScroll = pkg.addTemplate(vscroll.toJSON());
-        let v = Package.inst.createObjectFromUrl(this, hScroll) as UIScrollBar;
+        let v = Package.inst.createObjectFromUrl(this, hScroll) as ScrollBar;
         v.x = 400;
             
         view.scrollPane.setSrollbar(hScroll, vScroll);
@@ -228,7 +228,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

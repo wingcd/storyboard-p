@@ -2,7 +2,7 @@ import { ECategoryType } from "../core/Defines";
 import { Package } from "../core/Package";
 import { Graphics, Rectangle } from "../phaser";
 import { ISerializeFields, IView } from "../types";
-import { IShape } from "../types/IShape";
+import { IShape } from "../types/views/IShape";
 import { splitColorAndAlpha } from "../utils/Color";
 import { GetValue } from "../utils/Object";
 import { Deserialize, Serialize } from "../utils/Serialize";

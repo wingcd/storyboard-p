@@ -4,14 +4,13 @@ import { ViewGroup } from "./ViewGroup";
 import { ObjectFactory } from "./ObjectFactory";
 import { ECategoryType } from "./Defines";
 
-import { IViewConfig, IViewGroupConfig, IUIImageConfig, IUITextFieldConfig, IUITextInputConfig, 
-    IUIButtonConfig, IUILabelConfig, IUIScrollBarConfig, IUISliderConfig, 
-    IUIProgressBarConfig, IUIRichTextInputConfig, IUIListConfig } from "../types";
+import { IViewConfig, IViewGroupConfig, IImageConfig, ITextFieldConfig, ITextInputConfig, 
+    IButtonConfig, ILabelConfig, IScrollBarConfig, ISliderConfig, 
+    IProgressBarConfig, IRichTextInputConfig, IListConfig, IGraphicConfig } from "../types";
     
-import { UIButton,UILabel,UIRichTextField,UIProgressBar,
-    UISlider,UIScrollBar,UIImage,UITextInput,UITextField, UIList } from "../ui";
-import { IUIGraphConfig } from "../types/IUIGraph";
-import { UIGraphic } from "../ui/UIGraphic";
+import { Button,Label,RichTextField,ProgressBar,
+    Slider,ScrollBar,Image,TextInput,TextField, List } from "../views";
+import { Graphic } from "../views/Graphic";
 
 export interface IPrefab {
     id: number;
@@ -61,67 +60,62 @@ export class ViewFactory {
         return this._add(type, config, template) as ViewGroup;
     }
 
-    public image(config?: IUIImageConfig, template?: any): UIImage {
+    public image(config?: IImageConfig, template?: any): Image {
         let type: any = ViewFactory.getType("image");
-        return this._add(type, config, template) as UIImage;
+        return this._add(type, config, template) as Image;
     }
 
-    public textField(config?: IUITextFieldConfig, template?: any): UITextField {
+    public textField(config?: ITextFieldConfig, template?: any): TextField {
         let type: any = ViewFactory.getType("textfield");
-        return this._add(type, config, template) as UITextField;
+        return this._add(type, config, template) as TextField;
     }
 
-    public richTextField(config?: IUIRichTextInputConfig, template?: any): UIRichTextField {
+    public richTextField(config?: IRichTextInputConfig, template?: any): RichTextField {
         let type: any = ViewFactory.getType("richtext");
-        return this._add(type, config, template) as UIRichTextField;
+        return this._add(type, config, template) as RichTextField;
     }
 
-    public textInput(config?: IUITextInputConfig, template?: any): UITextInput {
+    public textInput(config?: ITextInputConfig, template?: any): TextInput {
         let type: any = ViewFactory.getType("textinput");
-        return this._add(type, config, template) as UITextInput;
+        return this._add(type, config, template) as TextInput;
     }
 
-    public button(config?: IUIButtonConfig, template?: any): UIButton {
+    public button(config?: IButtonConfig, template?: any): Button {
         let type: any = ViewFactory.getType("button");
-        return this._add(type, config, template) as UIButton;
+        return this._add(type, config, template) as Button;
     }
 
-    public label(config?: IUILabelConfig, template?: any): UILabel {
+    public label(config?: ILabelConfig, template?: any): Label {
         let type: any = ViewFactory.getType("label");
-        return this._add(type, config, template) as UILabel;
+        return this._add(type, config, template) as Label;
     }
 
-    public progressBar(config?: IUIProgressBarConfig, template?: any): UIProgressBar {
+    public progressBar(config?: IProgressBarConfig, template?: any): ProgressBar {
         let type: any = ViewFactory.getType("progress");
-        return this._add(type, config, template) as UIProgressBar;
+        return this._add(type, config, template) as ProgressBar;
     } 
 
-    public slider(config?: IUISliderConfig, template?: any): UISlider {
+    public slider(config?: ISliderConfig, template?: any): Slider {
         let type: any = ViewFactory.getType("slider");
-        return this._add(type, config, template) as UISlider;
+        return this._add(type, config, template) as Slider;
     } 
 
-    public scrollBar(config?: IUIScrollBarConfig, template?: any): UIScrollBar {
+    public scrollBar(config?: IScrollBarConfig, template?: any): ScrollBar {
         let type: any = ViewFactory.getType("scrollbar");
-        return this._add(type, config, template) as UIScrollBar;
+        return this._add(type, config, template) as ScrollBar;
     } 
 
-    public list(config?: IUIListConfig, template?: any): UIList {
+    public list(config?: IListConfig, template?: any): List {
         let type: any = ViewFactory.getType("list");
-        return this._add(type, config, template) as UIList;
+        return this._add(type, config, template) as List;
     } 
 
-    public graphic(config?: IUIGraphConfig, template?: any): UIGraphic {
+    public graphic(config?: IGraphicConfig, template?: any): Graphic {
         let type: any = ViewFactory.getType("graphic");
-        return this._add(type, config, template) as UIGraphic;
+        return this._add(type, config, template) as Graphic;
     } 
 
-    public create(config?: any, template?: any): View {
-        let viewType = (config ? config.__type__ : null) || (template ? template.__type__ : null);
-        if(!viewType) {
-            throw new Error("must be with view type to create instance!");
-        }
-
+    public createByName(viewType: string, config?: IGraphicConfig, template?: any): View {
         let type: any = ViewFactory.getType(viewType);
         if(!type) {
             throw new Error(`not regist view type:${type}!`);
@@ -129,19 +123,28 @@ export class ViewFactory {
 
         return this._add(type, config, template);
     }
+
+    public create(config?: any, template?: any): View {
+        let viewType = (config ? config.__type__ : null) || (template ? template.__type__ : null);
+        if(!viewType) {
+            throw new Error("must be with view type to create instance!");
+        }
+
+        return this.createByName(viewType, config, template);
+    }
 }
 
 ViewFactory.regist(View);
 ViewFactory.regist(ViewGroup);
-ViewFactory.regist(UIImage);
-ViewFactory.regist(UIButton);
-ViewFactory.regist(UILabel);
-ViewFactory.regist(UIProgressBar);
-ViewFactory.regist(UISlider);
-ViewFactory.regist(UIScrollBar);
+ViewFactory.regist(Image);
+ViewFactory.regist(Button);
+ViewFactory.regist(Label);
+ViewFactory.regist(ProgressBar);
+ViewFactory.regist(Slider);
+ViewFactory.regist(ScrollBar);
 
-ViewFactory.regist(UITextField);
-ViewFactory.regist(UIRichTextField);
-ViewFactory.regist(UITextInput);
-ViewFactory.regist(UIList);
-ViewFactory.regist(UIGraphic);
+ViewFactory.regist(TextField);
+ViewFactory.regist(RichTextField);
+ViewFactory.regist(TextInput);
+ViewFactory.regist(List);
+ViewFactory.regist(Graphic);

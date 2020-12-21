@@ -1,5 +1,5 @@
 import { StageScalePlugin, EStageScaleMode, EStageOrientation, Point } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { ETextureScaleType } from "../core/Defines";
 import { Settings } from "../core/Setting";
@@ -10,7 +10,7 @@ import { SEllipse } from "../shapes/SEllipse";
 import { SCircle } from "../shapes/SCircle";
 import { SRegularPolygon } from "../shapes/SRegularPolygon";
 import { SPolygon } from "../shapes/SPolygon";
-import { UIGraphic } from "../ui/UIGraphic";
+import { Graphic } from "../views/Graphic";
 
 class UIScene extends ViewScene {
     constructor() {
@@ -71,7 +71,7 @@ class UIScene extends ViewScene {
         reshape.distances = [0.5,1,0.5,1,0.5,1,0.5,1,0.5,1];
         rpoly.draw(reshape);
         console.log(rpoly.toJSON());
-        let cloneG = (rpoly.clone() as UIGraphic).setXY(100, 50);
+        let cloneG = (rpoly.clone() as Graphic).setXY(100, 50);
         (cloneG.shape as SRegularPolygon).onGetDistance = (i: number)=>{
             return i * 0.1;
         };
@@ -109,7 +109,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

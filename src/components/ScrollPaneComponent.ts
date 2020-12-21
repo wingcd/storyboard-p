@@ -6,10 +6,10 @@ import { Settings } from "../core/Setting";
 import { DragComponent } from "./DragComponent";
 import { disallow_multiple_component } from "../annotations/Component";
 import { ViewGroup } from "../core/ViewGroup";
-import { ISerializeFields, IUIList } from "../types";
+import { ISerializeFields, IList } from "../types";
 import { ComponentFactory } from "./ComponentFactory";
 import { SerializableComponent } from "./SerializableComponent";
-import { UIScrollBar } from "../ui/UIScrollBar";
+import { ScrollBar } from "../views/ScrollBar";
 import { Package } from "../core/Package";
 import { Margin } from "../utils/Margin";
 import { View } from "../core/View";
@@ -101,8 +101,8 @@ export class ScrollPaneComponent extends SerializableComponent {
     private _moveOffset: Point = new Point();
     private _group: ViewGroup;
 
-    private _vScrollBar: UIScrollBar;
-    private _hScrollBar: UIScrollBar;
+    private _vScrollBar: ScrollBar;
+    private _hScrollBar: ScrollBar;
     // 标记是否显示scrollbar
     private _scrollBarVisible: boolean = false;
     private _mouseWheelEnabled: boolean = false;
@@ -1086,7 +1086,7 @@ export class ScrollPaneComponent extends SerializableComponent {
             }
             let hRes = this._hScrollBarRes || Settings.horizontalScrollBar;
             if(hRes) {
-                this._hScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, hRes) as UIScrollBar;
+                this._hScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, hRes) as ScrollBar;
                 if(!this._hScrollBar) {
                     throw new Error(`Cannot create scrollbar from ${hRes}`);
                 }
@@ -1100,7 +1100,7 @@ export class ScrollPaneComponent extends SerializableComponent {
             }
             let vRes = this._vScrollBarRes || Settings.verticalScrollBar;
             if(vRes) {
-                this._vScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, vRes) as UIScrollBar;
+                this._vScrollBar = Package.inst.createObjectFromUrl(this._owner.scene, vRes) as ScrollBar;
                 if(!this._vScrollBar) {
                     throw new Error(`Cannot create scrollbar from ${vRes}`);
                 }

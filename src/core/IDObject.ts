@@ -1,10 +1,10 @@
 import { View } from "./View";
 
-export interface IUIView {
+interface IView {
     owner: View; 
 }    
 
-export function IsDObject(obj: any): obj is IUIView {
+export function IsDObject(obj: any): obj is IView {
     return obj && "owner" in obj && obj.owner != null;
 }
 

@@ -1,10 +1,10 @@
 import { Settings } from "../core/Setting";
 import { StageScalePlugin, EStageScaleMode, EStageOrientation, } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EButtonMode, EHorAlignType, EOverflowType } from "../core/Defines";
 import { PropertyComponent } from "../components/PropertyComponent";
-import { UIButton } from "../ui/UIButton";
+import { Button } from "../views/Button";
 import { Renderer } from "phaser";
 
 Settings.showDebugBorder = true;
@@ -64,14 +64,14 @@ class UIScene extends ViewScene {
 
         let propComp = button.addComponentByType(PropertyComponent) as PropertyComponent;
         let propMgr = propComp.add("button");
-        propMgr.add(UIButton.UP);
-        let downStatus = propMgr.add(UIButton.DOWN);
+        propMgr.add(Button.UP);
+        let downStatus = propMgr.add(Button.DOWN);
         downStatus.add("icon", "click");
         downStatus.add("scaleX", 1.2);
         downStatus.add("scaleY", 1.2);
         downStatus.add("text", "按下", title);
 
-        let overStatus = propMgr.add(UIButton.OVER);
+        let overStatus = propMgr.add(Button.OVER);
         overStatus.add("icon", "hover");
         overStatus.add("title", "移动");
 
@@ -85,7 +85,7 @@ class UIScene extends ViewScene {
         button.ensureAllCorrect();
 
         console.log(button.toJSON());
-        let clone = button.clone() as UIButton;
+        let clone = button.clone() as Button;
         clone.y= 100;
         // clone.mode = EButtonMode.Radio;
         r.addChild(clone);
@@ -132,7 +132,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

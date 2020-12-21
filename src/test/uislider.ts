@@ -1,12 +1,12 @@
 import { Settings } from "../core/Setting";
 import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EDirectionType, EFillType, EHorAlignType, EProgressTitleType, ERelationPinType, EVertAlignType } from "../core/Defines";
 import { AnimationComponent } from "../components/AnimationComponent";
-import { UIProgressBar } from "../ui/UIProgressBar";
-import { UIImage } from "../ui/UIImage";
-import { UISlider } from "../ui/UISlider";
+import { ProgressBar } from "../views/ProgressBar";
+import { Image } from "../views/Image";
+import { Slider } from "../views/Slider";
 
 // Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -63,18 +63,18 @@ class UIScene extends ViewScene {
         slider.ensureAllCorrect();
         console.log(slider.toJSON());
         
-        let pg = slider.clone() as UIProgressBar;
+        let pg = slider.clone() as ProgressBar;
         pg.y = 200;
-        let img = pg.getChild('bar') as UIImage;
+        let img = pg.getChild('bar') as Image;
         img.fillMask.origin = EDirectionType.Left;
         pg.reverse = false;
         pg.titleType = EProgressTitleType.ValueAndMax;
         pg.value = 100;
 
-        let pg1 = pg.clone() as UIProgressBar;
+        let pg1 = pg.clone() as ProgressBar;
         pg1.removeComponentByType(AnimationComponent);
         pg1.y = 300;
-        img = pg1.getChild('bar') as UIImage;
+        img = pg1.getChild('bar') as Image;
         img.fillType = EFillType.None;
 
 
@@ -120,10 +120,10 @@ class UIScene extends ViewScene {
         vslider.addChild(vtitle);
         vslider.ensureAllCorrect();
 
-        let vs = vslider.clone() as UISlider;
+        let vs = vslider.clone() as Slider;
         vs.x = 700;
         vs.reverse = true;
-        (vs.getChild("bar_v") as UIImage).fillMask.origin = EDirectionType.Bottom;
+        (vs.getChild("bar_v") as Image).fillMask.origin = EDirectionType.Bottom;
 
         console.log(1);
     }
@@ -149,7 +149,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,

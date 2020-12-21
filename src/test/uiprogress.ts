@@ -1,11 +1,11 @@
 import { Settings } from "../core/Setting";
 import { StageScalePlugin, EStageScaleMode, EStageOrientation } from "../phaser";
-import { UIManager } from "../core/UIManager";
+import { ViewManager } from "../core/ViewManager";
 import { ViewScene } from "../core/ViewScene";
 import { EAlignType, EAutoSizeType, EDirectionType, EEaseType, EFillType, EHorAlignType, EProgressTitleType, EVertAlignType } from "../core/Defines";
 import { AnimationComponent } from "../components/AnimationComponent";
-import { UIProgressBar } from "../ui/UIProgressBar";
-import { UIImage } from "../ui/UIImage";
+import { ProgressBar } from "../views/ProgressBar";
+import { Image } from "../views/Image";
 
 // Settings.showDebugBorder = true;
 // Settings.showDebugFrame = true;
@@ -65,17 +65,17 @@ class UIScene extends ViewScene {
 
         console.log(progress.toJSON());
         
-        let pg = progress.clone() as UIProgressBar;
+        let pg = progress.clone() as ProgressBar;
         pg.y = 200;
-        let img = pg.getChild('bar') as UIImage;
+        let img = pg.getChild('bar') as Image;
         img.fillMask.origin = EDirectionType.Left;
         pg.reverse = false;
         pg.titleType = EProgressTitleType.ValueAndMax;
 
-        let pg1 = pg.clone() as UIProgressBar;
+        let pg1 = pg.clone() as ProgressBar;
         pg1.removeComponentByType(AnimationComponent);
         pg1.y = 300;
-        img = pg1.getChild('bar') as UIImage;
+        img = pg1.getChild('bar') as Image;
         img.fillType = EFillType.None;
         
         let button = this.addUI.button({
@@ -184,7 +184,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     plugins: {
         global: [
-            {key: 'storyboard-ui', plugin: UIManager, start: true, mapping: 'uimgr'},
+            {key: 'storyboard-ui', plugin: ViewManager, start: true, mapping: 'uimgr'},
             {key: 'orientation', plugin: StageScalePlugin, start: true, mapping: 'scaleEx', data: {
                 orientation: EStageOrientation.LANDSCAPE,
                 scaleMode: EStageScaleMode.FIXED_AUTO,
