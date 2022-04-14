@@ -22,6 +22,7 @@ export class SRegularPolygon extends Shape {
     public startAngle: number = 0;
     public distances?: number[];
 
+    /**外部传入每个点的距离，可用于动态生成多边形 */
     public onGetDistance: Function;
     private _points: Point[] = [];
 

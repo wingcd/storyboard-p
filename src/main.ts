@@ -1,1 +1,1 @@
-require('./test/graphic')
+require('./test/scrollpane')
